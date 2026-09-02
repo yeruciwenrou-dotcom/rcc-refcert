@@ -1,0 +1,1463 @@
+{
+  "artifact_role": "canonical-frozen-evidence",
+  "normalization": {
+    "rule": "abs(value) <= tolerance is stored as 0",
+    "significant_digits": 12,
+    "suite_tolerance": 1e-10
+  },
+  "producer": {
+    "name": "rcc-refcert",
+    "version": "0.1.0"
+  },
+  "schema": "rcc-refcert.reference-suite-freeze",
+  "schema_version": 1,
+  "suite": {
+    "appendix_f": {
+      "f5_two_qubit_witness": {
+        "final_purity": 1.0,
+        "generation_error": 0.0,
+        "initial_purity": 0.25,
+        "reset_balance_error": 0.0
+      },
+      "gamma5": {
+        "partial_kraft_mass": 0.749214172363,
+        "reference_balance_error": 0.0,
+        "word_average_errors": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "global_reset_constants": [
+        {
+          "constant": 2,
+          "n": 1
+        },
+        {
+          "constant": 4,
+          "n": 2
+        },
+        {
+          "constant": 8,
+          "n": 3
+        },
+        {
+          "constant": 16,
+          "n": 4
+        },
+        {
+          "constant": 32,
+          "n": 5
+        },
+        {
+          "constant": 64,
+          "n": 6
+        },
+        {
+          "constant": 128,
+          "n": 7
+        },
+        {
+          "constant": 256,
+          "n": 8
+        }
+      ],
+      "global_reset_gain_costs": [
+        {
+          "checks": [
+            {
+              "evidence": "numerical",
+              "message": "actual local codewords violate this sufficient H.70 certificate",
+              "name": "H.70-current[s]",
+              "outcome": "fail",
+              "tolerance": 1e-10,
+              "value": 1.5
+            },
+            {
+              "evidence": "numerical",
+              "message": "constructed prefix code satisfies the H.76 sufficient completion",
+              "name": "H.76-suggested[s]",
+              "outcome": "pass",
+              "tolerance": 1e-10,
+              "value": 1.0
+            },
+            {
+              "evidence": "numerical",
+              "message": "fixed-model initial blocks are dominated by the supplied envelopes; family-uniform boundedness is a separate analytic obligation",
+              "name": "H.72-fixed-model-initial",
+              "outcome": "pass",
+              "tolerance": 1e-10,
+              "value": 1.0
+            }
+          ],
+          "evidence": "numerical",
+          "fixed_model_initial_constant": 1.0,
+          "name": "global-reset-loop-n=1",
+          "outcome": "fail",
+          "syntax_states": [
+            {
+              "actions": [
+                {
+                  "control_gains": {
+                    "q": 1.0
+                  },
+                  "current_codeword": "1",
+                  "name": "continue",
+                  "reference_gain": 1.0,
+                  "suggested_code_length": 1,
+                  "suggested_codeword": "0"
+                },
+                {
+                  "control_gains": {
+                    "q": 2.0
+                  },
+                  "current_codeword": "0",
+                  "name": "global-reset-and-halt",
+                  "reference_gain": 2.0,
+                  "suggested_code_length": 2,
+                  "suggested_codeword": "10"
+                }
+              ],
+              "current_condition_satisfied": false,
+              "current_weighted_sum": 1.5,
+              "name": "s",
+              "suggested_condition_satisfied": true,
+              "suggested_weighted_sum": 1.0
+            }
+          ]
+        },
+        {
+          "checks": [
+            {
+              "evidence": "numerical",
+              "message": "actual local codewords violate this sufficient H.70 certificate",
+              "name": "H.70-current[s]",
+              "outcome": "fail",
+              "tolerance": 1e-10,
+              "value": 2.5
+            },
+            {
+              "evidence": "numerical",
+              "message": "constructed prefix code satisfies the H.76 sufficient completion",
+              "name": "H.76-suggested[s]",
+              "outcome": "pass",
+              "tolerance": 1e-10,
+              "value": 1.0
+            },
+            {
+              "evidence": "numerical",
+              "message": "fixed-model initial blocks are dominated by the supplied envelopes; family-uniform boundedness is a separate analytic obligation",
+              "name": "H.72-fixed-model-initial",
+              "outcome": "pass",
+              "tolerance": 1e-10,
+              "value": 1.0
+            }
+          ],
+          "evidence": "numerical",
+          "fixed_model_initial_constant": 1.0,
+          "name": "global-reset-loop-n=2",
+          "outcome": "fail",
+          "syntax_states": [
+            {
+              "actions": [
+                {
+                  "control_gains": {
+                    "q": 1.0
+                  },
+                  "current_codeword": "1",
+                  "name": "continue",
+                  "reference_gain": 1.0,
+                  "suggested_code_length": 1,
+                  "suggested_codeword": "0"
+                },
+                {
+                  "control_gains": {
+                    "q": 4.0
+                  },
+                  "current_codeword": "0",
+                  "name": "global-reset-and-halt",
+                  "reference_gain": 4.0,
+                  "suggested_code_length": 3,
+                  "suggested_codeword": "100"
+                }
+              ],
+              "current_condition_satisfied": false,
+              "current_weighted_sum": 2.5,
+              "name": "s",
+              "suggested_condition_satisfied": true,
+              "suggested_weighted_sum": 1.0
+            }
+          ]
+        },
+        {
+          "checks": [
+            {
+              "evidence": "numerical",
+              "message": "actual local codewords violate this sufficient H.70 certificate",
+              "name": "H.70-current[s]",
+              "outcome": "fail",
+              "tolerance": 1e-10,
+              "value": 4.5
+            },
+            {
+              "evidence": "numerical",
+              "message": "constructed prefix code satisfies the H.76 sufficient completion",
+              "name": "H.76-suggested[s]",
+              "outcome": "pass",
+              "tolerance": 1e-10,
+              "value": 1.0
+            },
+            {
+              "evidence": "numerical",
+              "message": "fixed-model initial blocks are dominated by the supplied envelopes; family-uniform boundedness is a separate analytic obligation",
+              "name": "H.72-fixed-model-initial",
+              "outcome": "pass",
+              "tolerance": 1e-10,
+              "value": 1.0
+            }
+          ],
+          "evidence": "numerical",
+          "fixed_model_initial_constant": 1.0,
+          "name": "global-reset-loop-n=3",
+          "outcome": "fail",
+          "syntax_states": [
+            {
+              "actions": [
+                {
+                  "control_gains": {
+                    "q": 1.0
+                  },
+                  "current_codeword": "1",
+                  "name": "continue",
+                  "reference_gain": 1.0,
+                  "suggested_code_length": 1,
+                  "suggested_codeword": "0"
+                },
+                {
+                  "control_gains": {
+                    "q": 8.0
+                  },
+                  "current_codeword": "0",
+                  "name": "global-reset-and-halt",
+                  "reference_gain": 8.0,
+                  "suggested_code_length": 4,
+                  "suggested_codeword": "1000"
+                }
+              ],
+              "current_condition_satisfied": false,
+              "current_weighted_sum": 4.5,
+              "name": "s",
+              "suggested_condition_satisfied": true,
+              "suggested_weighted_sum": 1.0
+            }
+          ]
+        },
+        {
+          "checks": [
+            {
+              "evidence": "numerical",
+              "message": "actual local codewords violate this sufficient H.70 certificate",
+              "name": "H.70-current[s]",
+              "outcome": "fail",
+              "tolerance": 1e-10,
+              "value": 8.5
+            },
+            {
+              "evidence": "numerical",
+              "message": "constructed prefix code satisfies the H.76 sufficient completion",
+              "name": "H.76-suggested[s]",
+              "outcome": "pass",
+              "tolerance": 1e-10,
+              "value": 1.0
+            },
+            {
+              "evidence": "numerical",
+              "message": "fixed-model initial blocks are dominated by the supplied envelopes; family-uniform boundedness is a separate analytic obligation",
+              "name": "H.72-fixed-model-initial",
+              "outcome": "pass",
+              "tolerance": 1e-10,
+              "value": 1.0
+            }
+          ],
+          "evidence": "numerical",
+          "fixed_model_initial_constant": 1.0,
+          "name": "global-reset-loop-n=4",
+          "outcome": "fail",
+          "syntax_states": [
+            {
+              "actions": [
+                {
+                  "control_gains": {
+                    "q": 1.0
+                  },
+                  "current_codeword": "1",
+                  "name": "continue",
+                  "reference_gain": 1.0,
+                  "suggested_code_length": 1,
+                  "suggested_codeword": "0"
+                },
+                {
+                  "control_gains": {
+                    "q": 16.0
+                  },
+                  "current_codeword": "0",
+                  "name": "global-reset-and-halt",
+                  "reference_gain": 16.0,
+                  "suggested_code_length": 5,
+                  "suggested_codeword": "10000"
+                }
+              ],
+              "current_condition_satisfied": false,
+              "current_weighted_sum": 8.5,
+              "name": "s",
+              "suggested_condition_satisfied": true,
+              "suggested_weighted_sum": 1.0
+            }
+          ]
+        }
+      ],
+      "natural_c_gt_one_interval": [
+        "1.39880406856673289439648880169528331509442436869352550495019805409417580806252789926702462253160774707794189453125",
+        "1.39880406856673289439648880169567774554703487459623136923283944720901241128008241076940976199693977832794189453125"
+      ],
+      "rank_decoder": {
+        "failures": 0,
+        "roundtrips": 781
+      }
+    },
+    "cases": [
+      {
+        "case": {
+          "interpretation": null,
+          "kind": "demonstration",
+          "name": "dephase-or-halt",
+          "paper_references": [
+            "H.1",
+            "H.2",
+            "H.3",
+            "H.4",
+            "H.6"
+          ],
+          "purpose": "A transparent one-block model with a closed-form semidensity and tight reference certificates.",
+          "title": "Dephase or halt"
+        },
+        "checks": {
+          "h1_realization": {
+            "action_depth_range": {
+              "first": 1,
+              "last": 8
+            },
+            "depths": [
+              {
+                "action_depth": 1,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 2,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 3,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 4,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 5,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 6,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 7,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 8,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              }
+            ],
+            "evidence": "numerical",
+            "expected_outcome": "pass",
+            "matches_expectation": true,
+            "maximum_spectral_norm_error": 0.0,
+            "outcome": "pass"
+          },
+          "h2_linear_fixed_point": {
+            "condition_number": 2.0,
+            "evidence": "numerical",
+            "expected_outcome": "pass",
+            "linear_inverse_applicable": true,
+            "matches_expectation": true,
+            "max_transient_steps": 16,
+            "message": "full transient-space spectral radius is below one; numerical conditioning and solve residual are reported separately",
+            "outcome": "pass",
+            "solve_residual": 0.0,
+            "spectral_radius": 0.5,
+            "truncated_output_trace": 0.999992370605
+          },
+          "h34_domination": {
+            "constant": 1.0,
+            "constant_is_infinite": false,
+            "evidence": "numerical",
+            "expected_outcome": "pass",
+            "matches_expectation": true,
+            "outcome": "pass",
+            "support_compatible": true,
+            "support_leakage": 0.0
+          },
+          "h3_bellman_choi": {
+            "checks": [
+              {
+                "evidence": "numerical",
+                "message": "matrix is Hermitian in the frozen convention",
+                "name": "choi[('s', 'q')]-hermiticity",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is positive semidefinite",
+                "name": "choi[('s', 'q')]-psd",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is Hermitian in the frozen convention",
+                "name": "bellman-residual[('s', 'q')]-hermiticity",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is positive semidefinite",
+                "name": "bellman-residual[('s', 'q')]-psd",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is Hermitian in the frozen convention",
+                "name": "output-domination-hermiticity",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is positive semidefinite",
+                "name": "output-domination-psd",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              }
+            ],
+            "constant": 1.0,
+            "evidence": "numerical",
+            "expected_outcome": "pass",
+            "matches_expectation": true,
+            "name": "minimum Bellman–Choi value-map certificate",
+            "outcome": "pass"
+          },
+          "h4_reference_potential": {
+            "certificates": [
+              {
+                "checks": [
+                  {
+                    "evidence": "numerical",
+                    "message": "theta is normalized and full-rank PSD",
+                    "name": "theta[('s', 'q')]",
+                    "outcome": "pass",
+                    "tolerance": null,
+                    "value": null
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "Omega_x <= a_x Theta_x",
+                    "name": "initial-domination[('s', 'q')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s', 'q')->('s', 'q')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "H_x(Theta_x) <= b_x sigma_R",
+                    "name": "halt-domination[('s', 'q')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "v_x >= b_x + sum_y A_{x->y} v_y",
+                    "name": "bellman[('s', 'q')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  }
+                ],
+                "constant": 1.0,
+                "evidence": "numerical",
+                "name": "tight C=1 reference-potential certificate",
+                "outcome": "pass"
+              },
+              {
+                "checks": [
+                  {
+                    "evidence": "numerical",
+                    "message": "theta is normalized and full-rank PSD",
+                    "name": "theta[('s', 'q')]",
+                    "outcome": "pass",
+                    "tolerance": null,
+                    "value": null
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "Omega_x <= a_x Theta_x",
+                    "name": "initial-domination[('s', 'q')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s', 'q')->('s', 'q')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "H_x(Theta_x) <= b_x sigma_R",
+                    "name": "halt-domination[('s', 'q')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "v_x >= b_x + sum_y A_{x->y} v_y",
+                    "name": "bellman[('s', 'q')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.5
+                  }
+                ],
+                "constant": 2.0,
+                "evidence": "numerical",
+                "name": "positive-margin reference-potential certificate",
+                "outcome": "pass"
+              }
+            ],
+            "evidence": "numerical",
+            "expected_outcome": "pass",
+            "matches_expectation": true,
+            "outcome": "pass"
+          },
+          "h6_gain_cost": {
+            "checks": [
+              {
+                "evidence": "numerical",
+                "message": "actual local codewords satisfy the gain-weighted Kraft condition",
+                "name": "H.70-current[s]",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 1.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "constructed prefix code satisfies the H.76 sufficient completion",
+                "name": "H.76-suggested[s]",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 1.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "fixed-model initial blocks are dominated by the supplied envelopes; family-uniform boundedness is a separate analytic obligation",
+                "name": "H.72-fixed-model-initial",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 1.0
+              }
+            ],
+            "evidence": "numerical",
+            "expected_outcome": "pass",
+            "fixed_model_initial_constant": 1.0,
+            "matches_expectation": true,
+            "name": "dephase-or-halt",
+            "outcome": "pass",
+            "syntax_states": [
+              {
+                "actions": [
+                  {
+                    "control_gains": {
+                      "q": 1.0
+                    },
+                    "current_codeword": "1",
+                    "name": "dephase-and-continue",
+                    "reference_gain": 1.0,
+                    "suggested_code_length": 1,
+                    "suggested_codeword": "0"
+                  },
+                  {
+                    "control_gains": {
+                      "q": 1.0
+                    },
+                    "current_codeword": "0",
+                    "name": "halt",
+                    "reference_gain": 1.0,
+                    "suggested_code_length": 1,
+                    "suggested_codeword": "1"
+                  }
+                ],
+                "current_condition_satisfied": true,
+                "current_weighted_sum": 1.0,
+                "name": "s",
+                "suggested_condition_satisfied": true,
+                "suggested_weighted_sum": 1.0
+              }
+            ]
+          }
+        },
+        "expectation_mismatches": [],
+        "matches_reference_expectations": true,
+        "parameters": {
+          "max_depth": 8,
+          "max_transient_steps": 16,
+          "tolerance": 1e-10
+        },
+        "schema": "rcc-refcert.case-audit",
+        "schema_version": 1,
+        "scope": {
+          "analytic_obligations": [
+            "faithful transcription (TC)",
+            "model-family uniformity",
+            "the RCC theorem"
+          ],
+          "evidence": "floating-point numerical checks"
+        }
+      },
+      {
+        "case": {
+          "interpretation": "The original local codewords intentionally fail the sufficient condition in Eq. (H.70); Eq. (H.76) supplies a passing re-encoding.",
+          "kind": "diagnostic",
+          "name": "multiblock-rectangular",
+          "paper_references": [
+            "H.1",
+            "H.2",
+            "H.3",
+            "H.4",
+            "H.6"
+          ],
+          "purpose": "Exercises direct-sum ordering, unequal block dimensions, rectangular Kraus maps, and nontrivial H.3–H.6 certificates.",
+          "title": "Multiblock rectangular process"
+        },
+        "checks": {
+          "h1_realization": {
+            "action_depth_range": {
+              "first": 1,
+              "last": 8
+            },
+            "depths": [
+              {
+                "action_depth": 1,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 2,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 3,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 4,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 5,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 6,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 7,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 8,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              }
+            ],
+            "evidence": "numerical",
+            "expected_outcome": "pass",
+            "matches_expectation": true,
+            "maximum_spectral_norm_error": 0.0,
+            "outcome": "pass"
+          },
+          "h2_linear_fixed_point": {
+            "condition_number": 2.54100564941,
+            "evidence": "numerical",
+            "expected_outcome": "pass",
+            "linear_inverse_applicable": true,
+            "matches_expectation": true,
+            "max_transient_steps": 16,
+            "message": "full transient-space spectral radius is below one; numerical conditioning and solve residual are reported separately",
+            "outcome": "pass",
+            "solve_residual": 0.0,
+            "spectral_radius": 0.353553390593,
+            "truncated_output_trace": 0.857142835855
+          },
+          "h34_domination": {
+            "constant": 1.07142857143,
+            "constant_is_infinite": false,
+            "evidence": "numerical",
+            "expected_outcome": "pass",
+            "matches_expectation": true,
+            "outcome": "pass",
+            "support_compatible": true,
+            "support_leakage": 0.0
+          },
+          "h3_bellman_choi": {
+            "checks": [
+              {
+                "evidence": "numerical",
+                "message": "matrix is Hermitian in the frozen convention",
+                "name": "choi[('s0', 'q1')]-hermiticity",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is positive semidefinite",
+                "name": "choi[('s0', 'q1')]-psd",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is Hermitian in the frozen convention",
+                "name": "choi[('s0', 'q2')]-hermiticity",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is positive semidefinite",
+                "name": "choi[('s0', 'q2')]-psd",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0714285714286
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is Hermitian in the frozen convention",
+                "name": "choi[('s1', 'q1')]-hermiticity",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is positive semidefinite",
+                "name": "choi[('s1', 'q1')]-psd",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.142857142857
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is Hermitian in the frozen convention",
+                "name": "choi[('s1', 'q2')]-hermiticity",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is positive semidefinite",
+                "name": "choi[('s1', 'q2')]-psd",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is Hermitian in the frozen convention",
+                "name": "bellman-residual[('s0', 'q1')]-hermiticity",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is positive semidefinite",
+                "name": "bellman-residual[('s0', 'q1')]-psd",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is Hermitian in the frozen convention",
+                "name": "bellman-residual[('s0', 'q2')]-hermiticity",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is positive semidefinite",
+                "name": "bellman-residual[('s0', 'q2')]-psd",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is Hermitian in the frozen convention",
+                "name": "bellman-residual[('s1', 'q1')]-hermiticity",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is positive semidefinite",
+                "name": "bellman-residual[('s1', 'q1')]-psd",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is Hermitian in the frozen convention",
+                "name": "bellman-residual[('s1', 'q2')]-hermiticity",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is positive semidefinite",
+                "name": "bellman-residual[('s1', 'q2')]-psd",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is Hermitian in the frozen convention",
+                "name": "output-domination-hermiticity",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "matrix is positive semidefinite",
+                "name": "output-domination-psd",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
+              }
+            ],
+            "constant": 1.07142857143,
+            "evidence": "numerical",
+            "expected_outcome": "pass",
+            "matches_expectation": true,
+            "name": "multiblock minimum value-map certificate",
+            "outcome": "pass"
+          },
+          "h4_reference_potential": {
+            "certificates": [
+              {
+                "checks": [
+                  {
+                    "evidence": "numerical",
+                    "message": "theta is normalized and full-rank PSD",
+                    "name": "theta[('s0', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": null,
+                    "value": null
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "theta is normalized and full-rank PSD",
+                    "name": "theta[('s0', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": null,
+                    "value": null
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "theta is normalized and full-rank PSD",
+                    "name": "theta[('s1', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": null,
+                    "value": null
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "theta is normalized and full-rank PSD",
+                    "name": "theta[('s1', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": null,
+                    "value": null
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "Omega_x <= a_x Theta_x",
+                    "name": "initial-domination[('s0', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "Omega_x <= a_x Theta_x",
+                    "name": "initial-domination[('s0', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "Omega_x <= a_x Theta_x",
+                    "name": "initial-domination[('s1', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "Omega_x <= a_x Theta_x",
+                    "name": "initial-domination[('s1', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s0', 'q1')->('s0', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s0', 'q1')->('s0', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s0', 'q1')->('s1', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s0', 'q1')->('s1', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "H_x(Theta_x) <= b_x sigma_R",
+                    "name": "halt-domination[('s0', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "v_x >= b_x + sum_y A_{x->y} v_y",
+                    "name": "bellman[('s0', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s0', 'q2')->('s0', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s0', 'q2')->('s0', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s0', 'q2')->('s1', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s0', 'q2')->('s1', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "H_x(Theta_x) <= b_x sigma_R",
+                    "name": "halt-domination[('s0', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "v_x >= b_x + sum_y A_{x->y} v_y",
+                    "name": "bellman[('s0', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s1', 'q1')->('s0', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s1', 'q1')->('s0', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s1', 'q1')->('s1', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s1', 'q1')->('s1', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "H_x(Theta_x) <= b_x sigma_R",
+                    "name": "halt-domination[('s1', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "v_x >= b_x + sum_y A_{x->y} v_y",
+                    "name": "bellman[('s1', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s1', 'q2')->('s0', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s1', 'q2')->('s0', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s1', 'q2')->('s1', 'q1')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "T_{y<-x}(Theta_x) <= A_{x->y} Theta_y",
+                    "name": "transition-domination[('s1', 'q2')->('s1', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "H_x(Theta_x) <= b_x sigma_R",
+                    "name": "halt-domination[('s1', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "v_x >= b_x + sum_y A_{x->y} v_y",
+                    "name": "bellman[('s1', 'q2')]",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
+                  }
+                ],
+                "constant": 1.33333333333,
+                "evidence": "numerical",
+                "name": "multiblock rectangular reference-potential certificate",
+                "outcome": "pass"
+              }
+            ],
+            "evidence": "numerical",
+            "expected_outcome": "pass",
+            "matches_expectation": true,
+            "outcome": "pass"
+          },
+          "h6_gain_cost": {
+            "checks": [
+              {
+                "evidence": "numerical",
+                "message": "actual local codewords violate this sufficient H.70 certificate",
+                "name": "H.70-current[s0]",
+                "outcome": "fail",
+                "tolerance": 1e-10,
+                "value": 2.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "constructed prefix code satisfies the H.76 sufficient completion",
+                "name": "H.76-suggested[s0]",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 1.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "actual local codewords violate this sufficient H.70 certificate",
+                "name": "H.70-current[s1]",
+                "outcome": "fail",
+                "tolerance": 1e-10,
+                "value": 1.5
+              },
+              {
+                "evidence": "numerical",
+                "message": "constructed prefix code satisfies the H.76 sufficient completion",
+                "name": "H.76-suggested[s1]",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 1.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "fixed-model initial blocks are dominated by the supplied envelopes; family-uniform boundedness is a separate analytic obligation",
+                "name": "H.72-fixed-model-initial",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 1.0
+              }
+            ],
+            "evidence": "numerical",
+            "expected_outcome": "fail",
+            "fixed_model_initial_constant": 1.0,
+            "matches_expectation": true,
+            "name": "multiblock-rectangular",
+            "outcome": "fail",
+            "syntax_states": [
+              {
+                "actions": [
+                  {
+                    "control_gains": {
+                      "q1": 2.0,
+                      "q2": 1.0
+                    },
+                    "current_codeword": "0",
+                    "name": "compress-and-continue",
+                    "reference_gain": 2.0,
+                    "suggested_code_length": 2,
+                    "suggested_codeword": "00"
+                  },
+                  {
+                    "control_gains": {
+                      "q1": 2.0,
+                      "q2": 1.0
+                    },
+                    "current_codeword": "1",
+                    "name": "halt-from-s0",
+                    "reference_gain": 2.0,
+                    "suggested_code_length": 2,
+                    "suggested_codeword": "01"
+                  }
+                ],
+                "current_condition_satisfied": false,
+                "current_weighted_sum": 2.0,
+                "name": "s0",
+                "suggested_condition_satisfied": true,
+                "suggested_weighted_sum": 1.0
+              },
+              {
+                "actions": [
+                  {
+                    "control_gains": {
+                      "q1": 2.0,
+                      "q2": 1.0
+                    },
+                    "current_codeword": "10",
+                    "name": "expand-and-continue",
+                    "reference_gain": 2.0,
+                    "suggested_code_length": 2,
+                    "suggested_codeword": "00"
+                  },
+                  {
+                    "control_gains": {
+                      "q1": 2.0,
+                      "q2": 1.0
+                    },
+                    "current_codeword": "0",
+                    "name": "halt-from-s1",
+                    "reference_gain": 2.0,
+                    "suggested_code_length": 2,
+                    "suggested_codeword": "01"
+                  }
+                ],
+                "current_condition_satisfied": false,
+                "current_weighted_sum": 1.5,
+                "name": "s1",
+                "suggested_condition_satisfied": true,
+                "suggested_weighted_sum": 1.0
+              }
+            ]
+          }
+        },
+        "expectation_mismatches": [],
+        "matches_reference_expectations": true,
+        "parameters": {
+          "max_depth": 8,
+          "max_transient_steps": 16,
+          "tolerance": 1e-10
+        },
+        "schema": "rcc-refcert.case-audit",
+        "schema_version": 1,
+        "scope": {
+          "analytic_obligations": [
+            "faithful transcription (TC)",
+            "model-family uniformity",
+            "the RCC theorem"
+          ],
+          "evidence": "floating-point numerical checks"
+        }
+      },
+      {
+        "case": {
+          "interpretation": "The full transient spectral radius is one. The least fixed-point semantics remains valid, while the Neumann/linear-inverse route reaches its boundary. Eq. (H.34) therefore awaits the completed semidensity rather than using a finite truncation.",
+          "kind": "boundary",
+          "name": "dark-nonhalting",
+          "paper_references": [
+            "H.1",
+            "H.2",
+            "H.34"
+          ],
+          "purpose": "Confirms that a valid nonhalting process keeps its least fixed-point meaning even when the linear inverse is unavailable.",
+          "title": "Dark nonhalting loop"
+        },
+        "checks": {
+          "h1_realization": {
+            "action_depth_range": {
+              "first": 1,
+              "last": 8
+            },
+            "depths": [
+              {
+                "action_depth": 1,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 2,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 3,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 4,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 5,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 6,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 7,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              },
+              {
+                "action_depth": 8,
+                "evidence": "numerical",
+                "outcome": "pass",
+                "spectral_norm_error": 0.0
+              }
+            ],
+            "evidence": "numerical",
+            "expected_outcome": "pass",
+            "matches_expectation": true,
+            "maximum_spectral_norm_error": 0.0,
+            "outcome": "pass"
+          },
+          "h2_linear_fixed_point": {
+            "condition_number": null,
+            "evidence": "numerical",
+            "expected_outcome": "not_applicable",
+            "linear_inverse_applicable": false,
+            "matches_expectation": true,
+            "max_transient_steps": 16,
+            "message": "Neumann/linear inverse is not certified on the full transient space",
+            "outcome": "not_applicable",
+            "solve_residual": null,
+            "spectral_radius": 1.0,
+            "truncated_output_trace": 0.0
+          },
+          "h34_domination": {
+            "constant": null,
+            "constant_is_infinite": null,
+            "evidence": "numerical",
+            "expected_outcome": "inconclusive",
+            "matches_expectation": true,
+            "outcome": "inconclusive",
+            "support_compatible": null,
+            "support_leakage": null
+          }
+        },
+        "expectation_mismatches": [],
+        "matches_reference_expectations": true,
+        "parameters": {
+          "max_depth": 8,
+          "max_transient_steps": 16,
+          "tolerance": 1e-10
+        },
+        "schema": "rcc-refcert.case-audit",
+        "schema_version": 1,
+        "scope": {
+          "analytic_obligations": [
+            "faithful transcription (TC)",
+            "model-family uniformity",
+            "the RCC theorem"
+          ],
+          "evidence": "floating-point numerical checks"
+        }
+      }
+    ],
+    "matches_reference_expectations": true,
+    "parameters": {
+      "max_depth": 8,
+      "max_transient_steps": 16,
+      "tolerance": 1e-10
+    },
+    "schema": "rcc-refcert.reference-suite",
+    "schema_version": 1
+  }
+}

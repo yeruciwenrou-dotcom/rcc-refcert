@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this software, cite the software and the associated RCC paper."
+title: "rcc-refcert: a Python reference implementation for finite-control certificates in structure-fair quantum circuit complexity"
+type: software
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
+authors:
+  - family-names: Liu
+    given-names: HongZheng
+  - family-names: Tian
+    given-names: YiNuo
+  - family-names: Wu
+    given-names: Zhiyue
+preferred-citation:
+  type: article
+  title: "Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound"
+  authors:
+    - family-names: Liu
+      given-names: HongZheng
+    - family-names: Tian
+      given-names: YiNuo
+    - family-names: Wu
+      given-names: Zhiyue
+  year: 2025
+  journal: "arXiv preprint arXiv:2509.18205"
+  doi: "10.48550/arXiv.2509.18205"

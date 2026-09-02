@@ -1,0 +1,57 @@
+name: Scientific proposal
+description: Propose a model, certificate method, or structure-fair research extension.
+title: "[Research] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for a concrete extension to the finite-control RCC research kernel. Proposals may introduce a model, certificate method, cost assignment, negative witness, or verification technique. The form keeps the scientific question distinct from the claims the current package can already verify.
+  - type: textarea
+    id: question
+    attributes:
+      label: Scientific question
+      description: What structural resource, model family, certificate problem, or boundary should this work clarify?
+      placeholder: State the research question and why it matters for structure-fair complexity.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Primary area
+      options:
+        - Physical or finite-control model
+        - Bellman–Choi certificate
+        - Reference-potential certificate
+        - Reference gain–cost encoding
+        - Family-uniform or scaling analysis
+        - Numerical verification
+        - Interface or simulation backend
+        - Documentation or example
+    validations:
+      required: true
+  - type: textarea
+    id: construction
+    attributes:
+      label: Proposed construction
+      description: Describe the reference, controls, operations, certificate object, or algorithm at the level currently known.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Expected executable evidence
+      description: Which finite-model outcome, invariant, negative witness, or regression should the package produce?
+    validations:
+      required: true
+  - type: textarea
+    id: claim_boundary
+    attributes:
+      label: Claim boundary
+      description: Identify the accompanying analytic or physical obligations, such as RCon, TC, family uniformity, or theorem-level interpretation.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: RCC paper map and references
+      description: List the RCC sections, equations, or external results needed to evaluate the proposal.

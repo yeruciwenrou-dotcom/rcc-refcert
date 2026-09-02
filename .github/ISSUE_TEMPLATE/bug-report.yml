@@ -1,0 +1,46 @@
+name: Bug report
+description: Report an unexpected numerical, interface, or documentation result.
+title: "[Bug] "
+body:
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: Include the command, API call, case, and complete outcome that differed from expectation.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Explain the expected numerical, mathematical, or interface result.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Provide a minimal model or the shortest sequence of commands that reproduces the issue.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Package version or commit
+      placeholder: rcc-refcert 0.1.0 or commit SHA
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Python, NumPy, and operating system
+      placeholder: Python 3.12, NumPy 2.x, Ubuntu
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Relevant diagnostics
+      description: Add residuals, tolerances, support warnings, or JSON fields that help localize the issue. Remove private data before posting.
+

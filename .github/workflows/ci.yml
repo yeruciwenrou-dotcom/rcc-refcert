@@ -1,0 +1,160 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  RCC_REFCERT_SOURCE_REVISION: ${{ github.sha }}
+
+jobs:
+  source-tree:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install source-tree test dependencies
+        run: python -m pip install "numpy==1.26.4" "pytest>=8"
+      - name: Test without installed package metadata
+        run: PYTHONPATH=src python -W error -m pytest
+      - name: Reproduce frozen report from source
+        run: >-
+          PYTHONPATH=src python -m rcc_refcert reproduce --check
+          results/reference_report.md
+
+  test:
+    needs: source-tree
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: "3.10"
+            numpy-spec: "numpy==1.26.4"
+          - python-version: "3.11"
+            numpy-spec: "numpy>=1.26"
+          - python-version: "3.12"
+            numpy-spec: "numpy>=1.26"
+          - python-version: "3.13"
+            numpy-spec: "numpy>=1.26"
+          - python-version: "3.14"
+            numpy-spec: "numpy>=1.26"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install "${{ matrix.numpy-spec }}"
+          python -m pip install -e ".[dev]"
+      - name: Test
+        run: |
+          ruff check src tests examples quickstart.py RCC_Quickstart.ipynb
+          ruff format --check src tests examples quickstart.py RCC_Quickstart.ipynb
+          python -W error -m pytest
+      - name: Check installed version identity
+        run: |
+          python -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert')"
+      - name: Reproduce frozen report
+        run: rcc-refcert reproduce --check
+
+  distribution-smoke:
+    needs: source-tree
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Build wheel and source distribution
+        run: |
+          python -m pip install "build>=1.2"
+          python -m build
+      - name: Install and exercise each distribution outside the checkout
+        run: |
+          distribution_directory="$PWD/dist"
+          for artifact in "$distribution_directory"/*.whl "$distribution_directory"/*.tar.gz; do
+            installation_root="$(mktemp -d)"
+            environment="$installation_root/environment"
+            python -m venv "$environment"
+            "$environment/bin/python" -m pip install "$artifact"
+            mkdir "$installation_root/run"
+            cd "$installation_root/run"
+            "$environment/bin/rcc-refcert" reproduce --check
+            "$environment/bin/rcc-refcert" example dephase-or-halt --format json
+            "$environment/bin/python" -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert')"
+          done
+
+  public-entry-smoke:
+    needs: source-tree
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Run the complete public quickstart entry point on Windows
+        if: runner.os == 'Windows'
+        run: python quickstart.py
+      - name: Run the reproduction entry point on macOS
+        if: runner.os == 'macOS'
+        run: python quickstart.py --reproduce-only
+
+  notebook:
+    needs: source-tree
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install Notebook environment
+        run: python -m pip install -e ".[notebook]"
+      - name: Register declared kernel
+        run: >-
+          python -m ipykernel install --user --name rcc-refcert
+          --display-name "Python (rcc-refcert)"
+      - name: Validate and execute Notebook
+        run: python tests/notebook_smoke.py
+
+  required:
+    if: ${{ always() }}
+    needs:
+      - source-tree
+      - test
+      - notebook
+      - distribution-smoke
+      - public-entry-smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required jobs
+        env:
+          SOURCE_TREE_RESULT: ${{ needs.source-tree.result }}
+          TEST_RESULT: ${{ needs.test.result }}
+          NOTEBOOK_RESULT: ${{ needs.notebook.result }}
+          DISTRIBUTION_SMOKE_RESULT: ${{ needs.distribution-smoke.result }}
+          PUBLIC_ENTRY_SMOKE_RESULT: ${{ needs.public-entry-smoke.result }}
+        run: |
+          test "$SOURCE_TREE_RESULT" = success
+          test "$TEST_RESULT" = success
+          test "$NOTEBOOK_RESULT" = success
+          test "$DISTRIBUTION_SMOKE_RESULT" = success
+          test "$PUBLIC_ENTRY_SMOKE_RESULT" = success
