@@ -101,7 +101,7 @@ def ensure_installation(python: Path) -> None:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Set up RCC RefCert and run its complete local verification gate."
+        description="Set up RCC RefCert and run its reader verification workflow."
     )
     parser.add_argument(
         "--reproduce-only",
@@ -164,7 +164,7 @@ def main(argv: list[str] | None = None) -> int:
     structured.write_text(completed.stdout, encoding="utf-8")
 
     print(
-        "\nRCC RefCert passed its local verification gate.\n"
+        "\nRCC RefCert passed its reader verification workflow.\n"
         "Frozen evidence: results/reference_report.md\n"
         "Fresh evidence: generated_results/reference_report.md and "
         "generated_results/reference_suite.json"

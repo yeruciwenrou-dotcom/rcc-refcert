@@ -34,7 +34,7 @@ and gain–cost assignments.
 | Goal | Entry point |
 |---|---|
 | Inspect the recorded evidence without running code | [`results/reference_report.md`](results/reference_report.md) |
-| Set up the package and run the complete verification gate | [`quickstart.py`](quickstart.py) |
+| Set up the package, run the tests, and reproduce the evidence | [`quickstart.py`](quickstart.py) |
 | Follow a guided first run in Jupyter | [`RCC_Quickstart.ipynb`](RCC_Quickstart.ipynb) |
 | Run the minimal qualification-to-lower-bound chain | [`docs/END_TO_END_EXAMPLE.md`](docs/END_TO_END_EXAMPLE.md) |
 | Understand exactly what the numerical results establish | [`docs/SCIENTIFIC_SCOPE.md`](docs/SCIENTIFIC_SCOPE.md) |
@@ -97,9 +97,8 @@ objects. It can:
 - develop new structure-fair model classes, certificate methods, cost
   assignments, and rigorous-verification backends.
 
-This makes `rcc-refcert` a compact research testbed for a foundational task:
-turning quantum-complexity models into explicit objects whose supplied
-structure and generation costs can be examined.
+Researchers can use these interfaces to compare supplied structure,
+description cost, and reference certificates in explicit finite models.
 
 ## Quick start
 
@@ -272,10 +271,9 @@ conventions are fixed in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md).
 
 ## Extending the research kernel
 
-The package exposes a research object that can grow independently of the
-bundled reference cases. Extensions are most useful when they enlarge the class of
-auditable structure-fair models, strengthen the certificate layer, or make its
-evidence more rigorous. Examples include:
+The public interfaces are not limited to the bundled reference cases. Useful
+extensions include new auditable structure-fair models, stronger certificate
+methods, and more rigorous numerical evidence. Examples include:
 
 - finite-control models with new physical resources or boundary behavior;
 - automated Bellman–Choi or reference-potential certificate search;
@@ -296,7 +294,7 @@ claims each change must protect.
 | `src/rcc_refcert/` | Finite-control models, simulation, certificates, CLI, and report rendering |
 | [`examples/paired_reset_lower_bound.py`](examples/paired_reset_lower_bound.py) | Fixed model-to-lower-bound executable example |
 | `tests/` | Scientific regressions and public-interface tests |
-| [`quickstart.py`](quickstart.py) | One-command environment setup and complete verification gate |
+| [`quickstart.py`](quickstart.py) | One-command setup, test run, and evidence reproduction |
 | [`RCC_Quickstart.ipynb`](RCC_Quickstart.ipynb) | Guided run through the three reference cases |
 | [`results/reference_report.md`](results/reference_report.md) | Frozen human-readable reference evidence |
 | [`results/reference_suite.json`](results/reference_suite.json) | Frozen normalized structured evidence |

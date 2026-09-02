@@ -24,7 +24,7 @@ operations and a reference state, it constructs the terminating program
 semidensity, verifies reference certificates, evaluates the reference gain of
 individual actions, and tests the corresponding code-length allocation.
 
-Its roles form a deliberate hierarchy:
+The repository has three roles:
 
 1. a research implementation of the finite-control qualification machinery
    arising from the physical model in Section II of
@@ -162,8 +162,7 @@ verification.
 ## Extension points
 
 The current kernel accepts Python-declared finite synchronous models and
-supplied certificate candidates. Its public model, verifier, and JSON result
-interfaces provide natural extension points for model serialization, automated
-certificate search, interval PSD verification, broader control semantics,
-family-uniform diagnostics, and larger simulation backends. These interfaces
-define the package's current extension directions.
+supplied certificate candidates. Future work can add model serialization,
+automated certificate search, interval PSD verification, broader control
+semantics, family-uniform diagnostics, and larger simulation backends through
+the existing model, verifier, and JSON interfaces.

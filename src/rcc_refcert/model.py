@@ -216,12 +216,12 @@ def validate_model(model: FiniteControlModel, tol: float = 1e-10) -> list[str]:
                         )
 
     total_trace = 0.0
-    for q, block in model.initial_blocks.items():
+    for q, initial_block in model.initial_blocks.items():
         if q not in controls:
             errors.append(f"initial block uses undeclared control state {q!r}")
             continue
         dim = model.control_dims[q]
-        block = np.asarray(block, dtype=complex)
+        block = np.asarray(initial_block, dtype=complex)
         if block.shape != (dim, dim):
             errors.append(
                 f"initial block {q}: shape {block.shape} does not match {(dim, dim)}"

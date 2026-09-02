@@ -56,7 +56,7 @@ def test_guided_quickstart_executes_from_repository_root() -> None:
     assert "Reference report: MATCH" in completed.stdout
 
 
-def test_one_command_quickstart_runs_complete_gate(
+def test_one_command_quickstart_runs_reader_workflow(
     monkeypatch, tmp_path, capsys
 ) -> None:
     calls = []
@@ -87,7 +87,7 @@ def test_one_command_quickstart_runs_complete_gate(
         "schema": "rcc-refcert.reference-suite",
     }
     output = capsys.readouterr().out
-    assert "passed its local verification gate" in output
+    assert "passed its reader verification workflow" in output
     assert "generated_results/reference_report.md" in output
 
 

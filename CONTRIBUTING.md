@@ -3,16 +3,13 @@
 RCC formulates universal optimal quantum circuit complexity relative to an
 explicit physical generation model. Its structure-fairness principle places
 the reference background, available dynamics, program description, and
-resource cost in one common specification. Its scientific value can grow as
-researchers test those choices, bring new physical models into the framework,
-compare certificate methods, and sharpen the boundary between executable
-evidence and analytic claims.
+resource cost in one common specification. Contributions should test those
+choices, add well-defined physical models, compare certificate methods, or
+clarify the boundary between executable evidence and analytic claims.
 
-`rcc-refcert` provides a concrete research kernel for that work. We welcome
-contributions across theory, algorithms, numerical verification, and
-scientific communication. The bundled examples form an initial executable
-basis rather than a closed catalogue, leaving room for new models, proof
-objects, cost assignments, verification methods, and explanatory material.
+`rcc-refcert` is deliberately small. It can accept new models, proof objects,
+cost assignments, verification methods, and explanatory material without
+changing the claim boundary of the bundled cases.
 
 Contributions can address one layer at a time:
 
@@ -78,7 +75,7 @@ preserve the minimal kernel.
 
 ## Local verification
 
-Install the development environment and run the complete gate:
+Install the development environment and run the standard local checks:
 
 ```bash
 python -m pip install -e ".[dev]"
