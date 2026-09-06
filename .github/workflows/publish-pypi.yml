@@ -1,0 +1,154 @@
+name: Publish to PyPI
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/publish-pypi.yml
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the frozen v0.1.0 release to PyPI
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pypi-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the published release
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: yeruciwenrou-dotcom/rcc-refcert
+          ref: v0.1.0
+          persist-credentials: false
+      - name: Verify the immutable release identity
+        run: |
+          test "$(git rev-parse HEAD)" = ab291f0c80527c20c426c5dd2e1b7737f6c13f76
+          test "$(git rev-parse 'HEAD^{tree}')" = f22d9b5672eea7b21c826109182f3909c6b0da03
+          test -z "$(git status --porcelain)"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Build and validate package metadata
+        run: |
+          python -m pip install "build==1.6.0" "setuptools==84.0.0" "twine>=7,<8"
+          python -m build --no-isolation
+          python -m twine check --strict dist/*
+          python - <<'PY'
+          from email.parser import BytesParser
+          from pathlib import Path
+          import tarfile
+          import zipfile
+
+          wheel, = Path("dist").glob("*.whl")
+          sdist, = Path("dist").glob("*.tar.gz")
+          with zipfile.ZipFile(wheel) as archive:
+              metadata_path, = (n for n in archive.namelist() if n.endswith(".dist-info/METADATA"))
+              metadata = BytesParser().parsebytes(archive.read(metadata_path))
+              for name in ("LICENSE", "NOTICE.md"):
+                  assert any(n.endswith("/licenses/" + name) for n in archive.namelist()), name
+              for name in ("reference_report.md", "reference_suite.json"):
+                  assert "rcc_refcert/reference_data/" + name in archive.namelist(), name
+          with tarfile.open(sdist) as archive:
+              member, = (m for m in archive.getmembers() if m.name.count("/") == 1 and m.name.endswith("/PKG-INFO"))
+              source_metadata = BytesParser().parsebytes(archive.extractfile(member).read())
+          for item in (metadata, source_metadata):
+              assert item["Name"] == "rcc-refcert"
+              assert item["Version"] == "0.1.0"
+              assert item["Requires-Python"] == ">=3.10"
+              assert item["License-Expression"] == "MIT"
+          PY
+      - name: Install and reproduce from each distribution
+        env:
+          RCC_REFCERT_SOURCE_REVISION: ab291f0c80527c20c426c5dd2e1b7737f6c13f76
+        run: |
+          distribution_directory="$PWD/dist"
+          for artifact in "$distribution_directory"/*.whl "$distribution_directory"/*.tar.gz; do
+            installation_root="$(mktemp -d)"
+            environment="$installation_root/environment"
+            python -m venv "$environment"
+            "$environment/bin/python" -m pip install "$artifact"
+            mkdir "$installation_root/run"
+            cd "$installation_root/run"
+            "$environment/bin/python" -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert') == '0.1.0'"
+            "$environment/bin/rcc-refcert" reproduce --check
+          done
+      - name: Record distribution hashes
+        run: sha256sum dist/* >> "$GITHUB_STEP_SUMMARY"
+      - name: Store validated distributions
+        id: distributions
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: rcc-refcert-0.1.0-distributions
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
+    outputs:
+      artifact-id: ${{ steps.distributions.outputs.artifact-id }}
+
+  publish:
+    if: >-
+      github.event_name == 'workflow_dispatch' && inputs.publish &&
+      github.repository == 'yeruciwenrou-dotcom/rcc-refcert' &&
+      github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/rcc-refcert/0.1.0/
+    permissions:
+      id-token: write
+    steps:
+      - name: Retrieve validated distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact-id }}
+          path: dist
+          merge-multiple: true
+      - name: Publish with PyPI Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+
+  verify-install:
+    needs: [build, publish]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Retrieve published build for comparison
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact-id }}
+          path: expected
+          merge-multiple: true
+      - name: Verify PyPI files and install outside a checkout
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from urllib.request import urlopen
+
+          with urlopen("https://pypi.org/pypi/rcc-refcert/0.1.0/json", timeout=30) as response:
+              published = json.load(response)
+          expected = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in Path("expected").iterdir()}
+          actual = {p["filename"]: p["digests"]["sha256"] for p in published["urls"]}
+          assert actual == expected, (actual, expected)
+          assert not any(p["yanked"] for p in published["urls"])
+          print(json.dumps({"version": published["info"]["version"], "sha256": actual}, indent=2))
+          PY
+          installation_root="$(mktemp -d)"
+          python -m venv "$installation_root/environment"
+          cd "$installation_root"
+          environment/bin/python -m pip install --no-cache-dir --index-url https://pypi.org/simple "rcc-refcert==0.1.0"
+          environment/bin/python -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert') == '0.1.0'"
+          environment/bin/rcc-refcert examples
+          environment/bin/rcc-refcert reproduce --check
