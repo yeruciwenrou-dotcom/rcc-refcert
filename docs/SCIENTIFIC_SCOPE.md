@@ -49,7 +49,7 @@ qualified-model inputs, a deterministic endpoint example, and structured
 evidence roles for that layer. The paper provides its finite-sample statistical
 and calibration framework.
 
-## Executable mathematical spine
+## From programs to the terminating output
 
 For a fixed finite model, let $\Omega_0$ be the transient block state,
 $\mathbb T$ the code-weighted continuation map, and $\mathbb H$ the
@@ -125,7 +125,7 @@ A passing H.3 or H.4 result returns the candidate plus a reserved numerical
 error budget. The candidate, usable upper constant, and correction are separate
 fields; a rejected or inconclusive certificate has no usable constant.
 
-## Claim ladder
+## How the results connect to RCC
 
 The executable evidence connects to the RCC results in a precise order:
 
@@ -140,15 +140,14 @@ The package produces levels one and two. Levels three and four combine those
 outputs with the uniform analytic and transcription arguments developed in the
 RCC paper.
 
-The [paired-reset end-to-end example](END_TO_END_EXAMPLE.md) makes this handoff
-executable for one fixed finite model. It computes the program semidensity and
-one-shot endpoint gap, while separately declaring the physical reference,
-complete program domain, exact transcription, and fixed-family scope needed to
-invoke the RCC theorem. Its numerical cost floor is therefore a worked
-theorem consequence under declared inputs. Program `0` supplies a matching
-one-slot upper-bound witness, so the optimum is exactly one slot for this fixed
-model. Automated general optimization and `RCon`, `TC`, or family-uniform `RA`
-certification remain outside the example.
+The [paired-reset example](END_TO_END_EXAMPLE.md) follows this connection for
+one fixed finite model. It computes the program semidensity and one-shot
+endpoint gap, then combines those results with the declared physical
+reference, complete program domain, exact transcription, and fixed-family
+scope to apply the RCC theorem. Program `0` supplies a matching one-slot
+upper bound, establishing an optimum of one slot in that model. The physical
+and family-level premises are supplied analytically; the software computes the
+finite-model quantities and checks the explicit preparation.
 
 ## Independent research use
 

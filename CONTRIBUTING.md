@@ -1,18 +1,14 @@
 # Contributing
 
-RCC formulates universal optimal quantum circuit complexity relative to an
-explicit physical generation model. Its structure-fairness principle places
-the reference background, available dynamics, program description, and
-resource cost in one common specification. Its scientific value can grow as
-researchers test those choices, bring new physical models into the framework,
-compare certificate methods, and sharpen the boundary between executable
-evidence and analytic claims.
+RCC studies quantum circuit complexity under an explicit physical generation
+model. Its structure-fairness principle accounts for the structure supplied by
+the reference background, available dynamics, and program description, together
+with the resources spent on generation.
 
-`rcc-refcert` provides a concrete research kernel for that work. We welcome
-contributions across theory, algorithms, numerical verification, and
-scientific communication. The bundled examples form an initial executable
-basis rather than a closed catalogue, leaving room for new models, proof
-objects, cost assignments, verification methods, and explanatory material.
+`rcc-refcert` makes finite models and certificate methods available for
+researchers to test and extend. Contributions can bring new physical models
+into the framework, compare certificate constructions, improve numerical
+reliability, or help readers reproduce and understand the results.
 
 Contributions can address one layer at a time:
 
@@ -28,9 +24,9 @@ Contributions can address one layer at a time:
   tests, and RCC paper-to-code maps.
 
 For a substantial scientific change, open a **Scientific proposal** describing
-the model or certificate object, the RCC claim layer it touches, and the
-executable evidence it should produce. Bug and documentation forms collect the
-narrower information needed for those changes.
+the model or certificate object, the RCC result it affects, and the evidence
+needed to assess it. Use the bug or documentation issue form for a specific
+problem, with a reproducible input or a link to the affected passage.
 
 ## Scientific contract
 
@@ -68,9 +64,12 @@ convention risk, or mathematical boundary. Document:
 - the expected outcomes, including designed route failures or boundaries;
 - the test that would fail under the most plausible incorrect implementation.
 
-An expected H.70 failure records a cost shortfall along that sufficient route.
-Family-uniform reference admissibility is established through the corresponding
-uniform analytic argument.
+An expected H.70 failure records a code-length shortfall along that sufficient
+route. An `inconclusive` result records an unresolved numerical condition. Check
+the other certificate routes for the original model; adopting suggested
+codewords changes its program weights and defines a re-encoded model.
+Family-uniform reference admissibility needs the corresponding uniform analytic
+argument.
 
 Keep dependencies few and tied to a clear package responsibility. Add parameter
 sweeps or user interfaces when they support a defined scientific use case and

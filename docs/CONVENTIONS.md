@@ -108,7 +108,12 @@ the candidate constant.
 The H.4 verifier converts local matrix deficits to increases in $a$, $A$, and
 $b$, using lower estimates of the reference and envelope eigenvalues. For the
 raised coefficients it solves
-$d\ge (b_+ + A_+v-v)_+ + A_+d$ and evaluates $a_+\cdot(v+d)$.
+
+$$
+d\ge (b_{+}+A_{+}v-v)_{+}+A_{+}d
+$$
+
+and evaluates $a_{+}\cdot(v+d)$.
 Both routes include working-precision allowances for matrix operations,
 eigenvalues, and scalar sums. A positive Lyapunov vector bounds the residual
 of the correction solve; a relative condition number alone is insufficient.
