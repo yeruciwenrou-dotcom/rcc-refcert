@@ -1,33 +1,20 @@
 # rcc-refcert
 
-`rcc-refcert` is the reference implementation and research kernel for the
+`rcc-refcert` is a Python research toolkit for **quantum circuit complexity**.
+It helps researchers make the physical generation model explicit: which
+resources are supplied, which quantum processes are allowed, and how their
+description and generation costs are counted.
+
+You can build and audit finite-control quantum-process models, check reference
+certificates and gain–cost assignments, and develop new model and certificate
+constructions. Bundled examples provide reproducible numerical evidence,
+including a worked chain from a declared model to a lower bound on quantum
+state preparation cost.
+
+The toolkit is the reference implementation and research kernel for the
 finite-control qualification layer of **Reference-Contingent Complexity
 (RCC)**, introduced in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
-
-> **Manuscript alignment.** This source tree is aligned with version 4 of the
-> RCC manuscript, currently being prepared as the next arXiv revision. The
-> publicly available paper is presently
-> [arXiv:2509.18205v3](https://arxiv.org/abs/2509.18205v3); appendix labels and
-> equation numbers in this repository therefore refer to manuscript version 4.
-> The repository provides executable finite-model evidence for selected
-> constructions; the paper remains responsible for the analytic and
-> model-family arguments.
-
-RCC is a structure-fair, model-relative framework for defining and
-lower-bounding quantum circuit complexity. Within a declared physical
-generation model, it defines $C_{\rm opt}^{(\epsilon)}$ as the infimum of the
-declared cost over all admissible histories that prepare the target within
-accuracy $\epsilon$. The main RCC theorem converts the target's one-shot
-structural gap relative to the reference into a rigorous lower bound on this
-global process optimum and supports auditable conservative certificates from
-final-state evidence.
-
-This repository turns the framework's finite-control qualification machinery
-into objects that can be constructed, inspected, and audited. It reproduces
-selected finite constructions from the paper and gives researchers a concrete
-basis for developing new structure-fair model classes, certificate methods,
-and gain–cost assignments.
 
 ## Start here
 
@@ -41,7 +28,25 @@ and gain–cost assignments.
 | Trace RCC paper formulas to implementation | [`docs/PAPER_MAP.md`](docs/PAPER_MAP.md) |
 | Construct or audit a new finite-control model | [`docs/MODEL_GUIDE.md`](docs/MODEL_GUIDE.md) |
 
+> **Manuscript alignment.** This source tree is aligned with version 4 of the
+> RCC manuscript, currently being prepared as the next arXiv revision. The
+> publicly available paper is presently
+> [arXiv:2509.18205v3](https://arxiv.org/abs/2509.18205v3); appendix labels and
+> equation numbers in this repository therefore refer to manuscript version 4.
+> The repository provides executable finite-model evidence for selected
+> constructions; the paper remains responsible for the analytic and
+> model-family arguments.
+
 ## Why reference-contingent complexity
+
+RCC is a structure-fair, model-relative framework for defining and
+lower-bounding quantum circuit complexity. Within a declared physical
+generation model, it defines $C_{\rm opt}^{(\epsilon)}$ as the infimum of the
+declared cost over all admissible histories that prepare the target within
+accuracy $\epsilon$. The main RCC theorem converts the target's one-shot
+structural gap relative to the reference into a rigorous lower bound on this
+global process optimum and supports auditable conservative certificates from
+final-state evidence.
 
 A target quantum state specifies the structure that every successful
 preparation must realize. Its optimal preparation cost becomes physically
