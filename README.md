@@ -1,5 +1,6 @@
 # rcc-refcert
 
+[![PyPI](https://img.shields.io/pypi/v/rcc-refcert.svg)](https://pypi.org/project/rcc-refcert/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22544968.svg)](https://doi.org/10.5281/zenodo.22544968)
 
 `rcc-refcert` is a Python research toolkit for
@@ -23,7 +24,8 @@ methods of **Reference-Contingent Complexity (RCC)**, introduced in
 | Goal | Entry point |
 |---|---|
 | Inspect the recorded evidence without running code | [Reference results](results/reference_report.md) |
-| Set up the package and reproduce the reference results | [Quick start](#quick-start) |
+| Install the package and reproduce the reference results | [Install from PyPI](#install-from-pypi) |
+| Run the full test suite from source | [Quick start](#quick-start) |
 | Follow a guided first run in Jupyter | [Quickstart notebook](RCC_Quickstart.ipynb) |
 | Follow a model from qualification to a lower bound | [Worked example](docs/END_TO_END_EXAMPLE.md) |
 | Understand what the numerical results establish | [Scientific scope](docs/SCIENTIFIC_SCOPE.md) |
@@ -93,6 +95,25 @@ objects. It can:
 This makes `rcc-refcert` a compact research testbed for a foundational task:
 turning quantum-complexity models into explicit objects whose supplied
 structure and generation costs can be examined.
+
+## Install from PyPI
+
+In a Python 3.10 or newer environment, install the package and check the
+bundled reference results:
+
+```bash
+python3 -m pip install rcc-refcert
+python3 -m rcc_refcert examples
+python3 -m rcc_refcert reproduce --check
+```
+
+Use `python` instead of `python3` when that is the interpreter name in your
+environment. The command-line tool and Python API work outside a source
+checkout; the frozen reference data are included in the installed package.
+For an exact version, install `rcc-refcert==0.1.0`.
+
+The source quickstart below also runs the independent test suite and provides
+the notebook, examples, and documentation for further exploration.
 
 ## Quick start
 
