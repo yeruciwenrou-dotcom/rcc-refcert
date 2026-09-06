@@ -213,10 +213,11 @@ def build_reference_report(suite: ReferenceSuite) -> str:
         "# RCC RefCert reference report",
         "",
         (
-            "This report is the frozen executable evidence for RCC's finite-control "
+            "This report presents executable evidence for RCC's finite-control "
             "model-qualification layer. It records declared processes, terminating "
             "program semidensities, and supplied proof objects, including diagnostics "
-            "for whether action code lengths account for their reference gain."
+            "for whether action code lengths account for their reference gain. "
+            "Paper references use RCC manuscript version 4."
         ),
         "",
         "## Run summary",
@@ -227,8 +228,10 @@ def build_reference_report(suite: ReferenceSuite) -> str:
         f"Numerical tolerance: `{suite.tolerance:.1e}`",
         "",
         (
-            "Diagnostics with absolute value at or below the numerical tolerance "
-            "are shown as `0`; JSON output retains the computed values."
+            "Residual diagnostics with absolute value at or below the numerical "
+            "tolerance are shown as `0`. Certificate upper bounds and their error "
+            "budgets round upward. Fresh CLI JSON retains the computed finite "
+            "diagnostics."
         ),
         "",
         "| case | purpose | reference result |",

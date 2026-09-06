@@ -35,8 +35,9 @@ Born weight. The package keeps those two sources of weight separate.
 ## A complete two-action model
 
 Install the package from the repository root using the
-[quick-start instructions](../README.md#quick-start), then run this example as a
-script or notebook cell.
+[quick-start instructions](../README.md#quick-start), then run this example with
+the installed environment's Python interpreter or the **Python (rcc-refcert)**
+notebook kernel.
 
 This model either continues with the identity channel or halts with the identity
 channel. Both codewords have length one, so each syntax action receives weight
@@ -145,10 +146,9 @@ The verifier functions accept explicit mathematical candidates:
 - `verify_reference_potential(model, certificate)` for H.4;
 - `analyze_reference_gain_cost(model, theta)` for H.6.
 
-Each function checks an explicit mathematical candidate. Certificate candidates
-may be derived analytically or produced by a separate optimizer; the bundled
-factories in `rcc_refcert.examples` show proof objects for both the one-block and
-multiblock cases.
+Candidates may be derived analytically or produced by a separate optimizer.
+The bundled factories in `rcc_refcert.examples` show proof objects for both the
+one-block and multiblock cases.
 
 Inspect each report's `outcome` before using its `constant`. For H.3 and H.4,
 the returned constant includes the numerical correction budget, while

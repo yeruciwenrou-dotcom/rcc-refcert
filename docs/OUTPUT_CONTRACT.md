@@ -15,9 +15,11 @@ Each document carries `schema_version: 2`. Additive fields may appear within a
 version; removing a field or changing its meaning requires a new version.
 
 The standalone `examples/paired_reset_lower_bound.py --json` document uses
-schema `rcc-refcert.paired-reset-lower-bound`, version `3`. It retains the
-feasible preparation and exact fixed-model optimum introduced in version 2,
-and adopts the certificate constants described below.
+schema `rcc-refcert.paired-reset-lower-bound`, version `3`. It reports the
+model declaration, endpoint gap, lower bound, feasible preparation, exact
+fixed-model optimum, and certificate constants described below.
+
+Schema versions identify output formats independently of the package version.
 
 ## Producer and source provenance
 
