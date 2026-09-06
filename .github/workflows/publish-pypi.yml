@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Publish the frozen v0.1.0 release to PyPI
+        description: Publish the frozen v0.1.1 release to PyPI
         type: boolean
         required: true
         default: false
@@ -27,12 +27,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: yeruciwenrou-dotcom/rcc-refcert
-          ref: v0.1.0
+          ref: v0.1.1
           persist-credentials: false
       - name: Verify the immutable release identity
         run: |
-          test "$(git rev-parse HEAD)" = ab291f0c80527c20c426c5dd2e1b7737f6c13f76
-          test "$(git rev-parse 'HEAD^{tree}')" = f22d9b5672eea7b21c826109182f3909c6b0da03
+          test "$(git rev-parse HEAD)" = 1e01ddc2c69ba14f3fed388e52ef919209694f4b
+          test "$(git rev-parse 'HEAD^{tree}')" = 87682dc1a471a50389970efc334e375267480733
           test -z "$(git status --porcelain)"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -62,13 +62,13 @@ jobs:
               source_metadata = BytesParser().parsebytes(archive.extractfile(member).read())
           for item in (metadata, source_metadata):
               assert item["Name"] == "rcc-refcert"
-              assert item["Version"] == "0.1.0"
+              assert item["Version"] == "0.1.1"
               assert item["Requires-Python"] == ">=3.10"
               assert item["License-Expression"] == "MIT"
           PY
       - name: Install and reproduce from each distribution
         env:
-          RCC_REFCERT_SOURCE_REVISION: ab291f0c80527c20c426c5dd2e1b7737f6c13f76
+          RCC_REFCERT_SOURCE_REVISION: 1e01ddc2c69ba14f3fed388e52ef919209694f4b
         run: |
           distribution_directory="$PWD/dist"
           for artifact in "$distribution_directory"/*.whl "$distribution_directory"/*.tar.gz; do
@@ -78,7 +78,7 @@ jobs:
             "$environment/bin/python" -m pip install "$artifact"
             mkdir "$installation_root/run"
             cd "$installation_root/run"
-            "$environment/bin/python" -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert') == '0.1.0'"
+            "$environment/bin/python" -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert') == '0.1.1'"
             "$environment/bin/rcc-refcert" reproduce --check
           done
       - name: Record distribution hashes
@@ -87,7 +87,7 @@ jobs:
         id: distributions
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: rcc-refcert-0.1.0-distributions
+          name: rcc-refcert-0.1.1-distributions
           path: dist/*
           if-no-files-found: error
           retention-days: 14
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/project/rcc-refcert/0.1.0/
+      url: https://pypi.org/project/rcc-refcert/0.1.1/
     permissions:
       id-token: write
     steps:
@@ -137,7 +137,7 @@ jobs:
           from pathlib import Path
           from urllib.request import urlopen
 
-          with urlopen("https://pypi.org/pypi/rcc-refcert/0.1.0/json", timeout=30) as response:
+          with urlopen("https://pypi.org/pypi/rcc-refcert/0.1.1/json", timeout=30) as response:
               published = json.load(response)
           expected = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in Path("expected").iterdir()}
           actual = {p["filename"]: p["digests"]["sha256"] for p in published["urls"]}
@@ -148,7 +148,7 @@ jobs:
           installation_root="$(mktemp -d)"
           python -m venv "$installation_root/environment"
           cd "$installation_root"
-          environment/bin/python -m pip install --no-cache-dir --index-url https://pypi.org/simple "rcc-refcert==0.1.0"
-          environment/bin/python -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert') == '0.1.0'"
+          environment/bin/python -m pip install --no-cache-dir --index-url https://pypi.org/simple "rcc-refcert==0.1.1"
+          environment/bin/python -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert') == '0.1.1'"
           environment/bin/rcc-refcert examples
           environment/bin/rcc-refcert reproduce --check

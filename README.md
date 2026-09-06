@@ -1,7 +1,7 @@
 # rcc-refcert
 
 [![PyPI](https://img.shields.io/pypi/v/rcc-refcert.svg)](https://pypi.org/project/rcc-refcert/)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22544967.svg)](https://doi.org/10.5281/zenodo.22544967)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22554288.svg)](https://doi.org/10.5281/zenodo.22554288)
 
 `rcc-refcert` is a Python research toolkit for
 **structure-fair quantum circuit complexity**.
@@ -360,8 +360,9 @@ python -m build
 ```
 
 The [v0.1.1 release](https://github.com/yeruciwenrou-dotcom/rcc-refcert/releases/tag/v0.1.1)
-and earlier versions are archived on [Zenodo](https://doi.org/10.5281/zenodo.22544967).
-For reproducible citations, use the version DOI of the release you used.
+is archived on [Zenodo](https://doi.org/10.5281/zenodo.22554288).
+Use this version DOI for reproducible citations of 0.1.1; the
+[all-versions DOI](https://doi.org/10.5281/zenodo.22544967) represents the project across releases.
 
 See the [Changelog](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/CHANGELOG.md) for the capabilities included in this version.
 Citation metadata for the software and associated RCC paper are provided in
