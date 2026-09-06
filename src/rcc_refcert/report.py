@@ -185,7 +185,9 @@ def _case_section(result: CaseAnalysis) -> list[str]:
             ]
         )
         for syntax in result.gain_cost.syntax_reports:
-            route = "passes" if syntax.current_condition_satisfied else "fails"
+            route = {"pass": "passes", "fail": "fails"}.get(
+                syntax.current_outcome.value, syntax.current_outcome.value
+            )
             suggestions = ", ".join(
                 f"`{action.action_name}={action.suggested_codeword}`"
                 for action in syntax.actions

@@ -13,13 +13,15 @@ from rcc_refcert import (
     FiniteControlModel,
     ReferencePotentialCertificate,
     audit_case,
+    audit_model,
     get_case,
     verify_bellman_choi,
     verify_reference_potential,
 )
 from rcc_refcert.fixed_point import linear_fixed_point
+from rcc_refcert.model import ModelValidationError, validate_model
 from rcc_refcert.numeric import canonical_upper_float, format_certificate_constant
-from rcc_refcert.quantum import choi_from_kraus
+from rcc_refcert.quantum import choi_from_kraus, reset_kraus_qubit
 from rcc_refcert.render import case_payload, format_case
 from rcc_refcert.status import CheckOutcome
 
@@ -122,6 +124,48 @@ def test_unresolved_constant_survives_default_rendering() -> None:
         assert certificate["candidate_constant"] == 0.0
     assert "INCONCLUSIVE" in format_case(case)
     assert "no usable constant" in format_case(case)
+
+
+def test_invalid_internal_semidensity_preserves_partial_audit() -> None:
+    model = rare_halt(32)
+    r = 5e-11
+    kraus = (np.sqrt(1 - r) * np.eye(2),) + tuple(
+        np.sqrt(r) * matrix for matrix in reset_kraus_qubit(0)
+    )
+    for action in model.actions_by_syntax["s"]:
+        if not action.is_halt:
+            action.continue_kraus = {("q", "q"): kraus}
+    assert validate_model(model) == []
+    result = audit_model(model, max_depth=1, max_transient_steps=1)
+    assert result.realization_outcome is CheckOutcome.PASS
+    assert 0 < result.truncated_trace < 1e-8
+    assert result.fixed_point.output_valid is False
+    assert np.trace(result.fixed_point.output).real > 1 + result.tolerance
+    assert result.linear_fixed_point_outcome is CheckOutcome.INCONCLUSIVE
+    assert result.domination_outcome is CheckOutcome.INCONCLUSIVE
+    assert result.fixed_model_domination is None
+    case = replace(audit_case(get_case("dephase-or-halt")), model_analysis=result)
+    payload = json.loads(json.dumps(case_payload(case), allow_nan=False))["checks"]
+    assert payload["h2_linear_fixed_point"]["outcome"] == "inconclusive"
+    assert payload["h2_linear_fixed_point"]["output_valid"] is False
+    assert payload["h34_domination"]["constant"] is None
+    assert "INCONCLUSIVE" in format_case(case)
+    assert "trace" in format_case(case, detailed=True)
+    model.initial_blocks["q"] = 2 * model.reference_state
+    with pytest.raises(ModelValidationError):
+        audit_model(model, max_depth=1, max_transient_steps=1)
+
+
+def test_unresolved_linear_solve_returns_structured_result(monkeypatch) -> None:
+    def unresolved(*args, **kwargs):
+        raise np.linalg.LinAlgError("singular working-precision system")
+
+    monkeypatch.setattr(np.linalg, "solve", unresolved)
+    result = audit_model(rare_halt(4), max_depth=1, max_transient_steps=1)
+    assert result.realization_outcome is CheckOutcome.PASS
+    assert result.linear_fixed_point_outcome is CheckOutcome.INCONCLUSIVE
+    assert result.fixed_model_domination is None
+    assert result.fixed_point.output is None
 
 
 @pytest.mark.parametrize("constant", [0.5, 1.0, 15.0 / 14.0, 1e5])

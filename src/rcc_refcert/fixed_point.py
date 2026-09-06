@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from .domination import _validate_semidensity
 from .model import BlockKey, FiniteControlModel, require_valid_model
 from .quantum import Array, choi_from_linear_map, unvec, vec
 from .semantics import block_slices, flatten_state, halt_matrix, transient_matrix
@@ -19,6 +20,7 @@ class FixedPointResult:
     message: str
     condition_number: float | None = None
     solve_residual: float | None = None
+    output_valid: bool | None = None
 
 
 def linear_fixed_point(
@@ -41,20 +43,36 @@ def linear_fixed_point(
         )
     omega = flatten_state(model, model.initial_transient_state())
     system = np.eye(t_matrix.shape[0], dtype=complex) - t_matrix
-    condition_number = float(np.linalg.cond(system))
-    value = np.linalg.solve(system, omega)
+    try:
+        condition_number = float(np.linalg.cond(system))
+        value = np.linalg.solve(system, omega)
+    except np.linalg.LinAlgError:
+        return FixedPointResult(
+            spectral_radius=radius,
+            output=None,
+            applicable=True,
+            message="linear system could not be resolved numerically",
+        )
     solve_residual = float(np.linalg.norm(system @ value - omega, ord=2))
     output = unvec(h_matrix @ value, model.output_dim)
+    output_valid = True
+    message = (
+        "full transient-space spectral radius is below one; numerical "
+        "conditioning, solve residual and output validity are reported separately"
+    )
+    try:
+        _validate_semidensity(output, model.reference_state, tol)
+    except ValueError as error:
+        output_valid = False
+        message = f"linear output is unresolved: {error}"
     return FixedPointResult(
         spectral_radius=radius,
         output=output,
         applicable=True,
-        message=(
-            "full transient-space spectral radius is below one; numerical "
-            "conditioning and solve residual are reported separately"
-        ),
+        message=message,
         condition_number=condition_number,
         solve_residual=solve_residual,
+        output_valid=output_valid,
     )
 
 

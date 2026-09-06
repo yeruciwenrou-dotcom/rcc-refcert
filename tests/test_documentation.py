@@ -260,7 +260,7 @@ def test_github_markdown_avoids_known_unsupported_math_syntax() -> None:
         *(ROOT / "docs").glob("*.md"),
         ROOT / "results" / "reference_report.md",
     )
-    unsupported = (r"\(", r"\[", r"\operatorname", r"\#", r"\,")
+    unsupported = (r"\(", r"\[", r"\operatorname", r"\#", r"\,", r"\!")
 
     for path in public_documents:
         text = path.read_text(encoding="utf-8")

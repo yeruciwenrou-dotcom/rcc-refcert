@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
+from fractions import Fraction
 
 import numpy as np
 
-from .domination import minimum_domination_constant
+from .gain_bounds import GainBounds, branch_gain_bounds, ceil_log2, upper_float
 from .model import BlockKey, FiniteControlModel, require_valid_model
 from .prefix import is_prefix_free
-from .quantum import Array, apply_kraus, is_density_matrix, min_hermitian_eigenvalue
+from .quantum import Array, is_density_matrix, min_hermitian_eigenvalue
 from .status import CheckOutcome, CheckResult, EvidenceLevel
 
 
@@ -23,6 +24,7 @@ class ActionGainCost:
     control_gains: dict[str, float] = field(repr=False, compare=False)
     suggested_code_length: int = 0
     suggested_codeword: str = ""
+    reference_gain_upper: float | None = None
 
 
 @dataclass(frozen=True)
@@ -35,6 +37,10 @@ class SyntaxGainCost:
     current_condition_satisfied: bool
     suggested_condition_satisfied: bool
     actions: tuple[ActionGainCost, ...]
+    current_outcome: CheckOutcome = CheckOutcome.INCONCLUSIVE
+    suggested_outcome: CheckOutcome = CheckOutcome.INCONCLUSIVE
+    current_weighted_sum_upper: float | None = None
+    suggested_weighted_sum_upper: float | None = None
 
 
 @dataclass
@@ -52,6 +58,7 @@ class GainCostReport:
     syntax_reports: tuple[SyntaxGainCost, ...]
     initial_coefficients: dict[BlockKey, float]
     fixed_model_initial_constant: float | None
+    constant: float | None = None
     checks: list[CheckResult] = field(default_factory=list)
     caveat: str = (
         "H.70 is a sufficient local gain–cost condition. Rejection does not "
@@ -84,14 +91,15 @@ def _rejected_report(
     model: FiniteControlModel,
     name: str,
     message: str,
+    outcome: CheckOutcome = CheckOutcome.FAIL,
 ) -> GainCostReport:
     return GainCostReport(
         model_name=model.name,
-        outcome=CheckOutcome.FAIL,
+        outcome=outcome,
         syntax_reports=(),
         initial_coefficients={},
         fixed_model_initial_constant=None,
-        checks=[CheckResult(name, CheckOutcome.FAIL, message)],
+        checks=[CheckResult(name, outcome, message)],
     )
 
 
@@ -140,16 +148,12 @@ def _normalize_envelopes(
     return normalized, None
 
 
-def _suggested_length(action_count: int, gain: float, tol: float) -> int:
-    base = math.ceil(math.log2(max(2, action_count)))
-    log_gain = math.log2(max(1.0, gain))
-    nearest_integer = round(log_gain)
-    gain_cost = (
-        int(nearest_integer)
-        if abs(log_gain - nearest_integer) <= tol
-        else math.ceil(log_gain)
-    )
-    return base + gain_cost
+def _weighted_outcome(lower: Fraction, upper: Fraction) -> CheckOutcome:
+    if upper <= 1:
+        return CheckOutcome.PASS
+    if lower > 1:
+        return CheckOutcome.FAIL
+    return CheckOutcome.INCONCLUSIVE
 
 
 def analyze_reference_gain_cost(
@@ -173,82 +177,109 @@ def analyze_reference_gain_cost(
 
     checks: list[CheckResult] = []
     syntax_reports: list[SyntaxGainCost] = []
-    current_rejected = False
+    current_outcomes: list[CheckOutcome] = []
 
     for syntax_state in sorted(model.syntax_states):
         actions = model.actions_by_syntax[syntax_state]
-        gains_by_action: dict[str, tuple[float, dict[str, float]]] = {}
+        gains_by_action: dict[str, tuple[GainBounds, dict[str, float]]] = {}
         lengths: dict[str, int] = {}
 
         for action in actions:
             control_gains: dict[str, float] = {}
+            control_bounds: list[GainBounds] = []
             for source_control in sorted(model.control_dims):
                 source_key = (syntax_state, source_control)
                 source_theta = envelopes[source_key]
                 if action.is_halt:
-                    output = apply_kraus(
-                        action.halt_kraus[source_control], source_theta
-                    )
-                    gain = minimum_domination_constant(
-                        output, model.reference_state, tol=tol
-                    ).constant
+                    branches = [
+                        (action.halt_kraus[source_control], model.reference_state)
+                    ]
                 else:
                     assert action.successor is not None
-                    gain = 0.0
+                    branches = []
                     for target_control in sorted(model.control_dims):
                         kraus = action.continue_kraus.get(
                             (source_control, target_control), ()
                         )
                         if not kraus:
                             continue
-                        output = apply_kraus(kraus, source_theta)
                         target_theta = envelopes[(action.successor, target_control)]
-                        gain += minimum_domination_constant(
-                            output, target_theta, tol=tol
-                        ).constant
-                if not np.isfinite(gain):
+                        branches.append((kraus, target_theta))
+                bounds = [
+                    branch_gain_bounds(kraus, source_theta, target)
+                    for kraus, target in branches
+                ]
+                if any(bound is None for bound in bounds):
                     return _rejected_report(
                         model,
                         f"reference-gain[{syntax_state},{action.name},{source_control}]",
-                        "reference gain is not finite on the supplied supports",
+                        "reference gain has no resolved numerical upper bound",
+                        CheckOutcome.INCONCLUSIVE,
                     )
-                control_gains[source_control] = float(gain)
+                resolved = [bound for bound in bounds if bound is not None]
+                combined = GainBounds(
+                    math.fsum(bound.estimate for bound in resolved),
+                    sum((bound.lower for bound in resolved), Fraction(0)),
+                    sum((bound.upper for bound in resolved), Fraction(0)),
+                )
+                control_gains[source_control] = combined.estimate
+                control_bounds.append(combined)
 
-            reference_gain = max(control_gains.values())
+            reference_gain = GainBounds(
+                max(control_gains.values()),
+                max(bound.lower for bound in control_bounds),
+                max(bound.upper for bound in control_bounds),
+            )
             gains_by_action[action.name] = (reference_gain, control_gains)
-            lengths[action.name] = _suggested_length(len(actions), reference_gain, tol)
+            lengths[action.name] = ceil_log2(
+                Fraction(max(2, len(actions)))
+            ) + ceil_log2(reference_gain.upper)
 
         suggested_codes = _canonical_codebook(lengths)
         action_reports: list[ActionGainCost] = []
-        current_sum = 0.0
-        suggested_sum = 0.0
+        current_sum = Fraction(0)
+        suggested_sum = Fraction(0)
+        current_lower = current_upper = suggested_lower = suggested_upper = Fraction(0)
         for action in actions:
             gain, control_gains = gains_by_action[action.name]
-            effective_gain = max(1.0, gain)
-            current_sum += 2.0 ** (-action.code_length) * effective_gain
-            suggested_sum += 2.0 ** (-lengths[action.name]) * effective_gain
+            effective_gain = max(Fraction(1), Fraction(gain.estimate))
+            current_weight = Fraction(1, 2**action.code_length)
+            suggested_weight = Fraction(1, 2 ** lengths[action.name])
+            current_sum += current_weight * effective_gain
+            suggested_sum += suggested_weight * effective_gain
+            current_lower += current_weight * max(1, gain.lower)
+            current_upper += current_weight * max(1, gain.upper)
+            suggested_lower += suggested_weight * max(1, gain.lower)
+            suggested_upper += suggested_weight * max(1, gain.upper)
             action_reports.append(
                 ActionGainCost(
                     syntax_state=syntax_state,
                     action_name=action.name,
                     current_codeword=action.codeword,
-                    reference_gain=gain,
+                    reference_gain=gain.estimate,
+                    reference_gain_upper=upper_float(gain.upper),
                     control_gains=control_gains,
                     suggested_code_length=lengths[action.name],
                     suggested_codeword=suggested_codes[action.name],
                 )
             )
 
-        current_ok = current_sum <= 1.0 + tol
-        suggested_ok = suggested_sum <= 1.0 + tol
-        current_rejected |= not current_ok
+        current_outcome = _weighted_outcome(current_lower, current_upper)
+        suggested_outcome = _weighted_outcome(suggested_lower, suggested_upper)
+        current_ok = current_outcome is CheckOutcome.PASS
+        suggested_ok = suggested_outcome is CheckOutcome.PASS
+        current_outcomes.append(current_outcome)
         checks.append(
             CheckResult(
                 f"H.70-current[{syntax_state}]",
-                CheckOutcome.PASS if current_ok else CheckOutcome.FAIL,
+                current_outcome,
                 "actual local codewords satisfy the gain-weighted Kraft condition"
                 if current_ok
-                else "actual local codewords violate this sufficient H.70 certificate",
+                else (
+                    "actual local codewords violate this sufficient H.70 certificate"
+                    if current_outcome is CheckOutcome.FAIL
+                    else "gain uncertainty overlaps the H.70 boundary; the condition is unresolved"
+                ),
                 float(current_sum),
                 tol,
             )
@@ -256,7 +287,7 @@ def analyze_reference_gain_cost(
         checks.append(
             CheckResult(
                 f"H.76-suggested[{syntax_state}]",
-                CheckOutcome.PASS if suggested_ok else CheckOutcome.FAIL,
+                suggested_outcome,
                 "constructed prefix code satisfies the H.76 sufficient completion",
                 float(suggested_sum),
                 tol,
@@ -272,17 +303,30 @@ def analyze_reference_gain_cost(
                 current_condition_satisfied=current_ok,
                 suggested_condition_satisfied=suggested_ok,
                 actions=tuple(action_reports),
+                current_outcome=current_outcome,
+                suggested_outcome=suggested_outcome,
+                current_weighted_sum_upper=upper_float(current_upper),
+                suggested_weighted_sum_upper=upper_float(suggested_upper),
             )
         )
 
     initial = model.initial_transient_state()
     initial_coefficients: dict[BlockKey, float] = {}
     for key in model.transient_keys():
-        coefficient = minimum_domination_constant(
-            initial[key], envelopes[key], tol=tol
-        ).constant
-        initial_coefficients[key] = float(coefficient)
-    fixed_constant = float(sum(initial_coefficients.values()))
+        coefficient = branch_gain_bounds(
+            (np.eye(len(initial[key])),), initial[key], envelopes[key]
+        )
+        if coefficient is None:
+            return _rejected_report(
+                model,
+                "H.72-fixed-model-initial",
+                "initial domination has no resolved numerical upper bound",
+                CheckOutcome.INCONCLUSIVE,
+            )
+        initial_coefficients[key] = upper_float(coefficient.upper)
+    fixed_constant = upper_float(
+        sum((Fraction(x) for x in initial_coefficients.values()), Fraction(0))
+    )
     checks.append(
         CheckResult(
             "H.72-fixed-model-initial",
@@ -294,11 +338,19 @@ def analyze_reference_gain_cost(
         )
     )
 
+    outcome = (
+        CheckOutcome.FAIL
+        if CheckOutcome.FAIL in current_outcomes
+        else CheckOutcome.INCONCLUSIVE
+        if CheckOutcome.INCONCLUSIVE in current_outcomes
+        else CheckOutcome.PASS
+    )
     return GainCostReport(
         model_name=model.name,
-        outcome=CheckOutcome.FAIL if current_rejected else CheckOutcome.PASS,
+        outcome=outcome,
         syntax_reports=tuple(syntax_reports),
         initial_coefficients=initial_coefficients,
         fixed_model_initial_constant=fixed_constant,
+        constant=fixed_constant if outcome is CheckOutcome.PASS else None,
         checks=checks,
     )

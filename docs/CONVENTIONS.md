@@ -119,6 +119,23 @@ If a correction cannot be resolved, or exceeds `tol * max(1, candidate)`, the
 result is `inconclusive` and supplies no usable constant. A passing report
 reserves the accepted budget in its returned upper constant.
 
+### H.6 gain–cost boundaries
+
+The H.70 threshold is one. Upper gain estimates include branch-map formation
+and spectral-residual allowances, scaled by the reference eigenvalue floor.
+A lower estimate above one rejects the local condition; an upper estimate at
+most one accepts it. Overlap with the boundary gives `inconclusive`.
+
+Diagonal envelopes with Kraus matrices having at most one nonzero entry per
+column admit exact rational gain evaluation on the supplied binary values.
+This preserves resolved equality cases. Scalar gain sums, prefix weights and
+the ceilings in H.76 use rational comparisons, so floating-point logarithms
+cannot shorten a suggested code at a power-of-two boundary. General matrix
+estimates may require a longer sufficient code. Re-encoding leaves the supplied
+model unchanged. A numerical basis change or Kraus mixing can turn a resolved
+equality into an inconclusive boundary and increase the suggested integer
+length, while the underlying gain estimates agree within numerical precision.
+
 These checks are numerical verification in working precision, not an
 interval-arithmetic or exact-arithmetic proof. The conservative scalar
 propagation can be inconclusive for a mathematically valid candidate. Strict
