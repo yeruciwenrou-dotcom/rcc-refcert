@@ -24,15 +24,9 @@ operations and a reference state, it constructs the terminating program
 semidensity, verifies reference certificates, evaluates the reference gain of
 individual actions, and tests the corresponding code-length allocation.
 
-Its roles form a deliberate hierarchy:
-
-1. a research implementation of the finite-control qualification machinery
-   arising from the physical model in Section II of
-   [the RCC paper](https://arxiv.org/abs/2509.18205);
-2. a reference implementation of program-semidensity and certificate
-   conventions for that model class;
-3. an executable reproduction of the selected constructions in Appendices F
-   and H.
+The implementation fixes program-semidensity and certificate conventions and
+reproduces selected constructions from Appendices F and H of
+[the RCC paper](https://arxiv.org/abs/2509.18205).
 
 Appendix F proves that the model class is nonempty and constructs an admissible
 qubit model family with approximately universal pure- and mixed-state
@@ -89,7 +83,9 @@ C^\star=\left\|\sigma_R^{-1/2}M\sigma_R^{-1/2}\right\|_\infty
 $$
 
 on compatible support. Positive mass in the kernel of the reference makes the
-constant infinite. This is the fixed-model level of the calculation; a model
+constant infinite. Numerically unresolved small eigenvalues are reported as
+inconclusive, with no finite or infinite constant asserted. This is the
+fixed-model level of the calculation; a model
 family additionally asks for a uniform bound
 $\sup_n C_n^\star<\infty$.
 
@@ -99,8 +95,8 @@ The package keeps three logically different constructions separate:
 
 | interface | code checks | logical role |
 |---|---|---|
-| H.3 Bellman–Choi | Choi PSD, Bellman residuals, output domination | exact fixed finite-model characterization for a supplied candidate $C$ |
-| H.4 reference potential | local matrix domination and scalar Bellman inequalities | constructive sufficient certificate |
+| H.3 Bellman–Choi | Choi PSD, Bellman residuals, output domination, propagated constant correction | numerical verification of the fixed-model CP-supersolution conditions |
+| H.4 reference potential | local matrix domination, scalar Bellman inequalities, propagated constant correction | constructive sufficient certificate |
 | H.6 gain–cost | unweighted local reference gains, actual H.70 sums, fixed-model H.72 coefficients, H.76 completion | sufficient route connecting reference growth to code length |
 
 The linear branch can construct the minimum H.3 value-map candidate from
@@ -124,6 +120,9 @@ Results use two axes:
 `not_applicable` is used for a genuine mathematical boundary, such as the
 linear inverse at spectral radius one. `inconclusive` records a quantity for
 which the available numerical evidence supports neither pass nor fail.
+A passing H.3 or H.4 result returns the candidate plus a reserved numerical
+error budget. The candidate, usable upper constant, and correction are separate
+fields; a rejected or inconclusive certificate has no usable constant.
 
 ## Claim ladder
 

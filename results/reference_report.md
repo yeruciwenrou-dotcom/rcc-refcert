@@ -39,8 +39,8 @@ RCC paper map: H.1, H.2, H.3, H.4, H.6.
 | H.1 realization | pass | pass | max error 0 |
 | H.2 linear fixed point | pass | pass | rho(T) = 0.5 |
 | H.34 fixed-model domination | pass | pass | C* = 1 |
-| H.3 Bellman–Choi | pass | pass | C = 1 |
-| H.4 reference potential | pass | pass | C = 1, C = 2 |
+| H.3 Bellman–Choi | pass | pass | C <= 1.00000000011; candidate 1; correction <= 1.01e-10 |
+| H.4 reference potential | pass | pass | C <= 1.00000000011; candidate 1; correction <= 1.01e-10, C <= 2.00000000021; candidate 2; correction <= 2.01e-10 |
 | H.6 gain–cost | pass | pass | s: 1 |
 
 ### Numerical diagnostics
@@ -69,8 +69,8 @@ RCC paper map: H.1, H.2, H.3, H.4, H.6.
 | H.1 realization | pass | pass | max error 0 |
 | H.2 linear fixed point | pass | pass | rho(T) = 0.353553390593 |
 | H.34 fixed-model domination | pass | pass | C* = 1.07142857143 |
-| H.3 Bellman–Choi | pass | pass | C = 1.07142857143 |
-| H.4 reference potential | pass | pass | C = 1.33333333333 |
+| H.3 Bellman–Choi | pass | pass | C <= 1.07142857154; candidate 1.07142857143; correction <= 1.08e-10 |
+| H.4 reference potential | pass | pass | C <= 1.33333333347; candidate 1.33333333333; correction <= 1.34e-10 |
 | H.6 gain–cost | fail (expected) | fail | s0: 2, s1: 1.5 |
 
 ### Numerical diagnostics

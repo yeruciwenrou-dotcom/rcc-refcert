@@ -58,7 +58,7 @@ def test_case_json_covers_h3_h4_and_h6(capsys) -> None:
     )
     payload = json.loads(capsys.readouterr().out)
     assert payload["schema"] == "rcc-refcert.case-audit"
-    assert payload["schema_version"] == 1
+    assert payload["schema_version"] == 2
     assert payload["producer"] == {"name": "rcc-refcert", "version": __version__}
     assert payload["matches_reference_expectations"] is True
     checks = payload["checks"]

@@ -2,6 +2,20 @@
 
 ## 0.1.0 (unreleased)
 
+### Numerical correctness
+
+- propagated H.3 and H.4 residuals to the final domination constant, including
+  slowly halting dynamics and zero-deficit nonhalting sectors;
+- separated candidate constants from usable numerical upper constants and
+  reported unresolved correction budgets as inconclusive;
+- distinguished unresolved small positive reference eigenvalues from exact
+  kernel witnesses in fixed-model domination diagnostics;
+- computed Elias header lengths with integer arithmetic across large binary
+  boundaries;
+- introduced result schema version 2 and paired-reset schema version 3 for
+  corrected constants and nullable support diagnostics, with upward
+  normalization of certificate upper bounds.
+
 ### Scientific scope and executable evidence
 
 - established three declared finite-control reference cases: a transparent
@@ -21,10 +35,7 @@
   readable and structured output;
 - added representation-invariance and deterministic generated-model checks
   for Kraus freedom, basis covariance, complete relabeling, path/block
-  agreement, fixed-point convergence, and fixed-model domination constants;
-- retained explicit claim boundaries: finite proof-object and numerical checks
-  do not replace physical reference consistency, faithful transcription,
-  model-family uniformity, or the paper's analytic lower-bound proof.
+  agreement, fixed-point convergence, and fixed-model domination constants.
 
 ### Research interface and documentation
 
@@ -37,9 +48,7 @@
   lower-bound walkthrough;
 - added a guided Jupyter first run with stable cell identities and direct views
   of the semidensity and H.70/H.76 diagnostics;
-- documented the source tree's exact manuscript-version alignment while
-  preserving the boundary between executable finite-model evidence and the
-  paper's analytic and model-family arguments.
+- documented the source tree's manuscript-version alignment.
 
 ### Reproducibility and distribution
 
@@ -56,14 +65,6 @@
   repository;
 - supported Python 3.10 through 3.14, exercised NumPy 1.26 and current NumPy 2,
   executed the native Notebook kernel, ran the full public quickstart on
-  Windows, and retained the public reproduction entry check on macOS.
-
-### Validation and repository governance
-
-- made warnings-as-errors tests, Ruff checks, frozen-evidence reproduction,
-  native Notebook execution, distribution builds, and cross-platform public
-  entry checks part of one aggregate required CI gate;
-- pinned official GitHub Actions to reviewed full commit SHAs and added an
-  explicit manual workflow entry for independent reruns and release validation;
-- preserved the existing public API, runtime dependency set, and frozen
-  scientific results throughout the validation work.
+  Windows, and retained the public reproduction entry check on macOS;
+- combined warnings-as-errors tests, lint, reproduction, Notebook execution,
+  distribution installation, and platform checks in the required CI workflow.

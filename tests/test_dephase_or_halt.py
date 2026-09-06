@@ -59,7 +59,8 @@ def test_reference_potential_certificate() -> None:
     )
     report = verify_reference_potential(model, certificate)
     assert report.outcome == CheckOutcome.PASS
-    assert abs(report.constant - 1.0) < 1e-12
+    assert report.candidate_constant == 1.0
+    assert 1.0 <= report.constant <= 1.0 + 2e-10
     matrix_checks = [check for check in report.checks if "domination" in check.name]
     assert matrix_checks
     assert all(check.residual is not None for check in matrix_checks)

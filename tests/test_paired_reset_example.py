@@ -47,11 +47,12 @@ def test_paired_reset_chain_has_fixed_numerical_result() -> None:
     assert checks["nonhalting_mass"] == 0.0
     assert checks["transient_spectral_radius"] == 0.0
     assert checks["minimum_fixed_model_domination_C_star"] == 1.0
-    assert checks["H3_Bellman_Choi"] == {"outcome": "pass", "constant": 1.0}
-    assert checks["H4_reference_potential"] == {
-        "outcome": "pass",
-        "constant": 1.0,
-    }
+    for name in ("H3_Bellman_Choi", "H4_reference_potential"):
+        certificate = checks[name]
+        assert certificate["outcome"] == "pass"
+        assert certificate["candidate_constant"] == 1.0
+        assert 1.0 <= certificate["constant"] <= 1.0 + 2e-10
+        assert certificate["constant_error_bound"] == certificate["constant"] - 1.0
     assert checks["H77_aggregate_balance_error"] == 0.0
     assert checks["target_domination_constant"] == 2.0
     assert checks["Dmax_zero_bits"] == 1.0
@@ -125,7 +126,7 @@ def test_paired_reset_example_script_runs_in_text_and_json_modes() -> None:
     assert json_result.returncode == 0, json_result.stderr
     payload = json.loads(json_result.stdout)
     assert payload["schema"] == "rcc-refcert.paired-reset-lower-bound"
-    assert payload["schema_version"] == 2
+    assert payload["schema_version"] == 3
     assert payload["producer"] == {"name": "rcc-refcert", "version": __version__}
     assert payload["provenance"]["tested_revision"] == revision
     assert payload["theorem_consequence"]["integer_lower_bound_slots"] == 1

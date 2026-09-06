@@ -9,7 +9,7 @@ from rcc_refcert.examples import (
     gamma5_reference_balance_error,
     natural_c_gt_one_interval,
 )
-from rcc_refcert.prefix import elias_gamma_nonnegative
+from rcc_refcert.prefix import elias_gamma_nonnegative, elias_header_length
 from rcc_refcert.rank_encoding import (
     decode_word,
     encode_word,
@@ -25,6 +25,19 @@ def test_elias_headers_are_prefix_free_for_initial_lengths() -> None:
         for j, right in enumerate(headers):
             if i != j:
                 assert not right.startswith(left)
+
+
+@pytest.mark.parametrize("exponent", [1, 4, 48, 49, 50, 53, 60, 100, 1024])
+def test_elias_lengths_match_encoding_at_power_boundaries(exponent: int) -> None:
+    for offset in (-2, -1, 0, 1):
+        value = 2**exponent + offset
+        assert elias_header_length(value) == len(elias_gamma_nonnegative(value))
+
+
+@pytest.mark.parametrize("value", [-1, True, 1.5])
+def test_elias_length_rejects_noninteger_or_negative_values(value) -> None:
+    with pytest.raises(ValueError):
+        elias_header_length(value)
 
 
 def test_non_dyadic_whole_word_codes_are_unique() -> None:

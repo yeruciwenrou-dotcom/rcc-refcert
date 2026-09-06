@@ -31,9 +31,15 @@ def test_supplied_bellman_choi_certificate_passes() -> None:
     )
     report = verify_bellman_choi(model, certificate)
     assert report.outcome == CheckOutcome.PASS
-    assert report.constant == 1.0
+    assert report.candidate_constant == 1.0
+    assert 1.0 <= report.constant <= 1.0 + 2e-10
+    assert report.constant_error_bound == report.constant - report.candidate_constant
     assert all(check.outcome == CheckOutcome.PASS for check in report.checks)
-    assert all(check.residual is not None for check in report.checks)
+    assert all(
+        check.residual is not None
+        for check in report.checks
+        if check.name != "constant-error-budget"
+    )
 
 
 def test_scaled_down_bellman_choi_envelope_is_rejected() -> None:
@@ -79,7 +85,8 @@ def test_multiblock_minimum_value_map_passes_independent_verifier() -> None:
     )
     report = verify_bellman_choi(model, certificate)
     assert report.outcome == CheckOutcome.PASS
-    assert report.constant == 15.0 / 14.0
+    assert report.candidate_constant == 15.0 / 14.0
+    assert 15.0 / 14.0 <= report.constant <= 15.0 / 14.0 + 2e-10
     assert set(envelopes) == set(model.transient_keys())
     for key, matrix in envelopes.items():
         expected = model.control_dims[key[1]] * model.output_dim

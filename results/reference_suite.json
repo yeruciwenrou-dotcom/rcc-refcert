@@ -1,6 +1,7 @@
 {
   "artifact_role": "canonical-frozen-evidence",
   "normalization": {
+    "certificate_bounds": "upper constants and error bounds round toward positive infinity",
     "rule": "abs(value) <= tolerance is stored as 0",
     "significant_digits": 12,
     "suite_tolerance": 1e-10
@@ -10,7 +11,7 @@
     "version": "0.1.0"
   },
   "schema": "rcc-refcert.reference-suite-freeze",
-  "schema_version": 1,
+  "schema_version": 2,
   "suite": {
     "appendix_f": {
       "f5_two_qubit_witness": {
@@ -424,11 +425,15 @@
             "evidence": "numerical",
             "expected_outcome": "pass",
             "matches_expectation": true,
+            "message": "fixed-model minimum evaluated from Appendix-H Eq. (H.34)",
             "outcome": "pass",
+            "reference_condition_number": 1.0,
+            "reference_rank": 2,
             "support_compatible": true,
             "support_leakage": 0.0
           },
           "h3_bellman_choi": {
+            "candidate_constant": 1.0,
             "checks": [
               {
                 "evidence": "numerical",
@@ -477,9 +482,18 @@
                 "outcome": "pass",
                 "tolerance": 1e-10,
                 "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "propagated correction to the candidate constant",
+                "name": "constant-error-budget",
+                "outcome": "pass",
+                "tolerance": 1e-10,
+                "value": 0.0
               }
             ],
-            "constant": 1.0,
+            "constant": 1.00000000011,
+            "constant_error_bound": 1.00000230319e-10,
             "evidence": "numerical",
             "expected_outcome": "pass",
             "matches_expectation": true,
@@ -489,6 +503,7 @@
           "h4_reference_potential": {
             "certificates": [
               {
+                "candidate_constant": 1.0,
                 "checks": [
                   {
                     "evidence": "numerical",
@@ -529,14 +544,24 @@
                     "outcome": "pass",
                     "tolerance": 1e-10,
                     "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "propagated correction to the candidate constant",
+                    "name": "constant-error-budget",
+                    "outcome": "pass",
+                    "tolerance": 1e-10,
+                    "value": 0.0
                   }
                 ],
-                "constant": 1.0,
+                "constant": 1.00000000011,
+                "constant_error_bound": 1.00000230319e-10,
                 "evidence": "numerical",
                 "name": "tight C=1 reference-potential certificate",
                 "outcome": "pass"
               },
               {
+                "candidate_constant": 2.0,
                 "checks": [
                   {
                     "evidence": "numerical",
@@ -577,9 +602,18 @@
                     "outcome": "pass",
                     "tolerance": 1e-10,
                     "value": 0.5
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "propagated correction to the candidate constant",
+                    "name": "constant-error-budget",
+                    "outcome": "pass",
+                    "tolerance": 2e-10,
+                    "value": 0.0
                   }
                 ],
-                "constant": 2.0,
+                "constant": 2.00000000021,
+                "constant_error_bound": 2.00000460638e-10,
                 "evidence": "numerical",
                 "name": "positive-margin reference-potential certificate",
                 "outcome": "pass"
@@ -664,7 +698,7 @@
           "tolerance": 1e-10
         },
         "schema": "rcc-refcert.case-audit",
-        "schema_version": 1,
+        "schema_version": 2,
         "scope": {
           "analytic_obligations": [
             "faithful transcription (TC)",
@@ -770,11 +804,15 @@
             "evidence": "numerical",
             "expected_outcome": "pass",
             "matches_expectation": true,
+            "message": "fixed-model minimum evaluated from Appendix-H Eq. (H.34)",
             "outcome": "pass",
+            "reference_condition_number": 1.0,
+            "reference_rank": 2,
             "support_compatible": true,
             "support_leakage": 0.0
           },
           "h3_bellman_choi": {
+            "candidate_constant": 1.07142857143,
             "checks": [
               {
                 "evidence": "numerical",
@@ -919,9 +957,18 @@
                 "outcome": "pass",
                 "tolerance": 1e-10,
                 "value": 0.0
+              },
+              {
+                "evidence": "numerical",
+                "message": "propagated correction to the candidate constant",
+                "name": "constant-error-budget",
+                "outcome": "pass",
+                "tolerance": 1.07142857143e-10,
+                "value": 0.0
               }
             ],
-            "constant": 1.07142857143,
+            "constant": 1.07142857154,
+            "constant_error_bound": 1.07143183215e-10,
             "evidence": "numerical",
             "expected_outcome": "pass",
             "matches_expectation": true,
@@ -931,6 +978,7 @@
           "h4_reference_potential": {
             "certificates": [
               {
+                "candidate_constant": 1.33333333333,
                 "checks": [
                   {
                     "evidence": "numerical",
@@ -1187,9 +1235,18 @@
                     "outcome": "pass",
                     "tolerance": 1e-10,
                     "value": 0.0
+                  },
+                  {
+                    "evidence": "numerical",
+                    "message": "propagated correction to the candidate constant",
+                    "name": "constant-error-budget",
+                    "outcome": "pass",
+                    "tolerance": 1.33333333333e-10,
+                    "value": 0.0
                   }
                 ],
-                "constant": 1.33333333333,
+                "constant": 1.33333333347,
+                "constant_error_bound": 1.3333356641e-10,
                 "evidence": "numerical",
                 "name": "multiblock rectangular reference-potential certificate",
                 "outcome": "pass"
@@ -1323,7 +1380,7 @@
           "tolerance": 1e-10
         },
         "schema": "rcc-refcert.case-audit",
-        "schema_version": 1,
+        "schema_version": 2,
         "scope": {
           "analytic_obligations": [
             "faithful transcription (TC)",
@@ -1427,7 +1484,10 @@
             "evidence": "numerical",
             "expected_outcome": "inconclusive",
             "matches_expectation": true,
+            "message": "linear fixed point not evaluated",
             "outcome": "inconclusive",
+            "reference_condition_number": null,
+            "reference_rank": null,
             "support_compatible": null,
             "support_leakage": null
           }
@@ -1440,7 +1500,7 @@
           "tolerance": 1e-10
         },
         "schema": "rcc-refcert.case-audit",
-        "schema_version": 1,
+        "schema_version": 2,
         "scope": {
           "analytic_obligations": [
             "faithful transcription (TC)",
@@ -1458,6 +1518,6 @@
       "tolerance": 1e-10
     },
     "schema": "rcc-refcert.reference-suite",
-    "schema_version": 1
+    "schema_version": 2
   }
 }

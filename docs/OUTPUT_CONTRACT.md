@@ -11,13 +11,13 @@ machine-facing document:
 | `rcc-refcert example NAME --format json` | `rcc-refcert.case-audit` |
 | `rcc-refcert reproduce --format json` | `rcc-refcert.reference-suite` |
 
-Each document carries `schema_version: 1`. Additive fields may appear within a
+Each document carries `schema_version: 2`. Additive fields may appear within a
 version; removing a field or changing its meaning requires a new version.
 
 The standalone `examples/paired_reset_lower_bound.py --json` document uses
-schema `rcc-refcert.paired-reset-lower-bound`, version `2`. Version 2 adds the
-explicit feasible preparation, the resulting upper bound, and the exact
-fixed-model optimum alongside the theorem lower bound.
+schema `rcc-refcert.paired-reset-lower-bound`, version `3`. It retains the
+feasible preparation and exact fixed-model optimum introduced in version 2,
+and adopts the certificate constants described below.
 
 ## Producer and source provenance
 
@@ -80,11 +80,35 @@ JSON represents unavailable or non-finite scalars as `null`; fields such as
 Tolerances and residuals are carried either in the run parameters or alongside
 their individual check.
 
+H.3 and H.4 reports carry these fields in both summary and detailed JSON:
+
+| field | meaning |
+|---|---|
+| `candidate_constant` | the supplied H.3 constant or the original H.4 sum of initial coefficients times potentials |
+| `constant` | the usable numerical upper constant, including its error budget; `null` unless the certificate passes |
+| `constant_error_bound` | the reserved correction in a passing result; the estimated required correction for an inconclusive result when available |
+
+The `constant-error-budget` check propagates one-sided local residuals through
+the continuation dynamics. Its acceptance budget is `tol * max(1, candidate)`.
+When a positive correction is needed, the returned constant reserves that
+budget and rounds upward by one floating-point step. Matrix checks can pass
+while this final check remains `inconclusive`. Consumers must inspect `outcome`
+and use `constant` for a passing bound. See [CONVENTIONS.md](CONVENTIONS.md)
+for the propagation method and its numerical evidence level.
+
+H.34 additionally reports `reference_rank`, `reference_condition_number`, and
+`message`. The rank counts eigenvalues resolved above the numerical threshold.
+If a small positive eigenvalue leaves support unresolved, `constant`,
+`support_compatible`, and `constant_is_infinite` are all `null`. An infinite
+constant requires a positive-mass witness in an established exact kernel.
+
 The machine-facing JSON returned by the command retains computed finite
 diagnostics. In the frozen structured result and Markdown report, a diagnostic
 whose absolute value is at or below its stated tolerance is represented as
 zero; the remaining finite scalars are stored to twelve significant digits.
-The tolerance remains part of the result, and the command JSON supplies the
+Certificate upper constants and their error bounds instead round toward
+positive infinity and are never discarded as sub-tolerance residuals. The
+tolerance remains part of the result, and the command JSON supplies the
 underlying computed values.
 
 `--details` preserves each outcome while adding per-depth checks, certificate

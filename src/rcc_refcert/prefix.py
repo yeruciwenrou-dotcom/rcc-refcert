@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 from collections.abc import Iterable
 
 
@@ -60,4 +59,4 @@ def decode_elias_gamma_nonnegative(code: str) -> tuple[int, int]:
 def elias_header_length(value: int) -> int:
     if not isinstance(value, int) or isinstance(value, bool) or value < 0:
         raise ValueError("value must be nonnegative")
-    return 2 * math.floor(math.log2(value + 1)) + 1
+    return 2 * (value + 1).bit_length() - 1

@@ -63,10 +63,8 @@ def linear_value_choi_envelopes(
 ) -> dict[BlockKey, Array]:
     """Construct the minimum H.3 value-map Choi blocks when ``rho(T) < 1``.
 
-    This is a fixed finite-model candidate construction from
-    ``H (I-T)^(-1)``.  It is not an SDP search, a strict PSD certificate, or a
-    model-family result; callers should pass the returned blocks through the
-    independent Bellman--Choi verifier.
+    Build numerical candidates from ``H (I-T)^(-1)`` and pass the returned
+    blocks through the independent Bellman--Choi verifier.
     """
     if not np.isfinite(tol) or tol <= 0:
         raise ValueError("tol must be finite and positive")

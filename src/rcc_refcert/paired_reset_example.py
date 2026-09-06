@@ -1,8 +1,7 @@
 """Fixed end-to-end RCC lower-bound example built from the Appendix-F reset pair.
 
-The module deliberately implements one declared finite model.  It is an
-executable bridge from model qualification to the one-shot lower-bound theorem,
-not a general RCC optimizer, smoothing engine, or model-ingestion interface.
+The declared finite model connects qualification, the one-shot lower-bound
+theorem, and an explicit one-slot preparation that establishes tightness.
 """
 
 from __future__ import annotations
@@ -28,7 +27,7 @@ from .semantics import enumerate_accepted_programs, program_output
 from .status import CheckOutcome
 
 EXAMPLE_SCHEMA = "rcc-refcert.paired-reset-lower-bound"
-EXAMPLE_SCHEMA_VERSION = 2
+EXAMPLE_SCHEMA_VERSION = 3
 DEFAULT_TOLERANCE = 1e-10
 
 
@@ -267,11 +266,15 @@ def run_paired_reset_example(
             "minimum_fixed_model_domination_C_star": fixed_constant,
             "H3_Bellman_Choi": {
                 "outcome": bellman.outcome.value,
-                "constant": _stable_number(float(bellman.constant), tol),
+                "constant": bellman.constant,
+                "candidate_constant": bellman.candidate_constant,
+                "constant_error_bound": bellman.constant_error_bound,
             },
             "H4_reference_potential": {
                 "outcome": potential.outcome.value,
-                "constant": _stable_number(float(potential.constant), tol),
+                "constant": potential.constant,
+                "candidate_constant": potential.candidate_constant,
+                "constant_error_bound": potential.constant_error_bound,
             },
             "H77_aggregate_balance_error": _stable_number(h77_error, tol),
             "H70_local_sufficient_route": {

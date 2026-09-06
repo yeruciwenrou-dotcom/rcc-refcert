@@ -71,4 +71,6 @@ def test_multiblock_reference_potential_certificate() -> None:
     )
     assert report.outcome == CheckOutcome.PASS
     assert report.constant is not None
-    assert abs(report.constant - 4.0 / 3.0) < 1e-12
+    assert abs(report.candidate_constant - 4.0 / 3.0) < 1e-12
+    assert 4.0 / 3.0 <= report.constant <= (4.0 / 3.0) * (1.0 + 2e-10)
+    assert report.constant_error_bound == report.constant - report.candidate_constant

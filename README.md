@@ -34,7 +34,7 @@ and gain–cost assignments.
 | Goal | Entry point |
 |---|---|
 | Inspect the recorded evidence without running code | [`results/reference_report.md`](results/reference_report.md) |
-| Set up the package and run the complete verification gate | [`quickstart.py`](quickstart.py) |
+| Set up the package and reproduce the reference results | [`quickstart.py`](quickstart.py) |
 | Follow a guided first run in Jupyter | [`RCC_Quickstart.ipynb`](RCC_Quickstart.ipynb) |
 | Run the minimal qualification-to-lower-bound chain | [`docs/END_TO_END_EXAMPLE.md`](docs/END_TO_END_EXAMPLE.md) |
 | Understand exactly what the numerical results establish | [`docs/SCIENTIFIC_SCOPE.md`](docs/SCIENTIFIC_SCOPE.md) |
@@ -61,9 +61,10 @@ Complexity is therefore a relational physical quantity: the target specifies
 what must be generated, while the declared model fixes what is already
 supplied, which histories are admissible, and how their cost is measured. RCC
 also defines a state-side complexity readout from the target and the fixed
-model data. Here the global optimum is universal over every admissible history
-in the declared model; the model's reachable state family is a separate
-property. Under reference consistency, faithful transcription, and reference
+model data. Optimality takes the infimum over all admissible preparation
+histories within a declared model. Universality concerns the joint target
+generation coverage of the admissible model class. Under reference
+consistency, faithful transcription, and reference
 admissibility, the one-shot refinement bounds every admissible preparation
 path before the infimum is taken. This makes an otherwise inaccessible global
 circuit optimum auditable from information in the final state.
@@ -103,6 +104,16 @@ structure and generation costs can be examined.
 
 ## Quick start
 
+Obtain the source and enter the repository directory:
+
+```bash
+git clone https://github.com/yeruciwenrou-dotcom/rcc-refcert.git
+cd rcc-refcert
+```
+
+Alternatively, download and extract the repository ZIP, then open a terminal
+in the extracted directory containing `quickstart.py`.
+
 Python 3.10 or newer is required. On macOS and most Linux systems, use:
 
 ```bash
@@ -120,6 +131,8 @@ On its first run, the script creates a local `.venv`, installs the locked
 verification dependencies, runs the independent test suite, checks both frozen
 reference files, and writes fresh evidence to `generated_results/`. Later runs
 reuse the environment unless the package metadata or dependency lock changes.
+The three reference cases should all report `MATCH`; the designed route failure
+and nonhalting boundary are described in the reference-case table below.
 
 To regenerate and compare the scientific evidence without running the
 independent tests:
@@ -200,8 +213,8 @@ $$
 C_{\mathrm{opt}}^{(0)}=1
 $$
 
-atomic resource slot. This tightness statement uses the displayed feasible
-program; it does not turn the package into a general RCC optimizer.
+atomic resource slot. The displayed feasible program establishes tightness for
+this fixed model.
 
 After installing the package in the active environment, run:
 
@@ -212,8 +225,7 @@ python3 examples/paired_reset_lower_bound.py --json
 
 The [worked explanation](docs/END_TO_END_EXAMPLE.md) separates software
 checks, analytic model obligations, and the theorem-level consequence. The
-example is a fixed transparent bridge; general optimization and model
-ingestion remain extension points.
+example states all model inputs explicitly.
 
 ## Reference cases
 
@@ -296,7 +308,7 @@ claims each change must protect.
 | `src/rcc_refcert/` | Finite-control models, simulation, certificates, CLI, and report rendering |
 | [`examples/paired_reset_lower_bound.py`](examples/paired_reset_lower_bound.py) | Fixed model-to-lower-bound executable example |
 | `tests/` | Scientific regressions and public-interface tests |
-| [`quickstart.py`](quickstart.py) | One-command environment setup and complete verification gate |
+| [`quickstart.py`](quickstart.py) | Environment setup, independent tests, and reference reproduction |
 | [`RCC_Quickstart.ipynb`](RCC_Quickstart.ipynb) | Guided run through the three reference cases |
 | [`results/reference_report.md`](results/reference_report.md) | Frozen human-readable reference evidence |
 | [`results/reference_suite.json`](results/reference_suite.json) | Frozen normalized structured evidence |

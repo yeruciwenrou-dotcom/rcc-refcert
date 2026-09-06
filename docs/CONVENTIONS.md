@@ -93,6 +93,33 @@ matrix.
 Floating-point matrix inequalities use the smallest eigenvalue of the Hermitian
 symmetrization. Each result records the observed `outcome` separately from its
 `evidence`; the current evidence level is `numerical`. Certificate checks retain
-the tested residual matrix as well as its scalar diagnostic. A numerical pass
-certifies the stated floating-point condition at its recorded tolerance; the
-evidence level remains `numerical`.
+the tested residual matrix as well as its scalar diagnostic. A local tolerance
+check alone does not control the final domination constant: slowly halting
+dynamics can amplify a small local deficit by a large absolute factor.
+
+The H.3 verifier first raises each Choi block by
+$p_x I_{\rm in}\otimes\sigma_R$ to cover its PSD deficit. It bounds the remaining
+Bellman deficit by $e_x I_{\rm in}\otimes\sigma_R$ and each continuation effect
+by $B_{xy}I_{\rm in}$. A nonnegative correction satisfying
+$d\ge e+Bd$ then gives a corrected CP supersolution. The initial-state load of
+$p+d$, together with the output-domination deficit, bounds the correction to
+the candidate constant.
+
+The H.4 verifier converts local matrix deficits to increases in $a$, $A$, and
+$b$, using lower estimates of the reference and envelope eigenvalues. For the
+raised coefficients it solves
+$d\ge (b_+ + A_+v-v)_+ + A_+d$ and evaluates $a_+\cdot(v+d)$.
+Both routes include working-precision allowances for matrix operations,
+eigenvalues, and scalar sums. A positive Lyapunov vector bounds the residual
+of the correction solve; a relative condition number alone is insufficient.
+
+Only blocks that can reach a positive deficit enter that solve. An exact
+zero-deficit dark recurrent class therefore does not require a global inverse.
+If a correction cannot be resolved, or exceeds `tol * max(1, candidate)`, the
+result is `inconclusive` and supplies no usable constant. A passing report
+reserves the accepted budget in its returned upper constant.
+
+These checks are numerical verification in working precision, not an
+interval-arithmetic or exact-arithmetic proof. The conservative scalar
+propagation can be inconclusive for a mathematically valid candidate. Strict
+verification remains an extension point.

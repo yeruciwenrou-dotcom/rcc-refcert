@@ -4,6 +4,14 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from .certificate_error import (
+    accepted_constant,
+    final_constant_check,
+    psd_deficit,
+    reference_floor,
+    residual_correction,
+    roundoff_allowance,
+)
 from .model import BlockKey, FiniteControlModel, require_valid_model
 from .quantum import Array, apply_kraus, is_density_matrix, min_hermitian_eigenvalue
 from .status import CheckOutcome, CheckResult, EvidenceLevel
@@ -30,6 +38,8 @@ class CertificateReport:
     constant: float | None
     checks: list[CheckResult] = field(default_factory=list)
     evidence: EvidenceLevel = EvidenceLevel.NUMERICAL
+    candidate_constant: float | None = None
+    constant_error_bound: float | None = None
 
 
 def _local_transient_image(
@@ -215,7 +225,17 @@ def verify_reference_potential(
         return CertificateReport(certificate.name, CheckOutcome.FAIL, None, checks)
 
     initial = model.initial_transient_state()
-    for key in keys:
+    floors = {key: reference_floor(theta_matrices[key]) for key in keys}
+    sigma_floor = reference_floor(model.reference_state)
+    if min(*floors.values(), sigma_floor) <= 0:
+        checks.append(final_constant_check(0.0, None, tol))
+        return CertificateReport(
+            certificate.name, CheckOutcome.INCONCLUSIVE, None, checks
+        )
+    upper_a = np.array([a_values[key] for key in keys])
+    upper_b = np.array([b_values[key] for key in keys])
+    upper_transition = np.zeros((len(keys), len(keys)))
+    for index, key in enumerate(keys):
         a = a_values[key]
         with np.errstate(over="ignore", invalid="ignore"):
             residual = a * theta_matrices[key] - initial[key]
@@ -230,6 +250,10 @@ def verify_reference_potential(
             )
             continue
         minimum = min_hermitian_eigenvalue(residual)
+        scale = float(np.linalg.norm(a * theta_matrices[key], ord=2)) + float(
+            np.linalg.norm(initial[key], ord=2)
+        )
+        upper_a[index] += psd_deficit(residual, scale) / floors[key]
         status = CheckOutcome.PASS if minimum >= -tol else CheckOutcome.FAIL
         rejected |= status is CheckOutcome.FAIL
         checks.append(
@@ -243,9 +267,21 @@ def verify_reference_potential(
             )
         )
 
-    for source in keys:
+    for source_index, source in enumerate(keys):
         local = _local_transient_image(model, source, theta_matrices[source])
-        for target in keys:
+        operations = (
+            sum(
+                len(kraus)
+                for action in model.actions_by_syntax[source[0]]
+                for kraus in (
+                    action.halt_kraus.values()
+                    if action.is_halt
+                    else action.continue_kraus.values()
+                )
+            )
+            + 1
+        )
+        for target_index, target in enumerate(keys):
             coefficient = transition_values.get((source, target), 0.0)
             with np.errstate(over="ignore", invalid="ignore"):
                 residual = coefficient * theta_matrices[target] - local[target]
@@ -260,6 +296,12 @@ def verify_reference_potential(
                 )
                 continue
             minimum = min_hermitian_eigenvalue(residual)
+            scale = float(
+                np.linalg.norm(coefficient * theta_matrices[target], ord=2)
+            ) + float(np.linalg.norm(local[target], ord=2))
+            upper_transition[source_index, target_index] = (
+                coefficient + psd_deficit(residual, scale, operations) / floors[target]
+            )
             status = CheckOutcome.PASS if minimum >= -tol else CheckOutcome.FAIL
             rejected |= status is CheckOutcome.FAIL
             checks.append(
@@ -288,6 +330,12 @@ def verify_reference_potential(
             )
         else:
             minimum = min_hermitian_eigenvalue(residual)
+            scale = float(
+                np.linalg.norm(coefficient * model.reference_state, ord=2)
+            ) + float(np.linalg.norm(halt_image, ord=2))
+            upper_b[source_index] += (
+                psd_deficit(residual, scale, operations) / sigma_floor
+            )
             status = CheckOutcome.PASS if minimum >= -tol else CheckOutcome.FAIL
             rejected |= status is CheckOutcome.FAIL
             checks.append(
@@ -345,5 +393,38 @@ def verify_reference_potential(
             )
         )
         return CertificateReport(certificate.name, CheckOutcome.FAIL, None, checks)
-    status = CheckOutcome.FAIL if rejected else CheckOutcome.PASS
-    return CertificateReport(certificate.name, status, constant, checks)
+    if rejected:
+        return CertificateReport(
+            certificate.name,
+            CheckOutcome.FAIL,
+            None,
+            checks,
+            candidate_constant=constant,
+        )
+    values = np.array([v_values[key] for key in keys])
+    rhs = upper_b + upper_transition @ values
+    allowance = np.array(
+        [roundoff_allowance(float(scale), len(keys)) for scale in rhs + values]
+    )
+    deficit = np.maximum(0.0, rhs - values + allowance)
+    propagated = residual_correction(upper_transition, deficit)
+    correction = None
+    if propagated is not None:
+        upper = float(upper_a @ (values + propagated))
+        upper += roundoff_allowance(upper, len(keys))
+        if upper > 0:
+            upper = float(np.nextafter(upper, np.inf))
+        correction = max(0.0, upper - constant)
+    check = final_constant_check(constant, correction, tol)
+    checks.append(check)
+    upper, bound = (None, correction)
+    if check.outcome is CheckOutcome.PASS:
+        upper, bound = accepted_constant(constant, correction, tol)
+    return CertificateReport(
+        certificate.name,
+        check.outcome,
+        upper,
+        checks,
+        candidate_constant=constant,
+        constant_error_bound=bound,
+    )
