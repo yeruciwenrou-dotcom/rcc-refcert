@@ -78,7 +78,7 @@ preserve the minimal kernel.
 
 ## Local verification
 
-Install the development environment and run the complete gate:
+Install the development environment and run the core checks:
 
 ```bash
 python -m pip install -e ".[dev]"
@@ -88,6 +88,12 @@ python -W error -m pytest
 rcc-refcert reproduce --check
 python -m build
 ```
+
+CI also executes the Notebook in its declared kernel, installs both distribution
+formats outside the checkout, and checks the public entry points on Windows
+and macOS. Certificate changes must preserve the distinction between a supplied
+candidate and the returned upper constant, including near-critical and
+nonhalting boundary regressions.
 
 If the scientific output intentionally changes, explain why, update the
 declared expectations, and regenerate both frozen reference files from the same

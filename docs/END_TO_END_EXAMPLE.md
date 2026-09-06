@@ -2,8 +2,8 @@
 
 The paired-reset example gives one minimal, reproducible path from a declared
 physical model to a numerical lower bound on
-$C_{\rm opt}^{(\epsilon)}$. It is intentionally fixed rather than generic:
-every state, channel, codeword, cost constant, and theorem input is visible in
+$C_{\rm opt}^{(\epsilon)}$. Every state, channel, codeword, cost constant,
+and theorem input is visible in
 one small construction.
 
 The existing `dephase-or-halt` case is the shortest closed-form demonstration
@@ -79,14 +79,17 @@ semantics and obtains:
 | nonhalting mass | $0$ |
 | transient spectral radius | $0$ |
 | minimum fixed-model constant $C^\star$ in $M_U\preceq C^\star\sigma_R$ | $1$ |
-| supplied H.3 Bellman–Choi certificate | pass, constant $1$ |
-| supplied H.4 reference-potential certificate | pass, constant $1$ |
+| supplied H.3 Bellman–Choi certificate | pass, candidate $1$; numerical upper constant includes its error budget |
+| supplied H.4 reference-potential certificate | pass, candidate $1$; numerical upper constant includes its error budget |
 | H.77 aggregate-balance residual | $0$ |
 
 Identifying the enumerated programs as the complete domain gives the semantic
 reference constant $C_U=1$, hence $\chi_U=\log_2C_U=0$. This identification
 is part of the fixed model declaration; the matrix computation supplies the
-finite operator identity it uses.
+finite operator identity it uses. Here the exact analytic identity
+$M_U=\sigma_R$ supplies $C_U=1$. The numerical H.3/H.4 upper constants include
+their floating-point error budgets and are reported separately; they are not
+silently substituted for this exact analytic input.
 
 For the target state,
 
@@ -119,8 +122,8 @@ $$
 C_{\rm opt}^{(0)}(\rho;\mathfrak M_R)=1
 $$
 
-for this declared fixed model. The lower bound is therefore tight here; this
-equality uses an explicit feasible program, not an automated optimizer.
+for this declared fixed model. The explicit feasible program establishes
+tightness.
 
 ## Evidence and proof responsibilities
 
@@ -129,11 +132,6 @@ equality uses an explicit feasible program, not an automated optimizer.
 | Software calculation | constructs $M_U$; checks trajectory/superoperator agreement, trace, nonhalting mass, spectral radius, fixed-model domination, supplied H.3/H.4 proof objects, H.77 balance, and the exact $D_{\max}^{0}$ input; verifies that program `0` prepares the target in one slot |
 | Analytic model declaration | fixes the physical reference and resource meaning (`RCon`), identifies all legal histories and their exact prefix-free transcription (`TC`), and identifies the enumerated set as the complete program domain used by `RA` |
 | RCC theorem and explicit witness | the theorem converts the one-bit, one R-structon (`st_R`) endpoint gap and fixed model constants into the lower bound through Section III, Theorem 3.1; Appendix A supplies the canonical inversion; the one-slot target-preparation program supplies the matching upper bound |
-
-The result is the exact optimum for this declared fixed model because its
-theorem-level lower bound and explicit upper-bound witness coincide. The
-example does not automate general RCC optimization or establish uniformity for
-a growing model family.
 
 ## How the H.70 diagnostic relates to the final inference
 

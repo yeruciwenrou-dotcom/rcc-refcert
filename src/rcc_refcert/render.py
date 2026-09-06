@@ -19,14 +19,20 @@ from .cases import (
 )
 from .gain_cost import GainCostReport
 from .metadata import document_metadata
-from .numeric import canonical_float, format_number, normalize_diagnostic
+from .numeric import (
+    canonical_float,
+    canonical_upper_float,
+    format_certificate_constant,
+    format_number,
+    normalize_diagnostic,
+)
 from .reference_potential import CertificateReport
 from .status import CheckOutcome, CheckResult, EvidenceLevel
 
 CASE_SCHEMA = "rcc-refcert.case-audit"
 SUITE_SCHEMA = "rcc-refcert.reference-suite"
 REFERENCE_SCHEMA = "rcc-refcert.reference-suite-freeze"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 FRESH_RUN_ARTIFACT_ROLE = "fresh-run-evidence"
 FROZEN_REFERENCE_ARTIFACT_ROLE = "canonical-frozen-evidence"
 
@@ -88,6 +94,8 @@ def _report_payload(
         "outcome": report.outcome.value,
         "evidence": report.evidence.value,
         "constant": _json_number(report.constant),
+        "candidate_constant": _json_number(report.candidate_constant),
+        "constant_error_bound": _json_number(report.constant_error_bound),
     }
     if detailed:
         payload["checks"] = [_check_payload(check) for check in report.checks]
@@ -201,9 +209,18 @@ def _case_payload(
         "evidence": EvidenceLevel.NUMERICAL.value,
         "constant": _json_number(domination.constant if domination else None),
         "constant_is_infinite": (
-            math.isinf(domination.constant) if domination is not None else None
+            math.isinf(domination.constant)
+            if domination is not None and domination.constant is not None
+            else None
         ),
         "support_compatible": domination.support_compatible if domination else None,
+        "reference_rank": domination.reference_rank if domination else None,
+        "reference_condition_number": _json_number(
+            domination.reference_condition_number if domination else None
+        ),
+        "message": domination.message
+        if domination
+        else "linear fixed point not evaluated",
         "support_leakage": _json_number(
             domination.support_leakage if domination else None
         ),
@@ -401,6 +418,10 @@ def _normalize_reference_node(
             normalized["value"] = canonical_float(
                 normalize_diagnostic(value, tolerance) or 0.0
             )
+        if node.get("candidate_constant") is not None:
+            for key in ("constant", "constant_error_bound"):
+                if isinstance(node.get(key), float):
+                    normalized[key] = canonical_upper_float(node[key])
         return normalized
     if isinstance(node, list):
         return [
@@ -434,6 +455,7 @@ def reference_payload(suite: ReferenceSuite) -> dict[str, object]:
             "rule": "abs(value) <= tolerance is stored as 0",
             "significant_digits": 12,
             "suite_tolerance": suite.tolerance,
+            "certificate_bounds": "upper constants and error bounds round toward positive infinity",
         },
         "suite": normalized,
     }
@@ -557,14 +579,22 @@ def format_case(result: CaseAnalysis, *, detailed: bool = False) -> str:
         ),
     }
     if result.bellman_choi is not None:
-        details[H3_BELLMAN_CHOI] = f"C = {_format_number(result.bellman_choi.constant)}"
+        report = result.bellman_choi
+        details[H3_BELLMAN_CHOI] = format_certificate_constant(
+            report.constant,
+            report.candidate_constant,
+            report.constant_error_bound,
+        )
     if result.reference_potentials:
         constants = ", ".join(
-            _format_number(report.constant) for report in result.reference_potentials
+            format_certificate_constant(
+                report.constant, report.candidate_constant, report.constant_error_bound
+            )
+            for report in result.reference_potentials
         )
         count = len(result.reference_potentials)
         noun = "certificate" if count == 1 else "certificates"
-        details[H4_REFERENCE_POTENTIAL] = f"{count} {noun}; C = {constants}"
+        details[H4_REFERENCE_POTENTIAL] = f"{count} {noun}; {constants}"
     if result.gain_cost is not None:
         sums = ", ".join(
             f"{syntax.syntax_state}: {_format_number(syntax.current_weighted_sum)}"

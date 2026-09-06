@@ -5,6 +5,14 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from .certificate_error import (
+    accepted_constant,
+    final_constant_check,
+    psd_deficit,
+    reference_floor,
+    residual_correction,
+    roundoff_allowance,
+)
 from .model import BlockKey, FiniteControlModel, require_valid_model
 from .quantum import (
     Array,
@@ -40,6 +48,8 @@ class BellmanChoiReport:
     constant: float | None
     checks: list[CheckResult] = field(default_factory=list)
     evidence: EvidenceLevel = EvidenceLevel.NUMERICAL
+    candidate_constant: float | None = None
+    constant_error_bound: float | None = None
 
 
 def _weighted_continue_kraus(
@@ -128,8 +138,8 @@ def verify_bellman_choi(
 ) -> BellmanChoiReport:
     """Numerically verify the supplied fixed-model conditions H.31--H.33.
 
-    The outcome and its numerical evidence level are reported separately. A
-    passing report does not certify complete TC or model-family uniformity.
+    A passing report carries the candidate constant plus its propagated
+    numerical correction. Unresolved error budgets return ``inconclusive``.
     """
     require_valid_model(model, tol=tol)
     keys = model.transient_keys()
@@ -201,7 +211,30 @@ def verify_bellman_choi(
         envelopes[key] = matrix
         rejected |= _append_hermitian_psd_checks(checks, f"choi[{key}]", matrix, tol)
 
-    for source in keys:
+    sigma_floor = reference_floor(model.reference_state)
+    if sigma_floor <= 0:
+        checks.append(final_constant_check(float(certificate.constant), None, tol))
+        return BellmanChoiReport(
+            certificate.name,
+            CheckOutcome.INCONCLUSIVE,
+            None,
+            checks,
+            candidate_constant=float(certificate.constant),
+        )
+    positive_envelopes = {}
+    shifts = np.zeros(len(keys))
+    transition = np.zeros((len(keys), len(keys)))
+    deficits = np.zeros(len(keys))
+    for index, key in enumerate(keys):
+        matrix = envelopes[key]
+        shifts[index] = (
+            psd_deficit(matrix, float(np.linalg.norm(matrix, ord=2))) / sigma_floor
+        )
+        positive_envelopes[key] = matrix + shifts[index] * np.kron(
+            np.eye(model.control_dims[key[1]]), model.reference_state
+        )
+
+    for source_index, source in enumerate(keys):
         source_dim = model.control_dims[source[1]]
         halt_kraus = _weighted_halt_kraus(model, source)
         halt_choi = (
@@ -210,13 +243,28 @@ def verify_bellman_choi(
             else _zero_choi(source_dim, model.output_dim)
         )
         future = _zero_choi(source_dim, model.output_dim)
-        for target in keys:
+        corrected_future = future.copy()
+        operations = len(halt_kraus) + 1
+        for target_index, target in enumerate(keys):
             transition_kraus = _weighted_continue_kraus(model, source, target)
             if not transition_kraus:
                 continue
             target_dim = model.control_dims[target[1]]
+            operations += len(transition_kraus)
+            effect = sum(k.conj().T @ k for k in transition_kraus)
+            norm = float(np.linalg.norm(effect, ord=2))
+            transition[source_index, target_index] = norm + roundoff_allowance(
+                norm, source_dim, len(transition_kraus)
+            )
             future += precompose_choi_with_kraus(
                 envelopes[target],
+                transition_kraus,
+                source_dim=source_dim,
+                intermediate_dim=target_dim,
+                output_dim=model.output_dim,
+            )
+            corrected_future += precompose_choi_with_kraus(
+                positive_envelopes[target],
                 transition_kraus,
                 source_dim=source_dim,
                 intermediate_dim=target_dim,
@@ -229,6 +277,12 @@ def verify_bellman_choi(
             residual,
             tol,
         )
+        corrected = positive_envelopes[source] - halt_choi - corrected_future
+        scale = sum(
+            float(np.linalg.norm(x, ord=2))
+            for x in (positive_envelopes[source], halt_choi, corrected_future)
+        )
+        deficits[source_index] = psd_deficit(corrected, scale, operations) / sigma_floor
 
     initial = model.initial_transient_state()
     output = np.zeros((model.output_dim, model.output_dim), dtype=complex)
@@ -248,7 +302,38 @@ def verify_bellman_choi(
         tol,
     )
 
-    status = CheckOutcome.FAIL if rejected else CheckOutcome.PASS
+    candidate = float(certificate.constant)
+    if rejected:
+        return BellmanChoiReport(
+            certificate.name,
+            CheckOutcome.FAIL,
+            None,
+            checks,
+            candidate_constant=candidate,
+        )
+    propagated = residual_correction(transition, deficits)
+    correction = None
+    if propagated is not None:
+        scale = float(np.linalg.norm(output, ord=2)) + candidate * float(
+            np.linalg.norm(model.reference_state, ord=2)
+        )
+        correction = psd_deficit(output_residual, scale, len(keys)) / sigma_floor
+        correction += sum(
+            float(np.trace(initial[key]).real) * (shifts[index] + propagated[index])
+            for index, key in enumerate(keys)
+        )
+        if correction > 0:
+            correction = float(np.nextafter(candidate + correction, np.inf)) - candidate
+    check = final_constant_check(candidate, correction, tol)
+    checks.append(check)
+    upper, bound = (None, correction)
+    if check.outcome is CheckOutcome.PASS:
+        upper, bound = accepted_constant(candidate, correction, tol)
     return BellmanChoiReport(
-        certificate.name, status, float(certificate.constant), checks
+        certificate.name,
+        check.outcome,
+        upper,
+        checks,
+        candidate_constant=candidate,
+        constant_error_bound=bound,
     )

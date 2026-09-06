@@ -150,6 +150,13 @@ may be derived analytically or produced by a separate optimizer; the bundled
 factories in `rcc_refcert.examples` show proof objects for both the one-block and
 multiblock cases.
 
+Inspect each report's `outcome` before using its `constant`. For H.3 and H.4,
+the returned constant includes the numerical correction budget, while
+`candidate_constant` retains the original proposal. A local residual check can
+pass yet leave the final error budget inconclusive, particularly for slowly
+halting dynamics. Such a report has `constant=None`; its checks explain the
+unresolved correction.
+
 ## Turning a model into a reference case
 
 `audit_case(get_case(NAME))` is the stable case-level interface. Bundled cases

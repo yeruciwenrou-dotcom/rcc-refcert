@@ -87,7 +87,7 @@ def test_one_command_quickstart_runs_complete_gate(
         "schema": "rcc-refcert.reference-suite",
     }
     output = capsys.readouterr().out
-    assert "passed its local verification gate" in output
+    assert "matched its reference results" in output
     assert "generated_results/reference_report.md" in output
 
 

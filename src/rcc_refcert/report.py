@@ -14,7 +14,7 @@ from .cases import (
     H34_DOMINATION,
     CaseKind,
 )
-from .numeric import format_number
+from .numeric import format_certificate_constant, format_number
 from .status import CheckOutcome, CheckResult
 
 
@@ -100,10 +100,18 @@ def _case_section(result: CaseAnalysis) -> list[str]:
         ),
     }
     if result.bellman_choi is not None:
-        values[H3_BELLMAN_CHOI] = f"C = {_number(result.bellman_choi.constant)}"
+        report = result.bellman_choi
+        values[H3_BELLMAN_CHOI] = format_certificate_constant(
+            report.constant,
+            report.candidate_constant,
+            report.constant_error_bound,
+        )
     if result.reference_potentials:
         values[H4_REFERENCE_POTENTIAL] = ", ".join(
-            f"C = {_number(report.constant)}" for report in result.reference_potentials
+            format_certificate_constant(
+                report.constant, report.candidate_constant, report.constant_error_bound
+            )
+            for report in result.reference_potentials
         )
     if result.gain_cost is not None:
         values[H6_GAIN_COST] = ", ".join(

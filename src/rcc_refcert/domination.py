@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from fractions import Fraction
 
 import numpy as np
 
@@ -13,8 +14,8 @@ class DominationResult:
     """Numerical evaluation of Appendix-H Eq. (H.34) for a fixed model."""
 
     outcome: CheckOutcome
-    constant: float
-    support_compatible: bool
+    constant: float | None
+    support_compatible: bool | None
     reference_rank: int
     reference_condition_number: float
     support_leakage: float
@@ -22,6 +23,21 @@ class DominationResult:
     scaled_semidensity: Array | None = field(default=None, repr=False, compare=False)
     witness_effect: Array | None = field(default=None, repr=False, compare=False)
     evidence: EvidenceLevel = EvidenceLevel.NUMERICAL
+
+
+def _exactly_annihilates(matrix: Array, vector: Array) -> bool:
+    """Check a proposed null vector over the exact binary input values."""
+    for row in matrix:
+        real = Fraction(0)
+        imag = Fraction(0)
+        for entry, value in zip(row, vector):
+            a, b = Fraction(float(entry.real)), Fraction(float(entry.imag))
+            c, d = Fraction(float(value.real)), Fraction(float(value.imag))
+            real += a * c - b * d
+            imag += a * d + b * c
+        if real or imag:
+            return False
+    return True
 
 
 def _validate_semidensity(
@@ -63,9 +79,9 @@ def minimum_domination_constant(
 
         || sigma^{-1/2} M sigma^{-1/2} ||_infinity.
 
-    If ``M`` has positive mass on the kernel of ``sigma``, the least constant
-    is infinite and a kernel-supported effect is returned as a numerical
-    rejection witness.  No model-family conclusion is inferred.
+    A resolved kernel witness gives an infinite constant. Eigenvalues below
+    ``tol`` whose nullspace cannot be established give ``inconclusive`` and
+    ``constant=None``. ``reference_rank`` counts resolved positive directions.
     """
 
     if not np.isfinite(tol) or tol <= 0:
@@ -90,8 +106,8 @@ def minimum_domination_constant(
         kernel_block = hermitian_part(kernel_projector @ matrix @ kernel_projector)
         kernel_values, kernel_vectors = np.linalg.eigh(kernel_block)
         largest_kernel_mass = float(kernel_values[-1])
-        if largest_kernel_mass > tol:
-            direction = kernel_vectors[:, -1]
+        direction = kernel_vectors[:, -1]
+        if largest_kernel_mass > tol and _exactly_annihilates(reference, direction):
             witness = np.outer(direction, direction.conj())
             return DominationResult(
                 outcome=CheckOutcome.FAIL,
@@ -103,15 +119,20 @@ def minimum_domination_constant(
                 message="semidensity has positive mass outside the reference support",
                 witness_effect=witness,
             )
-        if support_leakage > tol:
+        unresolved = any(
+            not _exactly_annihilates(reference, direction)
+            or not _exactly_annihilates(matrix, direction)
+            for direction in eigenvectors[:, ~support_mask].T
+        )
+        if unresolved:
             return DominationResult(
                 outcome=CheckOutcome.INCONCLUSIVE,
-                constant=float("inf"),
-                support_compatible=False,
+                constant=None,
+                support_compatible=None,
                 reference_rank=reference_rank,
                 reference_condition_number=reference_condition_number,
                 support_leakage=support_leakage,
-                message="cross-support leakage exceeds tolerance without a stable kernel witness",
+                message="reference support is unresolved at this tolerance; no finite or infinite constant is established",
             )
 
     inverse_sqrt = (

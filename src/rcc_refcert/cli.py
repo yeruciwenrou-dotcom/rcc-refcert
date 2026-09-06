@@ -89,7 +89,7 @@ def _add_numerical_arguments(parser: argparse.ArgumentParser) -> None:
         "--tolerance",
         type=_positive_float,
         default=1e-10,
-        help="positive floating-point tolerance for matrix checks (default: 1e-10)",
+        help="matrix tolerance and relative certificate-error budget (default: 1e-10)",
     )
 
 

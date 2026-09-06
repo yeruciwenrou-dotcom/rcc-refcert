@@ -44,9 +44,9 @@ established in the RCC paper.
 | H.2 least fixed point | `truncated_semidensity` | monotone finite partial sum |
 | H.2 linear branch | `linear_fixed_point` | full-transient spectral-radius gate and solve |
 | H.3 minimum value-map candidate | `linear_value_choi_envelopes` | constructs $\mathbb H(I-\mathbb T)^{-1}$ blocks after the same gate |
-| H.3 proof object $X_x=J(\mathbb W_x)$ | `BellmanChoiCertificate`, `verify_bellman_choi` | supplied Choi, Bellman, and output-domination checks |
-| H.34 minimum constant | `minimum_domination_constant` | support test and generalized-eigenvalue calculation |
-| H.4 envelopes and coefficients | `ReferencePotentialCertificate`, `verify_reference_potential` | supplied local domination and scalar Bellman checks |
+| H.3 proof object $X_x=J(\mathbb W_x)$ | `BellmanChoiCertificate`, `verify_bellman_choi` | supplied Choi, Bellman, and output-domination checks with a propagated constant correction |
+| H.34 minimum constant | `minimum_domination_constant` | resolved-support diagnostics and generalized-eigenvalue calculation |
+| H.4 envelopes and coefficients | `ReferencePotentialCertificate`, `verify_reference_potential` | supplied local domination and scalar Bellman checks with a propagated constant correction |
 | H.67–H.70 local gain–cost | `analyze_reference_gain_cost` | unweighted gains and actual weighted Kraft sums |
 | H.72 initial coefficients | `GainCostReport.initial_coefficients` | fixed-instance values; family supremum remains analytic |
 | H.76 completion | `suggested_code_length`, `suggested_codeword` | deterministic prefix-code witness without model mutation |
@@ -72,8 +72,8 @@ established in the RCC paper.
 
 ## Worked end-to-end bridge
 
-The [paired-reset example](END_TO_END_EXAMPLE.md) instantiates one fixed,
-transparent chain without changing the responsibility split above:
+The [paired-reset example](END_TO_END_EXAMPLE.md) connects the following
+calculations in one declared model:
 
 | stage | executable value | paper connection |
 |---|---|---|
@@ -89,8 +89,7 @@ The software computes the finite matrices and checks supplied proof objects.
 The physical reference meaning, complete-domain identification, exact
 transcription, and fixed-family scope remain explicit analytic inputs. Their
 combination with the RCC theorem yields the lower bound; the separately
-verified one-slot program makes that bound tight for this fixed model. This is
-not a general RCC optimizer or a model-family uniformity proof.
+verified one-slot program makes that bound tight for this fixed model.
 
 ## Complete framework
 
