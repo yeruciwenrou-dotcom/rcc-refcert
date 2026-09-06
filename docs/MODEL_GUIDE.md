@@ -122,7 +122,7 @@ reduce the model to its support before construction.
 3. computes the partial semidensity through `max_transient_steps` continuation
    steps;
 4. attempts the full-space linear fixed point;
-5. computes H.34 when that linear branch is available.
+5. computes H.34 when the linear solve yields a numerically valid semidensity.
 
 ```python
 result = audit_model(
@@ -136,7 +136,11 @@ result = audit_model(
 The least fixed-point semantics is primary. At the spectral-radius boundary,
 `linear_fixed_point_outcome` and `domination_outcome` are `not_applicable` and
 `inconclusive`, respectively. `truncated_output` remains available as a
-finite-depth diagnostic, while H.34 awaits the completed semidensity.
+finite-depth diagnostic, while H.34 awaits the completed semidensity. If the
+linear solve is attempted but its output cannot be confirmed as a valid
+semidensity, both outcomes are `inconclusive`; the finite-depth result and raw
+computed output are retained. The [output contract](OUTPUT_CONTRACT.md) explains
+the corresponding diagnostics.
 
 ## Supplying proof objects
 

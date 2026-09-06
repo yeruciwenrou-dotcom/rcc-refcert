@@ -1,6 +1,7 @@
 # rcc-refcert
 
-`rcc-refcert` is a Python research toolkit for **quantum circuit complexity**.
+`rcc-refcert` is a Python research toolkit for
+**structure-fair quantum circuit complexity**.
 It helps researchers make the physical generation model explicit: which
 resources are supplied, which quantum processes are allowed, and how their
 description and generation costs are counted.
@@ -11,77 +12,63 @@ constructions. Bundled examples provide reproducible numerical evidence,
 including a worked chain from a declared model to a lower bound on quantum
 state preparation cost.
 
-The toolkit is the reference implementation and research kernel for the
-finite-control qualification layer of **Reference-Contingent Complexity
-(RCC)**, introduced in
+The toolkit implements the finite-control models and reference-certificate
+methods of **Reference-Contingent Complexity (RCC)**, introduced in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
 
 ## Start here
 
 | Goal | Entry point |
 |---|---|
-| Inspect the recorded evidence without running code | [`results/reference_report.md`](results/reference_report.md) |
+| Inspect the recorded evidence without running code | [Reference results](results/reference_report.md) |
 | Set up the package and reproduce the reference results | [Quick start](#quick-start) |
-| Follow a guided first run in Jupyter | [`RCC_Quickstart.ipynb`](RCC_Quickstart.ipynb) |
-| Run the minimal qualification-to-lower-bound chain | [`docs/END_TO_END_EXAMPLE.md`](docs/END_TO_END_EXAMPLE.md) |
-| Understand exactly what the numerical results establish | [`docs/SCIENTIFIC_SCOPE.md`](docs/SCIENTIFIC_SCOPE.md) |
-| Trace RCC paper formulas to implementation | [`docs/PAPER_MAP.md`](docs/PAPER_MAP.md) |
-| Construct or audit a new finite-control model | [`docs/MODEL_GUIDE.md`](docs/MODEL_GUIDE.md) |
+| Follow a guided first run in Jupyter | [Quickstart notebook](RCC_Quickstart.ipynb) |
+| Follow a model from qualification to a lower bound | [Worked example](docs/END_TO_END_EXAMPLE.md) |
+| Understand what the numerical results establish | [Scientific scope](docs/SCIENTIFIC_SCOPE.md) |
+| Trace RCC paper formulas to implementation | [Paper-to-code map](docs/PAPER_MAP.md) |
+| Construct or audit a new finite-control model | [Model guide](docs/MODEL_GUIDE.md) |
 
 > **Manuscript alignment.** This source tree is aligned with version 4 of the
 > RCC manuscript, currently being prepared as the next arXiv revision. The
 > publicly available paper is presently
 > [arXiv:2509.18205v3](https://arxiv.org/abs/2509.18205v3); appendix labels and
 > equation numbers in this repository therefore refer to manuscript version 4.
-> The repository provides executable finite-model evidence for selected
-> constructions; the paper remains responsible for the analytic and
-> model-family arguments.
 
 ## Why reference-contingent complexity
 
 RCC is a structure-fair, model-relative framework for defining and
-lower-bounding quantum circuit complexity. Within a declared physical
-generation model, it defines $C_{\rm opt}^{(\epsilon)}$ as the infimum of the
-declared cost over all admissible histories that prepare the target within
-accuracy $\epsilon$. The main RCC theorem converts the target's one-shot
-structural gap relative to the reference into a rigorous lower bound on this
-global process optimum and supports auditable conservative certificates from
-final-state evidence.
+lower-bounding quantum circuit complexity. It asks how much of a target's
+structure must be generated when the physical background and available
+resources are fixed.
 
-A target quantum state specifies the structure that every successful
-preparation must realize. Its optimal preparation cost becomes physically
-comparable only after the generation background and resource scale are fixed.
-The reference background, available operations, control language, supplied
-ancillas, success semantics, and unit of cost determine which structure is
-already supplied and how the remainder is counted. A reset channel or a short
-control macro can itself contain structure that shortens the route to a target;
-when that advantage remains implicit, changing the description layer can make
-generation responsibility appear to disappear.
+The same target state can have different preparation costs under different
+backgrounds. A reset channel, a supplied ancilla, or a short control macro may
+already carry structure that makes the target easier to prepare. RCC's
+**structure-fairness principle** requires this supplied structure to be
+represented in the reference or charged through the dynamics and resource
+coordinates. The generation model fixes the reference background, allowed
+operations, control language, program prior, success semantics, and cost unit
+together. Complexity is therefore a relational physical quantity, measured
+relative to that complete specification.
 
-RCC fixes the reference background, allowed dynamics, control interface,
-program prior, success semantics, and cost unit in one generation model. Its
-**structure-fairness principle** requires supplied structure to be represented
-in the reference or charged through the dynamics and resource coordinates.
-Complexity is therefore a relational physical quantity: the target specifies
-what must be generated, while the declared model fixes what is already
-supplied, which histories are admissible, and how their cost is measured. RCC
-also defines a state-side complexity readout from the target and the fixed
-model data. Optimality takes the infimum over all admissible preparation
-histories within a declared model. Universality concerns the joint target
-generation coverage of the admissible model class. Under reference
-consistency, faithful transcription, and reference
-admissibility, the one-shot refinement bounds every admissible preparation
-path before the infimum is taken. This makes an otherwise inaccessible global
-circuit optimum auditable from information in the final state.
+Within a declared model, $C_{\rm opt}^{(\epsilon)}$ is the infimum of the cost
+over all admissible histories that prepare the target within accuracy
+$\epsilon$. Universality concerns the joint target-generation coverage of the
+admissible model class; optimality concerns all legal histories within a given
+member. Under the theorem's hypotheses, including reference consistency,
+faithful transcription, and reference admissibility, RCC converts the target's
+one-shot structural gap into a lower bound on every such history and hence on
+the global process optimum. Final-state evidence can thus bound the minimum
+cost without identifying an optimal preparation path.
 
 Section II of the RCC paper formulates this physical model. Appendix F proves
 that the model class is nonempty and constructs an admissible qubit model family
 that can approximate arbitrary pure and mixed states; Appendix H supplies
 constructive finite-control qualification routes. This repository implements
 selected finite-control constructions from that chain, while Section III states
-the main lower-bound theorem. The package tests whether a declared process
-semantics, program semidensity, reference certificate, and description-cost
-assignment fit together as claimed.
+the main lower-bound theorem. Researchers can use the package to check how a
+model's quantum dynamics, program weights, reference certificates, and
+description costs fit together.
 
 ## What this repository implements
 
@@ -287,12 +274,6 @@ complete minimal example.
 
 ## Results and scientific scope
 
-The package is a compact research reference implementation of RCC's
-finite-control qualification layer. It constructs finite-model program
-semidensities and verifies supplied reference certificates and gain–cost
-assignments; every supported calculation has an explicit RCC paper map,
-numerical contract, and regression.
-
 Every check reports an `outcome`—`pass`, `fail`, `inconclusive`, or
 `not_applicable`—separately from its `evidence`, currently `numerical`. The
 package establishes finite-input and fixed-model statements. The complete
@@ -301,13 +282,14 @@ family-uniform admissibility, and the RCC lower-bound theorem—is developed in
 the accompanying RCC manuscript. The [paper map](docs/PAPER_MAP.md) records
 the implemented objects and manuscript-version alignment.
 
-The exact claim ladder is documented in
-[`docs/SCIENTIFIC_SCOPE.md`](docs/SCIENTIFIC_SCOPE.md), and numerical and tensor
-conventions are fixed in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md).
+See [Scientific scope](docs/SCIENTIFIC_SCOPE.md) for how these results connect
+to the RCC theorem, [Output contract](docs/OUTPUT_CONTRACT.md) for result fields
+and exit codes, and [Conventions](docs/CONVENTIONS.md) for the numerical and
+tensor definitions.
 
 ## Extending the research kernel
 
-The package exposes a research object that can grow independently of the
+The public model and certificate interfaces support research beyond the
 bundled reference cases. Extensions are most useful when they enlarge the class of
 auditable structure-fair models, strengthen the certificate layer, or make its
 evidence more rigorous. Examples include:
@@ -321,8 +303,7 @@ evidence more rigorous. Examples include:
 
 Contributions are welcome across scientific models, algorithms, numerical
 reliability, documentation, and examples. See
-[`CONTRIBUTING.md`](CONTRIBUTING.md) for the project-specific workflow and the
-claims each change must protect.
+[Contributing](CONTRIBUTING.md) for how to propose and verify a change.
 
 ## Repository structure
 
@@ -348,6 +329,7 @@ python -W error -m pytest
 python -m build
 ```
 
-The source code is released under the MIT License. Citation metadata for the
-software and associated RCC paper are provided in
-[`CITATION.cff`](CITATION.cff).
+See the [Changelog](CHANGELOG.md) for the capabilities included in this version.
+Citation metadata for the software and associated RCC paper are provided in
+[`CITATION.cff`](CITATION.cff). The source code is available under the
+[MIT License](LICENSE).

@@ -5,7 +5,7 @@
 Initial release of `rcc-refcert`, a Python research toolkit for finite-control
 models and reference certificates in structure-fair quantum circuit complexity.
 The implementation follows manuscript version 4; see the
-[manuscript alignment](README.md#rcc-refcert) for its relation to the public paper.
+[paper-to-code map](docs/PAPER_MAP.md) for its relation to the public paper.
 
 ### Models and certificates
 

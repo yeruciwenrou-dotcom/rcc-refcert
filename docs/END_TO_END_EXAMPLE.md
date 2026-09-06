@@ -3,16 +3,15 @@
 The paired-reset example gives one minimal, reproducible path from a declared
 physical model to a numerical lower bound on
 $C_{\rm opt}^{(\epsilon)}$. Every state, channel, codeword, cost constant,
-and theorem input is visible in
-one small construction. Section and equation references follow manuscript
-version 4; see the [paper map](PAPER_MAP.md) for version alignment.
+and theorem input is visible in one small construction. Section and equation
+references follow manuscript version 4; see the [paper map](PAPER_MAP.md) for
+version alignment.
 
-The existing `dephase-or-halt` case is the shortest closed-form demonstration
-of the finite-control qualification machinery. Starting from $I/2$, however,
-both dephasing and identity preserve the reference and therefore do not produce
-a target with a nonzero reference information gap. The paired-reset model uses
-the reset pair from Appendix F to retain the same transparency while producing
-a one-bit, nontrivial endpoint.
+The reset pair from Appendix F gives a simple physical mechanism: either reset
+can prepare a pure state, while their uniform average preserves the maximally
+mixed reference. This produces a one-bit endpoint gap and a preparation whose
+cost can be checked directly. The reference-preserving `dephase-or-halt` case
+remains a separate, closed-form example of the qualification machinery.
 
 ## Run the example
 
@@ -88,13 +87,11 @@ semantics and obtains:
 | supplied H.4 reference-potential certificate | pass, candidate $1$; numerical upper constant includes its error budget |
 | H.77 aggregate-balance residual | $0$ |
 
-Identifying the enumerated programs as the complete domain gives the semantic
-reference constant $C_U=1$, hence $\chi_U=\log_2C_U=0$. This identification
-is part of the fixed model declaration; the matrix computation supplies the
-finite operator identity it uses. Here the exact analytic identity
-$M_U=\sigma_R$ supplies $C_U=1$. The numerical H.3/H.4 upper constants include
-their floating-point error budgets and are reported separately; they are not
-silently substituted for this exact analytic input.
+The declared complete program domain is `0`, `1`. Its exact analytic identity
+$M_U=\sigma_R$ gives the semantic reference constant $C_U=1$ and
+$\chi_U=\log_2C_U=0$. The matrix computation reproduces that identity. Numerical
+H.3/H.4 verification returns upper constants with floating-point error budgets;
+these are reported separately from the exact input used below.
 
 For the target state,
 
@@ -148,11 +145,10 @@ $$
 $$
 
 so that local sufficient route fails. H.76 suggests two-bit codewords and
-reduces its diagnostic sum to $1$. The final lower-bound chain does not use
-that re-encoding: it uses the exact complete-domain identity
-$M_U=\sigma_R$ and the aggregate H.77 balance of the paired actions. This is
-the intended distinction between a failed sufficient route and failure of
-reference admissibility itself.
+reduces its diagnostic sum to $1$. The lower-bound derivation above keeps the
+original one-bit codewords. It uses the exact complete-domain identity
+$M_U=\sigma_R$ and the aggregate H.77 balance of the paired actions, which
+establish the reference condition for this model despite the H.70 failure.
 
 ## Paper map
 

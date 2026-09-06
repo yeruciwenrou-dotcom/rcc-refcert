@@ -9,9 +9,6 @@ mathematical objects to executable checks.
 > publicly available paper is presently
 > [arXiv:2509.18205v3](https://arxiv.org/abs/2509.18205v3); appendix labels and
 > equation numbers in this repository therefore refer to manuscript version 4.
-> The repository provides executable finite-model evidence for selected
-> constructions; the paper remains responsible for the analytic and
-> model-family arguments.
 
 ## Theory-to-software chain
 
