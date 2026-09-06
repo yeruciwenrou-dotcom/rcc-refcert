@@ -1,6 +1,6 @@
 # rcc-refcert
 
-[![PyPI](https://img.shields.io/pypi/v/rcc-refcert.svg)](https://pypi.org/project/rcc-refcert/)
+[![PyPI](https://img.shields.io/pypi/v/rcc-refcert.svg?label=PyPI)](https://pypi.org/project/rcc-refcert/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22554288.svg)](https://doi.org/10.5281/zenodo.22554288)
 
 `rcc-refcert` is a Python research toolkit for
