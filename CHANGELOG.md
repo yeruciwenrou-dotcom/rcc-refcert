@@ -5,6 +5,8 @@
 - Fixed-point audits propagate matrix-assembly and solve errors to the output
   and reference-scaled constant. Unresolved precision returns `inconclusive`;
   H.34 estimates are distinguished from certificate upper constants.
+- H.34 returns `inconclusive` when positive input uncertainty leaves reference
+  support unresolved, including finite and infinite nominal constants.
 - Model audits consistently use the caller's tolerance. Empty Kraus branches
   and codewords outside the supported numerical weight range are rejected.
 - Explicit enumeration and dense matrix construction check configurable
