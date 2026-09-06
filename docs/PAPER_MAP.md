@@ -81,7 +81,7 @@ calculations in one declared model:
 | program semidensity | $M_U=I/2$, trace $1$, nonhalting mass $0$ | Appendix H, H.1–H.2 |
 | fixed-model qualification | $C^\star=1$; supplied H.3/H.4 candidates pass; H.77 residual $0$ | Appendix H, H.3–H.4 and Eqs. (H.67)–(H.77) |
 | endpoint gap | $D_{\max}^{0}(\lvert0\rangle\langle0\rvert\Vert I/2)=1$ bit | Appendix A, Eqs. (A.6)–(A.7) |
-| RCC reporting unit | $1\,{\rm st}_R=g_R=1$ bit | Section II, Definition 2.6 |
+| RCC reporting unit | $1\thinspace{\rm st}_R=g_R=1$ bit | Section II, Definition 2.6 |
 | main lower bound and cost inversion | $g_R=1$, $a=\gamma=\chi_U=0$, hence $C_{\rm opt}^{(0)}\ge1$ slot | Section III, Theorem 3.1 and Eq. (3.1); Appendix A, Eqs. (A.45)–(A.46) |
 | matching upper-bound witness | program `0` prepares the target exactly in one slot, hence $C_{\rm opt}^{(0)}\le1$ and the fixed-model value is $1$ | declared paired-reset model and executable program semantics |
 

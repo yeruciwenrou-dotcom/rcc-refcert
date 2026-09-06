@@ -208,7 +208,7 @@ conditions, and evaluates the endpoint gap
 $$
 D_{\max}^{0}(\lvert0\rangle\langle0\rvert\Vert I/2)
 =1\ \mathrm{bit}
-=1\,\mathrm{st}_R.
+=1\thinspace\mathrm{st}_R.
 $$
 
 Appendix A's canonical cost inversion then gives
