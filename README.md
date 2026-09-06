@@ -1,5 +1,7 @@
 # rcc-refcert
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22544968.svg)](https://doi.org/10.5281/zenodo.22544968)
+
 `rcc-refcert` is a Python research toolkit for
 **structure-fair quantum circuit complexity**.
 It helps researchers make the physical generation model explicit: which
@@ -328,6 +330,10 @@ ruff format --check src tests examples quickstart.py RCC_Quickstart.ipynb
 python -W error -m pytest
 python -m build
 ```
+
+The archived [v0.1.0 release](https://github.com/yeruciwenrou-dotcom/rcc-refcert/releases/tag/v0.1.0)
+has software DOI [10.5281/zenodo.22544968](https://doi.org/10.5281/zenodo.22544968).
+Use this DOI to cite this software version.
 
 See the [Changelog](CHANGELOG.md) for the capabilities included in this version.
 Citation metadata for the software and associated RCC paper are provided in
