@@ -5,6 +5,7 @@ from fractions import Fraction
 
 import numpy as np
 
+from .certificate_error import roundoff_allowance
 from .quantum import Array, dagger, hermitian_part, hermiticity_error, is_density_matrix
 from .status import CheckOutcome, EvidenceLevel
 
@@ -23,6 +24,13 @@ class DominationResult:
     scaled_semidensity: Array | None = field(default=None, repr=False, compare=False)
     witness_effect: Array | None = field(default=None, repr=False, compare=False)
     evidence: EvidenceLevel = EvidenceLevel.NUMERICAL
+    constant_estimate: float | None = None
+    constant_error_estimate: float | None = None
+
+    @property
+    def constant_upper_bound(self) -> None:
+        """H.34 evaluates a point estimate; supplied H.3/H.4 certify upper bounds."""
+        return None
 
 
 def _exactly_annihilates(matrix: Array, vector: Array) -> bool:
@@ -72,6 +80,8 @@ def minimum_domination_constant(
     semidensity: Array,
     reference_state: Array,
     tol: float = 1e-10,
+    *,
+    input_error_estimate: float | None = None,
 ) -> DominationResult:
     """Evaluate the least fixed-model constant C with M <= C sigma.
 
@@ -86,6 +96,10 @@ def minimum_domination_constant(
 
     if not np.isfinite(tol) or tol <= 0:
         raise ValueError("tol must be finite and positive")
+    if input_error_estimate is not None and (
+        not np.isfinite(input_error_estimate) or input_error_estimate < 0
+    ):
+        raise ValueError("input_error_estimate must be finite and nonnegative")
     matrix, reference = _validate_semidensity(semidensity, reference_state, tol)
     eigenvalues, eigenvectors = np.linalg.eigh(reference)
     support_mask = eigenvalues > tol
@@ -147,14 +161,51 @@ def minimum_domination_constant(
     witness_norm = float(np.linalg.eigvalsh(hermitian_part(raw_witness)).max())
     witness = raw_witness if witness_norm <= 1.0 else raw_witness / witness_norm
 
+    error_estimate = None
+    outcome = CheckOutcome.PASS
+    message = "fixed-model minimum estimated from Appendix-H Eq. (H.34)"
+    if input_error_estimate is not None:
+        # In these coordinates the generalized reference metric should be I.
+        # Its residual controls whitening error without identifying cond(A)
+        # with a forward-error guarantee for the assembled linear system.
+        whitener = np.diag(eigenvalues[support_mask] ** -0.5) @ dagger(support)
+        norm_squared = float(np.linalg.norm(whitener, ord=2)) ** 2
+        metric = whitener @ reference @ dagger(whitener)
+        metric_error = float(np.linalg.norm(metric - np.eye(reference_rank), ord=2))
+        metric_error += roundoff_allowance(
+            norm_squared * float(np.linalg.norm(reference, ord=2)), len(reference), 2
+        )
+        if metric_error < 1:
+            matrix_error = roundoff_allowance(
+                norm_squared * float(np.linalg.norm(matrix, ord=2)), len(matrix), 2
+            )
+            eigen_error = roundoff_allowance(
+                float(np.linalg.norm(scaled, ord=2)), len(matrix)
+            )
+            error_estimate = (
+                norm_squared * input_error_estimate
+                + matrix_error
+                + eigen_error
+                + constant * metric_error
+            ) / (1 - metric_error)
+        if (
+            error_estimate is None
+            or not np.isfinite(error_estimate)
+            or error_estimate > tol * max(1.0, constant)
+        ):
+            outcome = CheckOutcome.INCONCLUSIVE
+            message = "constant precision is unresolved after output-error propagation and reference scaling"
+
     return DominationResult(
-        outcome=CheckOutcome.PASS,
-        constant=constant,
+        outcome=outcome,
+        constant=constant if outcome is CheckOutcome.PASS else None,
         support_compatible=True,
         reference_rank=reference_rank,
         reference_condition_number=reference_condition_number,
         support_leakage=support_leakage,
-        message="fixed-model minimum evaluated from Appendix-H Eq. (H.34)",
+        message=message,
         scaled_semidensity=scaled,
         witness_effect=hermitian_part(witness),
+        constant_estimate=constant,
+        constant_error_estimate=error_estimate,
     )

@@ -98,16 +98,32 @@ while this final check remains `inconclusive`. Consumers must inspect `outcome`
 and use `constant` for a passing bound. See [CONVENTIONS.md](CONVENTIONS.md)
 for the propagation method and its numerical evidence level.
 
-H.34 additionally reports `reference_rank`, `reference_condition_number`, and
-`message`. The rank counts eigenvalues resolved above the numerical threshold.
+H.34 reports `constant_estimate`, `constant_error_estimate`,
+`constant_upper_bound`, `reference_rank`, `reference_condition_number`, and
+`message`. `constant` is the accepted point estimate, retained for API
+compatibility; it is `null` when the checks are unresolved. An evaluated
+candidate can remain in `constant_estimate` when reference scaling leaves
+the result inconclusive. `constant_upper_bound` is always `null` for H.34;
+H.3 and H.4 supply upper constants through their separate certificate reports.
+The rank counts eigenvalues resolved above the numerical threshold.
 If a small positive eigenvalue leaves support unresolved, `constant`,
 `support_compatible`, and `constant_is_infinite` are all `null`. An infinite
 constant requires a positive-mass witness in an established exact kernel.
 
-H.2 reports `output_valid` alongside its solve diagnostics. An unresolved
-linear solve or an output that fails the semidensity checks makes H.2 and
-H.34 `inconclusive`, with no H.34 constant. Finite-depth results remain
-available; the computed output is retained without renormalization.
+H.2 reports `output_valid`, `assembly_error_estimate`, and
+`output_error_estimate` alongside its solve diagnostics. Matrix assembly,
+formation of `I-T`, the solve, and output multiplication enter the propagated
+error estimate. An unresolved solve, invalid output, or output-error estimate
+above `tol` makes H.2 and H.34 `inconclusive`, with no H.34 constant.
+Finite-depth results and the computed output remain available.
+
+H.34 then propagates the output error through reference whitening and checks
+its own matrix and spectral roundoff. Its precision budget is
+`tol * max(1, constant_estimate)`. The error estimates use conservative
+working-precision allowances; the evidence level remains `numerical`.
+Direct calls to `minimum_domination_constant` evaluate the supplied matrix.
+Pass `input_error_estimate` to request this propagated precision check when
+the matrix itself was computed approximately.
 
 H.6 reports `current_outcome` and `suggested_outcome` for each syntax state.
 Their `*_condition_satisfied` flags are true only for `pass`; a false flag can
@@ -123,6 +139,9 @@ The machine-facing JSON returned by the command retains computed finite
 diagnostics. In the frozen structured result and Markdown report, a diagnostic
 whose absolute value is at or below its stated tolerance is represented as
 zero; the remaining finite scalars are stored to twelve significant digits.
+Positive assembly, output, and constant error estimates are instead rounded
+upward in units of the suite tolerance, preserving a positive allowance in
+the frozen JSON. Fresh JSON retains the computed estimates.
 Certificate upper constants and their error bounds instead round toward
 positive infinity and are never discarded as sub-tolerance residuals. The
 tolerance remains part of the result, and the command JSON supplies the

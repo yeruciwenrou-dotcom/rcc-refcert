@@ -20,6 +20,7 @@ from .gain_cost import (
     SyntaxGainCost,
     analyze_reference_gain_cost,
 )
+from .limits import ComputationLimits, ResourceLimitError
 from .model import Action, FiniteControlModel, ModelValidationError, require_valid_model
 from .reference_potential import (
     CertificateReport,
@@ -27,6 +28,7 @@ from .reference_potential import (
     verify_reference_potential,
 )
 from .status import CheckOutcome, CheckResult, EvidenceLevel
+from .weights import NumericalRangeError
 
 __all__ = [
     "CASES",
@@ -39,6 +41,7 @@ __all__ = [
     "CertificateReport",
     "CheckOutcome",
     "CheckResult",
+    "ComputationLimits",
     "DepthAgreement",
     "DominationResult",
     "EvidenceLevel",
@@ -46,8 +49,10 @@ __all__ = [
     "GainCostReport",
     "ModelAnalysis",
     "ModelValidationError",
+    "NumericalRangeError",
     "ReferencePotentialCertificate",
     "ReferenceSuite",
+    "ResourceLimitError",
     "SyntaxGainCost",
     "__version__",
     "analyze_reference_gain_cost",

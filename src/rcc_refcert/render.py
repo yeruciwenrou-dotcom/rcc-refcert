@@ -23,6 +23,7 @@ from .numeric import (
     canonical_float,
     canonical_upper_float,
     format_certificate_constant,
+    format_domination_constant,
     format_number,
     normalize_diagnostic,
 )
@@ -209,6 +210,8 @@ def _case_payload(
         "condition_number": _json_number(fixed.condition_number),
         "solve_residual": _json_number(fixed.solve_residual),
         "output_valid": fixed.output_valid,
+        "assembly_error_estimate": _json_number(fixed.assembly_error_estimate),
+        "output_error_estimate": _json_number(fixed.output_error_estimate),
         "max_transient_steps": analysis.max_transient_steps,
         "truncated_output_trace": _json_number(analysis.truncated_trace),
         "message": fixed.message,
@@ -219,6 +222,13 @@ def _case_payload(
         "outcome": analysis.domination_outcome.value,
         "evidence": EvidenceLevel.NUMERICAL.value,
         "constant": _json_number(domination.constant if domination else None),
+        "constant_estimate": _json_number(
+            domination.constant_estimate if domination else None
+        ),
+        "constant_error_estimate": _json_number(
+            domination.constant_error_estimate if domination else None
+        ),
+        "constant_upper_bound": None,
         "constant_is_infinite": (
             math.isinf(domination.constant)
             if domination is not None and domination.constant is not None
@@ -448,6 +458,13 @@ def _normalize_reference_node(
         ]
     if isinstance(node, float):
         if field_name in {
+            "assembly_error_estimate",
+            "output_error_estimate",
+            "constant_error_estimate",
+        }:
+            # Keep a positive allowance positive, with a platform-stable ceiling.
+            return math.ceil(node / suite_tolerance) * suite_tolerance
+        if field_name in {
             "reference_gain_upper",
             "current_weighted_sum_upper",
             "suggested_weighted_sum_upper",
@@ -477,6 +494,7 @@ def reference_payload(suite: ReferenceSuite) -> dict[str, object]:
             "significant_digits": 12,
             "suite_tolerance": suite.tolerance,
             "certificate_bounds": "upper constants and error bounds round toward positive infinity",
+            "roundoff_estimates": "positive estimates round upward in units of suite_tolerance",
         },
         "suite": normalized,
     }
@@ -596,7 +614,10 @@ def format_case(result: CaseAnalysis, *, detailed: bool = False) -> str:
         H34_DOMINATION: (
             "complete fixed-model output unavailable"
             if analysis.fixed_model_domination is None
-            else f"C* = {_format_number(analysis.fixed_model_domination.constant)}"
+            else format_domination_constant(
+                analysis.fixed_model_domination.constant,
+                analysis.fixed_model_domination.constant_estimate,
+            )
         ),
     }
     if result.bellman_choi is not None:
@@ -653,6 +674,17 @@ def format_case(result: CaseAnalysis, *, detailed: bool = False) -> str:
                         analysis.fixed_point.solve_residual,
                         zero_tolerance=analysis.tolerance,
                     ),
+                    "  output error estimate: "
+                    + _format_number(analysis.fixed_point.output_error_estimate),
+                ]
+            )
+        if analysis.fixed_model_domination is not None:
+            domination = analysis.fixed_model_domination
+            lines.extend(
+                [
+                    "  H.34: " + domination.message,
+                    "  constant error estimate: "
+                    + _format_number(domination.constant_error_estimate),
                 ]
             )
         if result.bellman_choi is not None:

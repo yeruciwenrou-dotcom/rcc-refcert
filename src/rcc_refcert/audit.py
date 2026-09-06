@@ -29,6 +29,12 @@ from .examples import (
 )
 from .fixed_point import FixedPointResult, linear_fixed_point
 from .gain_cost import GainCostReport, analyze_reference_gain_cost
+from .limits import (
+    DEFAULT_LIMITS,
+    ComputationLimits,
+    check_enumeration_budget,
+    check_matrix_budget,
+)
 from .model import FiniteControlModel, require_valid_model
 from .quantum import Array
 from .rank_encoding import decode_word, encode_word
@@ -52,10 +58,13 @@ def _linear_fixed_point_outcome(
         or result.output_valid is not True
         or result.condition_number is None
         or result.solve_residual is None
+        or result.output_error_estimate is None
         or not np.isfinite(result.condition_number)
         or not np.isfinite(result.solve_residual)
         or result.solve_residual > tolerance
         or result.condition_number * np.finfo(float).eps > tolerance
+        or not np.isfinite(result.output_error_estimate)
+        or result.output_error_estimate > tolerance
     ):
         return CheckOutcome.INCONCLUSIVE
     return CheckOutcome.PASS
@@ -249,6 +258,7 @@ def audit_model(
     max_depth: int = 8,
     max_transient_steps: int = 16,
     tol: float = 1e-10,
+    limits: ComputationLimits = DEFAULT_LIMITS,
 ) -> ModelAnalysis:
     """Compute bounded H.1 checks, H.2 diagnostics, and the H.34 constant."""
 
@@ -259,11 +269,15 @@ def audit_model(
     if not np.isfinite(tol) or tol <= 0:
         raise ValueError("tol must be finite and positive")
     require_valid_model(model, tol=tol)
+    check_matrix_budget(model, limits)
+    check_enumeration_budget(model, max_depth, limits, repeated_depths=True)
 
     realization: list[DepthAgreement] = []
     for depth in range(1, max_depth + 1):
-        enumerated = depth_contribution_by_enumeration(model, depth)
-        realized = depth_contribution_by_maps(model, depth)
+        enumerated = depth_contribution_by_enumeration(
+            model, depth, tol=tol, limits=limits
+        )
+        realized = depth_contribution_by_maps(model, depth, tol=tol)
         error = float(np.linalg.norm(enumerated - realized, ord=2))
         realization.append(
             DepthAgreement(
@@ -273,11 +287,16 @@ def audit_model(
             )
         )
 
-    truncated = truncated_semidensity(model, max_transient_steps)
-    fixed = linear_fixed_point(model, tol=tol)
+    truncated = truncated_semidensity(model, max_transient_steps, tol=tol)
+    fixed = linear_fixed_point(model, tol=tol, limits=limits)
     fixed_outcome = _linear_fixed_point_outcome(fixed, tol)
     domination = (
-        minimum_domination_constant(fixed.output, model.reference_state, tol=tol)
+        minimum_domination_constant(
+            fixed.output,
+            model.reference_state,
+            tol=tol,
+            input_error_estimate=fixed.output_error_estimate,
+        )
         if fixed_outcome is CheckOutcome.PASS and fixed.output is not None
         else None
     )
@@ -293,7 +312,7 @@ def audit_model(
     elif fixed_outcome is CheckOutcome.INCONCLUSIVE:
         notes.append(
             "The linear solve is inconclusive at this tolerance; inspect its condition "
-            "number, residual and output-validity diagnostic."
+            "number, residual, output validity and propagated error estimate."
         )
 
     return ModelAnalysis(

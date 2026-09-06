@@ -90,6 +90,13 @@ fixed-model level of the calculation; a model
 family additionally asks for a uniform bound
 $\sup_n C_n^\star<\infty$.
 
+The linear audit propagates working-precision estimates for assembly, solution,
+and output error, then includes reference scaling in the H.34 precision check.
+Unresolved precision produces an inconclusive result. H.34 remains a numerical
+point estimate; H.3 and H.4 provide the separate upper-constant certificate
+interfaces. Explicit matrices and path enumeration have configurable preflight
+budgets for the supported small-model setting.
+
 ## Three certificate interfaces
 
 The package keeps three logically different constructions separate:

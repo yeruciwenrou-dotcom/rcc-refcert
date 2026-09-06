@@ -14,7 +14,11 @@ from .cases import (
     H34_DOMINATION,
     CaseKind,
 )
-from .numeric import format_certificate_constant, format_number
+from .numeric import (
+    format_certificate_constant,
+    format_domination_constant,
+    format_number,
+)
 from .status import CheckOutcome, CheckResult
 
 
@@ -96,7 +100,10 @@ def _case_section(result: CaseAnalysis) -> list[str]:
         H34_DOMINATION: (
             "not evaluated"
             if analysis.fixed_model_domination is None
-            else f"C* = {_number(analysis.fixed_model_domination.constant)}"
+            else format_domination_constant(
+                analysis.fixed_model_domination.constant,
+                analysis.fixed_model_domination.constant_estimate,
+            )
         ),
     }
     if result.bellman_choi is not None:
@@ -151,11 +158,19 @@ def _case_section(result: CaseAnalysis) -> list[str]:
         ]
     )
     if fixed.applicable:
+        condition = (
+            "not evaluated"
+            if fixed.condition_number is None
+            else f"{fixed.condition_number:.3e}"
+        )
         lines.append(
-            f"- The linear solve has condition number `{fixed.condition_number:.3e}` "
+            f"- The linear solve has condition number `{condition}` "
             f"and residual "
             f"`{_number(fixed.solve_residual, zero_tolerance=analysis.tolerance)}`."
         )
+        lines.append(f"- The {fixed.message}.")
+        if analysis.fixed_model_domination is not None:
+            lines.append(f"- H.34: {analysis.fixed_model_domination.message}.")
     else:
         lines.append(
             "- The full transient spectral radius lies at the linear-inverse boundary; "

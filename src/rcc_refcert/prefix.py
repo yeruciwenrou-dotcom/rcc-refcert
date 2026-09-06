@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
+from .weights import code_weight
+
 
 def is_binary_word(word: str) -> bool:
     return isinstance(word, str) and bool(word) and set(word) <= {"0", "1"}
@@ -25,7 +27,7 @@ def is_prefix_free(codewords: Iterable[str]) -> bool:
 
 
 def kraft_sum(codewords: Iterable[str]) -> float:
-    return sum(2.0 ** (-len(word)) for word in codewords)
+    return sum(code_weight(len(word)) for word in codewords)
 
 
 def elias_gamma_nonnegative(value: int) -> str:

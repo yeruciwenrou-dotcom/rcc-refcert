@@ -44,6 +44,12 @@ def format_certificate_constant(
     return f"C <= {upper:.12g}; candidate {format_number(candidate)}; correction <= {bound:.3g}"
 
 
+def format_domination_constant(constant: float | None, estimate: float | None) -> str:
+    if constant is None:
+        return f"estimate {format_number(estimate)}; precision unresolved"
+    return f"C* estimate = {format_number(constant)}"
+
+
 def format_number(
     value: float | None,
     *,

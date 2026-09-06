@@ -88,6 +88,21 @@ $(I-\mathbb T)^{-1}$ only if the spectral radius of the entire transient
 superoperator matrix is below $1-\mathrm{tol}$. The spectral-radius gate is evaluated on that entire
 matrix.
 
+The linear audit also tracks assembly and solve roundoff. Kraus contributions
+are bounded before cancellation by their weighted squared Frobenius norms,
+using the same working-precision allowance as the certificate verifiers.
+The subtraction in `I-T` contributes a separate absolute error estimate.
+A computed inverse is checked by its residual before its absolute norm is
+used to propagate these errors. The resulting state error includes
+`(I-T)^{-1}` amplification, the solve residual, and the formation of the
+halting output. H.2 requires the output-error estimate to be at most `tol`.
+
+For H.34, reference whitening adds its own metric residual and matrix/spectral
+roundoff. The resulting constant-error estimate must fit
+`tol * max(1, constant_estimate)`. These are conservative numerical allowances;
+they retain the package's working-precision evidence level. The reported
+minimum is a point estimate, with `constant_upper_bound=None`.
+
 ## Numerical outcomes and residuals
 
 Floating-point matrix inequalities use the smallest eigenvalue of the Hermitian

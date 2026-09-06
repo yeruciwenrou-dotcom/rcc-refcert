@@ -12,6 +12,7 @@ from .quantum import (
     is_psd,
     min_hermitian_eigenvalue,
 )
+from .weights import MAX_CODE_LENGTH
 
 BlockKey = tuple[str, str]
 
@@ -131,6 +132,11 @@ def validate_model(model: FiniteControlModel, tol: float = 1e-10) -> list[str]:
                 errors.append(
                     f"syntax {state}: invalid nonempty binary codeword {codeword!r}"
                 )
+            elif len(codeword) > MAX_CODE_LENGTH:
+                errors.append(
+                    f"syntax {state}: code length {len(codeword)} exceeds the "
+                    f"supported normal binary64 weight range (maximum {MAX_CODE_LENGTH})"
+                )
         valid_codewords = [
             codeword for codeword in codewords if is_binary_word(codeword)
         ]
@@ -144,6 +150,15 @@ def validate_model(model: FiniteControlModel, tol: float = 1e-10) -> list[str]:
             errors.append(f"syntax {state}: action names are not unique")
 
         for action in actions:
+            for branch, kraus in (
+                *action.continue_kraus.items(),
+                *action.halt_kraus.items(),
+            ):
+                if not kraus:
+                    errors.append(
+                        f"action {action.name}, branch {branch!r}: empty Kraus branches "
+                        "are not supported; omit a zero continuing branch"
+                    )
             if action.successor is not None and action.successor not in syntax:
                 errors.append(
                     f"action {action.name}: successor {action.successor!r} is undeclared"

@@ -23,6 +23,7 @@ from .quantum import (
     precompose_choi_with_kraus,
 )
 from .status import CheckOutcome, CheckResult, EvidenceLevel
+from .weights import code_weight, weighted_operator
 
 
 @dataclass
@@ -62,9 +63,9 @@ def _weighted_continue_kraus(
     for action in model.actions_by_syntax[source_syntax]:
         if action.is_halt or action.successor != target_syntax:
             continue
-        scale = math.sqrt(2.0 ** (-action.code_length))
+        scale = math.sqrt(code_weight(action.code_length))
         for matrix in action.continue_kraus.get((source_control, target_control), ()):
-            matrices.append(scale * np.asarray(matrix, dtype=complex))
+            matrices.append(weighted_operator(scale, np.asarray(matrix, dtype=complex)))
     return tuple(matrices)
 
 
@@ -76,9 +77,9 @@ def _weighted_halt_kraus(
     for action in model.actions_by_syntax[syntax_state]:
         if not action.is_halt:
             continue
-        scale = math.sqrt(2.0 ** (-action.code_length))
+        scale = math.sqrt(code_weight(action.code_length))
         for matrix in action.halt_kraus[source_control]:
-            matrices.append(scale * np.asarray(matrix, dtype=complex))
+            matrices.append(weighted_operator(scale, np.asarray(matrix, dtype=complex)))
     return tuple(matrices)
 
 

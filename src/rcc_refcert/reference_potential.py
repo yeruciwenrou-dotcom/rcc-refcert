@@ -15,6 +15,7 @@ from .certificate_error import (
 from .model import BlockKey, FiniteControlModel, require_valid_model
 from .quantum import Array, apply_kraus, is_density_matrix, min_hermitian_eigenvalue
 from .status import CheckOutcome, CheckResult, EvidenceLevel
+from .weights import code_weight, weighted_operator
 
 
 @dataclass
@@ -58,11 +59,11 @@ def _local_transient_image(
         if action.is_halt:
             continue
         assert action.successor is not None
-        weight = 2.0 ** (-action.code_length)
+        weight = code_weight(action.code_length)
         for (q, target), kraus in action.continue_kraus.items():
             if q == source_control:
-                output[(action.successor, target)] += weight * apply_kraus(
-                    kraus, operator
+                output[(action.successor, target)] += weighted_operator(
+                    weight, apply_kraus(kraus, operator)
                 )
     return output
 
@@ -75,8 +76,10 @@ def _local_halt_image(
     for action in model.actions_by_syntax[syntax_state]:
         if not action.is_halt:
             continue
-        weight = 2.0 ** (-action.code_length)
-        output += weight * apply_kraus(action.halt_kraus[source_control], operator)
+        weight = code_weight(action.code_length)
+        output += weighted_operator(
+            weight, apply_kraus(action.halt_kraus[source_control], operator)
+        )
     return output
 
 

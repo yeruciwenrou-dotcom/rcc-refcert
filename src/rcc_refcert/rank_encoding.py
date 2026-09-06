@@ -9,6 +9,7 @@ from .prefix import (
     elias_gamma_nonnegative,
     elias_header_length,
 )
+from .weights import code_weight
 
 
 def _require_integer(name: str, value: int, minimum: int) -> int:
@@ -78,7 +79,7 @@ def decode_word(code: str, gamma: int) -> tuple[int, ...]:
 
 
 def depth_kraft_mass(gamma: int, length: int) -> float:
-    q_length = 2.0 ** (-elias_header_length(length))
+    q_length = code_weight(elias_header_length(length))
     return q_length * occupancy_factor(gamma, length)
 
 
