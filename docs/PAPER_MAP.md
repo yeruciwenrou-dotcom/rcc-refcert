@@ -64,7 +64,7 @@ established in the RCC paper.
 
 | RCC element | connection to the package |
 |---|---|
-| resource condition `RCon` | the RCC paper supplies the physical interpretation of the declared reference, controls, and resources |
+| reference consistency `RCon` | the RCC paper supplies the physical interpretation of the declared reference, controls, and resources |
 | faithful transcription `TC` | the transcription argument connects an external computation to the declared finite-control model |
 | family-level reference admissibility `RA` | H.4 and H.6 provide family-facing certificate interfaces; the RCC paper supplies their uniform analytic realization |
 | $\sup_n C_n^\star<\infty$ | fixed-size calculations become a family result through a uniform bound in the scale parameter |

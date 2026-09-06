@@ -38,6 +38,9 @@ The implementation follows manuscript version 4; see the
   that include numerical error corrections. Unresolved checks return
   `inconclusive` with no usable constant; valid certificates can remain
   unresolved for slowly halting dynamics.
+- Gain–cost checks account for numerical uncertainty at the Kraft boundary,
+  and suggested prefix codes use upper gain estimates. Unresolved linear
+  outputs retain finite-depth evidence and return no domination constant.
 - The [output contract](docs/OUTPUT_CONTRACT.md) and
   [numerical conventions](docs/CONVENTIONS.md) describe result fields, support
   diagnostics, and precision requirements.

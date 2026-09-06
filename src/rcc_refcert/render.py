@@ -111,6 +111,7 @@ def _gain_cost_payload(
         "name": report.model_name,
         "outcome": report.outcome.value,
         "evidence": report.evidence.value,
+        "constant": _json_number(report.constant),
     }
     if detailed:
         payload["checks"] = [_check_payload(check) for check in report.checks]
@@ -119,13 +120,22 @@ def _gain_cost_payload(
             "name": syntax.syntax_state,
             "current_weighted_sum": _json_number(syntax.current_weighted_sum),
             "current_condition_satisfied": syntax.current_condition_satisfied,
+            "current_outcome": syntax.current_outcome.value,
+            "current_weighted_sum_upper": _json_number(
+                syntax.current_weighted_sum_upper
+            ),
             "suggested_weighted_sum": _json_number(syntax.suggested_weighted_sum),
             "suggested_condition_satisfied": syntax.suggested_condition_satisfied,
+            "suggested_outcome": syntax.suggested_outcome.value,
+            "suggested_weighted_sum_upper": _json_number(
+                syntax.suggested_weighted_sum_upper
+            ),
             "actions": [
                 {
                     "name": action.action_name,
                     "current_codeword": action.current_codeword,
                     "reference_gain": _json_number(action.reference_gain),
+                    "reference_gain_upper": _json_number(action.reference_gain_upper),
                     "suggested_code_length": action.suggested_code_length,
                     "suggested_codeword": action.suggested_codeword,
                     **(
@@ -198,6 +208,7 @@ def _case_payload(
         "linear_inverse_applicable": fixed.applicable,
         "condition_number": _json_number(fixed.condition_number),
         "solve_residual": _json_number(fixed.solve_residual),
+        "output_valid": fixed.output_valid,
         "max_transient_steps": analysis.max_transient_steps,
         "truncated_output_trace": _json_number(analysis.truncated_trace),
         "message": fixed.message,
@@ -418,7 +429,10 @@ def _normalize_reference_node(
             normalized["value"] = canonical_float(
                 normalize_diagnostic(value, tolerance) or 0.0
             )
-        if node.get("candidate_constant") is not None:
+        if (
+            node.get("candidate_constant") is not None
+            or node.get("fixed_model_initial_constant") is not None
+        ):
             for key in ("constant", "constant_error_bound"):
                 if isinstance(node.get(key), float):
                     normalized[key] = canonical_upper_float(node[key])
@@ -433,6 +447,13 @@ def _normalize_reference_node(
             for value in node
         ]
     if isinstance(node, float):
+        if field_name in {
+            "reference_gain_upper",
+            "current_weighted_sum_upper",
+            "suggested_weighted_sum_upper",
+            "fixed_model_initial_constant",
+        }:
+            return canonical_upper_float(node)
         if field_name in _ZERO_DIAGNOSTIC_FIELDS:
             node = normalize_diagnostic(node, suite_tolerance) or 0.0
         return canonical_float(node)
@@ -601,6 +622,8 @@ def format_case(result: CaseAnalysis, *, detailed: bool = False) -> str:
             for syntax in result.gain_cost.syntax_reports
         )
         details[H6_GAIN_COST] = f"current H.70 sums {sums}"
+        if result.gain_cost.constant is None:
+            details[H6_GAIN_COST] += "; no usable constant for current codewords"
 
     for name, outcome in result.observed_outcomes():
         expected = result.case.expected_outcome(name)
@@ -617,6 +640,7 @@ def format_case(result: CaseAnalysis, *, detailed: bool = False) -> str:
                 f"  tolerance: {analysis.tolerance:.1e}",
                 f"  maximum transient continuations: {analysis.max_transient_steps}",
                 f"  truncated output trace: {_format_number(analysis.truncated_trace)}",
+                f"  linear output: {analysis.fixed_point.message}",
             ]
         )
         if analysis.fixed_point.applicable:

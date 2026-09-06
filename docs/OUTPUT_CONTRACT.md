@@ -104,6 +104,21 @@ If a small positive eigenvalue leaves support unresolved, `constant`,
 `support_compatible`, and `constant_is_infinite` are all `null`. An infinite
 constant requires a positive-mass witness in an established exact kernel.
 
+H.2 reports `output_valid` alongside its solve diagnostics. An unresolved
+linear solve or an output that fails the semidensity checks makes H.2 and
+H.34 `inconclusive`, with no H.34 constant. Finite-depth results remain
+available; the computed output is retained without renormalization.
+
+H.6 reports `current_outcome` and `suggested_outcome` for each syntax state.
+Their `*_condition_satisfied` flags are true only for `pass`; a false flag can
+mean `fail` or `inconclusive`. Gain and weighted-sum estimates are accompanied
+by `reference_gain_upper`, `current_weighted_sum_upper`, and
+`suggested_weighted_sum_upper`. Suggested lengths use the gain upper estimates.
+The report's `constant` is available only when the current codewords pass.
+`fixed_model_initial_constant` is the H.72 initial-envelope bound, which may
+also be inspected when H.70 fails; it alone does not certify the current
+program semidensity. Suggested codewords describe a separate re-encoded model.
+
 The machine-facing JSON returned by the command retains computed finite
 diagnostics. In the frozen structured result and Markdown report, a diagnostic
 whose absolute value is at or below its stated tolerance is represented as

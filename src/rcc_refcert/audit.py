@@ -49,6 +49,7 @@ def _linear_fixed_point_outcome(
         return CheckOutcome.NOT_APPLICABLE
     if (
         result.output is None
+        or result.output_valid is not True
         or result.condition_number is None
         or result.solve_residual is None
         or not np.isfinite(result.condition_number)
@@ -292,7 +293,7 @@ def audit_model(
     elif fixed_outcome is CheckOutcome.INCONCLUSIVE:
         notes.append(
             "The linear solve is inconclusive at this tolerance; inspect its condition "
-            "number and residual."
+            "number, residual and output-validity diagnostic."
         )
 
     return ModelAnalysis(

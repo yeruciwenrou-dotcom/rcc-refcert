@@ -93,6 +93,7 @@
               "value": 1.0
             }
           ],
+          "constant": null,
           "evidence": "numerical",
           "fixed_model_initial_constant": 1.0,
           "name": "global-reset-loop-n=1",
@@ -107,6 +108,7 @@
                   "current_codeword": "1",
                   "name": "continue",
                   "reference_gain": 1.0,
+                  "reference_gain_upper": 1.0,
                   "suggested_code_length": 1,
                   "suggested_codeword": "0"
                 },
@@ -117,15 +119,20 @@
                   "current_codeword": "0",
                   "name": "global-reset-and-halt",
                   "reference_gain": 2.0,
+                  "reference_gain_upper": 2.0,
                   "suggested_code_length": 2,
                   "suggested_codeword": "10"
                 }
               ],
               "current_condition_satisfied": false,
+              "current_outcome": "fail",
               "current_weighted_sum": 1.5,
+              "current_weighted_sum_upper": 1.5,
               "name": "s",
               "suggested_condition_satisfied": true,
-              "suggested_weighted_sum": 1.0
+              "suggested_outcome": "pass",
+              "suggested_weighted_sum": 1.0,
+              "suggested_weighted_sum_upper": 1.0
             }
           ]
         },
@@ -156,6 +163,7 @@
               "value": 1.0
             }
           ],
+          "constant": null,
           "evidence": "numerical",
           "fixed_model_initial_constant": 1.0,
           "name": "global-reset-loop-n=2",
@@ -170,6 +178,7 @@
                   "current_codeword": "1",
                   "name": "continue",
                   "reference_gain": 1.0,
+                  "reference_gain_upper": 1.0,
                   "suggested_code_length": 1,
                   "suggested_codeword": "0"
                 },
@@ -180,15 +189,20 @@
                   "current_codeword": "0",
                   "name": "global-reset-and-halt",
                   "reference_gain": 4.0,
+                  "reference_gain_upper": 4.0,
                   "suggested_code_length": 3,
                   "suggested_codeword": "100"
                 }
               ],
               "current_condition_satisfied": false,
+              "current_outcome": "fail",
               "current_weighted_sum": 2.5,
+              "current_weighted_sum_upper": 2.5,
               "name": "s",
               "suggested_condition_satisfied": true,
-              "suggested_weighted_sum": 1.0
+              "suggested_outcome": "pass",
+              "suggested_weighted_sum": 1.0,
+              "suggested_weighted_sum_upper": 1.0
             }
           ]
         },
@@ -219,6 +233,7 @@
               "value": 1.0
             }
           ],
+          "constant": null,
           "evidence": "numerical",
           "fixed_model_initial_constant": 1.0,
           "name": "global-reset-loop-n=3",
@@ -233,6 +248,7 @@
                   "current_codeword": "1",
                   "name": "continue",
                   "reference_gain": 1.0,
+                  "reference_gain_upper": 1.0,
                   "suggested_code_length": 1,
                   "suggested_codeword": "0"
                 },
@@ -243,15 +259,20 @@
                   "current_codeword": "0",
                   "name": "global-reset-and-halt",
                   "reference_gain": 8.0,
+                  "reference_gain_upper": 8.0,
                   "suggested_code_length": 4,
                   "suggested_codeword": "1000"
                 }
               ],
               "current_condition_satisfied": false,
+              "current_outcome": "fail",
               "current_weighted_sum": 4.5,
+              "current_weighted_sum_upper": 4.5,
               "name": "s",
               "suggested_condition_satisfied": true,
-              "suggested_weighted_sum": 1.0
+              "suggested_outcome": "pass",
+              "suggested_weighted_sum": 1.0,
+              "suggested_weighted_sum_upper": 1.0
             }
           ]
         },
@@ -282,6 +303,7 @@
               "value": 1.0
             }
           ],
+          "constant": null,
           "evidence": "numerical",
           "fixed_model_initial_constant": 1.0,
           "name": "global-reset-loop-n=4",
@@ -296,6 +318,7 @@
                   "current_codeword": "1",
                   "name": "continue",
                   "reference_gain": 1.0,
+                  "reference_gain_upper": 1.0,
                   "suggested_code_length": 1,
                   "suggested_codeword": "0"
                 },
@@ -306,15 +329,20 @@
                   "current_codeword": "0",
                   "name": "global-reset-and-halt",
                   "reference_gain": 16.0,
+                  "reference_gain_upper": 16.0,
                   "suggested_code_length": 5,
                   "suggested_codeword": "10000"
                 }
               ],
               "current_condition_satisfied": false,
+              "current_outcome": "fail",
               "current_weighted_sum": 8.5,
+              "current_weighted_sum_upper": 8.5,
               "name": "s",
               "suggested_condition_satisfied": true,
-              "suggested_weighted_sum": 1.0
+              "suggested_outcome": "pass",
+              "suggested_weighted_sum": 1.0,
+              "suggested_weighted_sum_upper": 1.0
             }
           ]
         }
@@ -413,8 +441,9 @@
             "linear_inverse_applicable": true,
             "matches_expectation": true,
             "max_transient_steps": 16,
-            "message": "full transient-space spectral radius is below one; numerical conditioning and solve residual are reported separately",
+            "message": "full transient-space spectral radius is below one; numerical conditioning, solve residual and output validity are reported separately",
             "outcome": "pass",
+            "output_valid": true,
             "solve_residual": 0.0,
             "spectral_radius": 0.5,
             "truncated_output_trace": 0.999992370605
@@ -651,6 +680,7 @@
                 "value": 1.0
               }
             ],
+            "constant": 1.0,
             "evidence": "numerical",
             "expected_outcome": "pass",
             "fixed_model_initial_constant": 1.0,
@@ -667,6 +697,7 @@
                     "current_codeword": "1",
                     "name": "dephase-and-continue",
                     "reference_gain": 1.0,
+                    "reference_gain_upper": 1.0,
                     "suggested_code_length": 1,
                     "suggested_codeword": "0"
                   },
@@ -677,15 +708,20 @@
                     "current_codeword": "0",
                     "name": "halt",
                     "reference_gain": 1.0,
+                    "reference_gain_upper": 1.0,
                     "suggested_code_length": 1,
                     "suggested_codeword": "1"
                   }
                 ],
                 "current_condition_satisfied": true,
+                "current_outcome": "pass",
                 "current_weighted_sum": 1.0,
+                "current_weighted_sum_upper": 1.0,
                 "name": "s",
                 "suggested_condition_satisfied": true,
-                "suggested_weighted_sum": 1.0
+                "suggested_outcome": "pass",
+                "suggested_weighted_sum": 1.0,
+                "suggested_weighted_sum_upper": 1.0
               }
             ]
           }
@@ -792,8 +828,9 @@
             "linear_inverse_applicable": true,
             "matches_expectation": true,
             "max_transient_steps": 16,
-            "message": "full transient-space spectral radius is below one; numerical conditioning and solve residual are reported separately",
+            "message": "full transient-space spectral radius is below one; numerical conditioning, solve residual and output validity are reported separately",
             "outcome": "pass",
+            "output_valid": true,
             "solve_residual": 0.0,
             "spectral_radius": 0.353553390593,
             "truncated_output_trace": 0.857142835855
@@ -1300,6 +1337,7 @@
                 "value": 1.0
               }
             ],
+            "constant": null,
             "evidence": "numerical",
             "expected_outcome": "fail",
             "fixed_model_initial_constant": 1.0,
@@ -1317,6 +1355,7 @@
                     "current_codeword": "0",
                     "name": "compress-and-continue",
                     "reference_gain": 2.0,
+                    "reference_gain_upper": 2.0,
                     "suggested_code_length": 2,
                     "suggested_codeword": "00"
                   },
@@ -1328,15 +1367,20 @@
                     "current_codeword": "1",
                     "name": "halt-from-s0",
                     "reference_gain": 2.0,
+                    "reference_gain_upper": 2.0,
                     "suggested_code_length": 2,
                     "suggested_codeword": "01"
                   }
                 ],
                 "current_condition_satisfied": false,
+                "current_outcome": "fail",
                 "current_weighted_sum": 2.0,
+                "current_weighted_sum_upper": 2.0,
                 "name": "s0",
                 "suggested_condition_satisfied": true,
-                "suggested_weighted_sum": 1.0
+                "suggested_outcome": "pass",
+                "suggested_weighted_sum": 1.0,
+                "suggested_weighted_sum_upper": 1.0
               },
               {
                 "actions": [
@@ -1348,6 +1392,7 @@
                     "current_codeword": "10",
                     "name": "expand-and-continue",
                     "reference_gain": 2.0,
+                    "reference_gain_upper": 2.0,
                     "suggested_code_length": 2,
                     "suggested_codeword": "00"
                   },
@@ -1359,15 +1404,20 @@
                     "current_codeword": "0",
                     "name": "halt-from-s1",
                     "reference_gain": 2.0,
+                    "reference_gain_upper": 2.0,
                     "suggested_code_length": 2,
                     "suggested_codeword": "01"
                   }
                 ],
                 "current_condition_satisfied": false,
+                "current_outcome": "fail",
                 "current_weighted_sum": 1.5,
+                "current_weighted_sum_upper": 1.5,
                 "name": "s1",
                 "suggested_condition_satisfied": true,
-                "suggested_weighted_sum": 1.0
+                "suggested_outcome": "pass",
+                "suggested_weighted_sum": 1.0,
+                "suggested_weighted_sum_upper": 1.0
               }
             ]
           }
@@ -1474,6 +1524,7 @@
             "max_transient_steps": 16,
             "message": "Neumann/linear inverse is not certified on the full transient space",
             "outcome": "not_applicable",
+            "output_valid": null,
             "solve_residual": null,
             "spectral_radius": 1.0,
             "truncated_output_trace": 0.0

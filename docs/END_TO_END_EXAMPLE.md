@@ -144,7 +144,7 @@ Each directed reset has reference gain $2$. With the original one-bit local
 codewords, the sufficient H.70 sum is
 
 $$
-2^{-1}\!\times2+2^{-1}\!\times2=2,
+2^{-1}\times2+2^{-1}\times2=2,
 $$
 
 so that local sufficient route fails. H.76 suggests two-bit codewords and
