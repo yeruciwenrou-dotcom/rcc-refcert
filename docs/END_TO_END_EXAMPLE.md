@@ -4,7 +4,8 @@ The paired-reset example gives one minimal, reproducible path from a declared
 physical model to a numerical lower bound on
 $C_{\rm opt}^{(\epsilon)}$. Every state, channel, codeword, cost constant,
 and theorem input is visible in
-one small construction.
+one small construction. Section and equation references follow manuscript
+version 4; see the [paper map](PAPER_MAP.md) for version alignment.
 
 The existing `dephase-or-halt` case is the shortest closed-form demonstration
 of the finite-control qualification machinery. Starting from $I/2$, however,
@@ -15,17 +16,21 @@ a one-bit, nontrivial endpoint.
 
 ## Run the example
 
-After installing the package in the active Python environment, run:
+From the repository root, follow the [quick start](../README.md#quick-start),
+then use the environment it creates:
 
 ```bash
-python examples/paired_reset_lower_bound.py
+.venv/bin/python examples/paired_reset_lower_bound.py
 ```
 
 The same fixed result is available as structured JSON:
 
 ```bash
-python examples/paired_reset_lower_bound.py --json
+.venv/bin/python examples/paired_reset_lower_bound.py --json
 ```
+
+On Windows, use `.venv\Scripts\python.exe` in these commands. If you installed
+into another environment, use that environment's Python interpreter.
 
 The implementation is in
 [`paired_reset_example.py`](../src/rcc_refcert/paired_reset_example.py), and

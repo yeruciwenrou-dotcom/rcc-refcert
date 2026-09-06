@@ -1,6 +1,6 @@
 # RCC RefCert reference report
 
-This report is the frozen executable evidence for RCC's finite-control model-qualification layer. It records declared processes, terminating program semidensities, and supplied proof objects, including diagnostics for whether action code lengths account for their reference gain.
+This report presents executable evidence for RCC's finite-control model-qualification layer. It records declared processes, terminating program semidensities, and supplied proof objects, including diagnostics for whether action code lengths account for their reference gain. Paper references use RCC manuscript version 4.
 
 ## Run summary
 
@@ -9,7 +9,7 @@ Action depth: `1–8`
 Maximum transient continuations: `16`  
 Numerical tolerance: `1.0e-10`
 
-Diagnostics with absolute value at or below the numerical tolerance are shown as `0`; JSON output retains the computed values.
+Residual diagnostics with absolute value at or below the numerical tolerance are shown as `0`. Certificate upper bounds and their error budgets round upward. Fresh CLI JSON retains the computed finite diagnostics.
 
 | case | purpose | reference result |
 |---|---|---|

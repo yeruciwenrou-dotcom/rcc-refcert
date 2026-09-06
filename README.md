@@ -34,7 +34,7 @@ and gain–cost assignments.
 | Goal | Entry point |
 |---|---|
 | Inspect the recorded evidence without running code | [`results/reference_report.md`](results/reference_report.md) |
-| Set up the package and reproduce the reference results | [`quickstart.py`](quickstart.py) |
+| Set up the package and reproduce the reference results | [Quick start](#quick-start) |
 | Follow a guided first run in Jupyter | [`RCC_Quickstart.ipynb`](RCC_Quickstart.ipynb) |
 | Run the minimal qualification-to-lower-bound chain | [`docs/END_TO_END_EXAMPLE.md`](docs/END_TO_END_EXAMPLE.md) |
 | Understand exactly what the numerical results establish | [`docs/SCIENTIFIC_SCOPE.md`](docs/SCIENTIFIC_SCOPE.md) |
@@ -94,9 +94,7 @@ objects. It can:
 - test Bellman–Choi, reference-potential, and fixed-model domination
   certificates;
 - identify operations whose code length understates their reference gain and
-  obtain a sufficient prefix-code completion;
-- develop new structure-fair model classes, certificate methods, cost
-  assignments, and rigorous-verification backends.
+  obtain a sufficient prefix-code completion.
 
 This makes `rcc-refcert` a compact research testbed for a foundational task:
 turning quantum-complexity models into explicit objects whose supplied
@@ -141,7 +139,23 @@ independent tests:
 python3 quickstart.py --reproduce-only
 ```
 
-To install into an environment you already manage:
+To run individual commands in the environment created by the quickstart, use
+its Python interpreter. On macOS and Linux:
+
+```bash
+.venv/bin/python -m rcc_refcert examples
+```
+
+On Windows:
+
+```powershell
+.venv\Scripts\python.exe -m rcc_refcert examples
+```
+
+Use the same interpreter for Python scripts and API examples. The equivalent
+module commands accept the same arguments as `rcc-refcert` below.
+
+If you prefer an environment you already manage, install the package there:
 
 ```bash
 python3 -m pip install .
@@ -216,12 +230,15 @@ $$
 atomic resource slot. The displayed feasible program establishes tightness for
 this fixed model.
 
-After installing the package in the active environment, run:
+From the repository root, use the quickstart environment:
 
 ```bash
-python3 examples/paired_reset_lower_bound.py
-python3 examples/paired_reset_lower_bound.py --json
+.venv/bin/python examples/paired_reset_lower_bound.py
+.venv/bin/python examples/paired_reset_lower_bound.py --json
 ```
+
+On Windows, use `.venv\Scripts\python.exe` in these commands. If you installed
+into another environment, use that environment's Python interpreter.
 
 The [worked explanation](docs/END_TO_END_EXAMPLE.md) separates software
 checks, analytic model obligations, and the theorem-level consequence. The
@@ -263,7 +280,7 @@ For a new model, use `Action`, `FiniteControlModel`, `require_valid_model`, and
 `analyze_reference_gain_cost`. The [model guide](docs/MODEL_GUIDE.md) contains a
 complete minimal example.
 
-## Scientific boundary
+## Results and scientific scope
 
 The package is a compact research reference implementation of RCC's
 finite-control qualification layer. It constructs finite-model program
@@ -276,7 +293,8 @@ Every check reports an `outcome`—`pass`, `fail`, `inconclusive`, or
 package establishes finite-input and fixed-model statements. The complete
 framework—including physical reference consistency, faithful transcription,
 family-uniform admissibility, and the RCC lower-bound theorem—is developed in
-the [RCC paper](https://arxiv.org/abs/2509.18205).
+the accompanying RCC manuscript. The [paper map](docs/PAPER_MAP.md) records
+the implemented objects and manuscript-version alignment.
 
 The exact claim ladder is documented in
 [`docs/SCIENTIFIC_SCOPE.md`](docs/SCIENTIFIC_SCOPE.md), and numerical and tensor

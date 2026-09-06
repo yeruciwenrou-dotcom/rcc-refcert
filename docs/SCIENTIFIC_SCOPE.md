@@ -25,8 +25,9 @@ semidensity, verifies reference certificates, evaluates the reference gain of
 individual actions, and tests the corresponding code-length allocation.
 
 The implementation fixes program-semidensity and certificate conventions and
-reproduces selected constructions from Appendices F and H of
-[the RCC paper](https://arxiv.org/abs/2509.18205).
+reproduces selected constructions from Appendices F and H of RCC manuscript
+version 4. The [paper map](PAPER_MAP.md) explains its relation to the publicly
+available paper and identifies the implemented objects.
 
 Appendix F proves that the model class is nonempty and constructs an admissible
 qubit model family with approximately universal pure- and mixed-state
