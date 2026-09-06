@@ -1,6 +1,6 @@
 # Changelog
 
-## Source updates since 0.1.0
+## 0.1.1 (2026-09-06)
 
 - Fixed-point audits propagate matrix-assembly and solve errors to the output
   and reference-scaled constant. Unresolved precision returns `inconclusive`;
@@ -12,8 +12,7 @@
 - Explicit enumeration and dense matrix construction check configurable
   resource budgets before beginning expensive work.
 
-These changes are available in the source tree. The archived 0.1.0 release
-and its package distribution retain their original contents.
+The reference cases retain their numerical results and expected outcomes.
 
 ## 0.1.0 (2026-09-06)
 

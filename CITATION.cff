@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use this software, cite the software and the associated RCC paper."
 title: "rcc-refcert: a Python research toolkit for structure-fair quantum circuit complexity"
 type: software
-version: 0.1.0
-doi: "10.5281/zenodo.22544968"
+version: 0.1.1
+doi: "10.5281/zenodo.22544967"
 date-released: 2026-09-06
 license: MIT
 repository-code: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
