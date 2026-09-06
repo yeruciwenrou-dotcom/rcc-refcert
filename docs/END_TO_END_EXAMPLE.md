@@ -49,7 +49,7 @@ the executable entry point is
 | Generation tolerance | $\epsilon=0$ | exact one-shot branch |
 | Cost unit | one terminal reset slot | legal cost set for the example |
 | Control bandwidth | $\Gamma_R=2$, $g_R=\log_2\Gamma_R=1$ | one bit per atomic choice |
-| RCC reporting unit | $1\,{\rm st}_R=g_R=1$ bit | one R-structon per atomic control bandwidth |
+| RCC reporting unit | $1\thinspace{\rm st}_R=g_R=1$ bit | one R-structon per atomic control bandwidth |
 | Transcription | $\Lambda_R(L)=\Phi_{1,0}(L)=L$ | $a=0$ and $\gamma=0$ |
 
 The two reset directions are both present before the target is selected. Their
@@ -105,7 +105,7 @@ D_{\max}^{0}(\rho\Vert\sigma_R)=\log_2 2=1.
 $$
 
 Definition 2.6 identifies this one-bit state-side gap with
-$1\,{\rm st}_R$. The reporting unit records the gap after calibration by the
+$1\thinspace{\rm st}_R$. The reporting unit records the gap after calibration by the
 same atomic control bandwidth; the process-side cost remains expressed in
 resource slots.
 

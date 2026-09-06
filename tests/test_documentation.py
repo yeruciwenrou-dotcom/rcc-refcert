@@ -260,7 +260,7 @@ def test_github_markdown_avoids_known_unsupported_math_syntax() -> None:
         *(ROOT / "docs").glob("*.md"),
         ROOT / "results" / "reference_report.md",
     )
-    unsupported = (r"\(", r"\[", r"\operatorname", r"\#")
+    unsupported = (r"\(", r"\[", r"\operatorname", r"\#", r"\,")
 
     for path in public_documents:
         text = path.read_text(encoding="utf-8")
@@ -361,7 +361,7 @@ def test_end_to_end_docs_preserve_theorem_and_unit_hierarchy() -> None:
     assert (
         "D_{\\max}^{0}(\\lvert0\\rangle\\langle0\\rvert\\Vert I/2)\n"
         "=1\\ \\mathrm{bit}\n"
-        "=1\\,\\mathrm{st}_R."
+        "=1\\thinspace\\mathrm{st}_R."
     ) in readme
     assert "C_{\\mathrm{opt}}^{(0)}\\ge1" in readme
 

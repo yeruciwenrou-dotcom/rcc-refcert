@@ -56,7 +56,7 @@ $\mathbb T$ the code-weighted continuation map, and $\mathbb H$ the
 code-weighted halt map. At action depth $m$, H.1 identifies
 
 $$
-\mathbb H\mathbb T^{m-1}(\Omega_0)=\sum_{p:\,\mathrm{depth}(p)=m}2^{-|p|}\rho_p.
+\mathbb H\mathbb T^{m-1}(\Omega_0)=\sum_{p:\thinspace\mathrm{depth}(p)=m}2^{-|p|}\rho_p.
 $$
 
 The two sides are implemented independently. Their agreement is a direct check
