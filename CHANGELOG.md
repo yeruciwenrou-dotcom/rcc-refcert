@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-09-06)
 
 Initial release of `rcc-refcert`, a Python research toolkit for finite-control
 models and reference certificates in structure-fair quantum circuit complexity.
