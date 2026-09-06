@@ -92,6 +92,8 @@ def minimum_domination_constant(
     A resolved kernel witness gives an infinite constant. Eigenvalues below
     ``tol`` whose nullspace cannot be established give ``inconclusive`` and
     ``constant=None``. ``reference_rank`` counts resolved positive directions.
+    A positive ``input_error_estimate`` allows perturbations outside the
+    reference support, so this precision check requires resolved full rank.
     """
 
     if not np.isfinite(tol) or tol <= 0:
@@ -117,6 +119,18 @@ def minimum_domination_constant(
     support_leakage = float(np.linalg.norm(kernel_projector @ matrix, ord=2))
 
     if reference_rank < reference.shape[0]:
+        if input_error_estimate is not None and input_error_estimate > 0:
+            # An unstructured perturbation can add or remove kernel mass.
+            # Check this before either finite or infinite nominal conclusions.
+            return DominationResult(
+                outcome=CheckOutcome.INCONCLUSIVE,
+                constant=None,
+                support_compatible=None,
+                reference_rank=reference_rank,
+                reference_condition_number=reference_condition_number,
+                support_leakage=support_leakage,
+                message="input error leaves reference-support compatibility unresolved; no finite or infinite constant is established",
+            )
         kernel_block = hermitian_part(kernel_projector @ matrix @ kernel_projector)
         kernel_values, kernel_vectors = np.linalg.eigh(kernel_block)
         largest_kernel_mass = float(kernel_values[-1])

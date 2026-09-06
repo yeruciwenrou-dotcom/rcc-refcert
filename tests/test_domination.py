@@ -28,10 +28,13 @@ def test_minimum_domination_constant_matches_direct_formula() -> None:
     assert abs(numerator / denominator - observed.constant) < 1e-12
 
 
-def test_support_failure_returns_infinite_constant_and_witness() -> None:
+@pytest.mark.parametrize("input_error", [None, 0.0])
+def test_support_failure_returns_infinite_constant_and_witness(input_error) -> None:
     reference = np.diag([1.0, 0.0]).astype(complex)
     semidensity = np.diag([0.0, 1.0]).astype(complex)
-    observed = minimum_domination_constant(semidensity, reference)
+    observed = minimum_domination_constant(
+        semidensity, reference, input_error_estimate=input_error
+    )
     assert observed.outcome == CheckOutcome.FAIL
     assert not observed.support_compatible
     assert np.isinf(observed.constant)
@@ -68,11 +71,54 @@ def test_small_positive_eigenvalue_is_unresolved_rather_than_a_kernel() -> None:
 
 
 @pytest.mark.parametrize("reference", [np.diag([1.0, 0.0]), np.ones((2, 2)) / 2])
-def test_exact_kernel_with_compatible_support_has_a_finite_constant(reference) -> None:
-    observed = minimum_domination_constant(0.5 * reference, reference)
+@pytest.mark.parametrize("input_error", [None, 0.0])
+def test_exact_kernel_with_compatible_support_has_a_finite_constant(
+    reference, input_error
+) -> None:
+    observed = minimum_domination_constant(
+        0.5 * reference, reference, input_error_estimate=input_error
+    )
     assert observed.outcome is CheckOutcome.PASS
     assert observed.support_compatible is True
     assert observed.constant == pytest.approx(0.5)
+
+
+@pytest.mark.parametrize(
+    "nominal_kernel_mass,input_error", [(0.0, 1e-12), (2e-10, 2e-10)]
+)
+def test_input_error_can_change_reference_support(nominal_kernel_mass, input_error):
+    reference = np.diag([1.0, 0.0])
+    nominal = np.diag([0.5, nominal_kernel_mass])
+    finite_member = np.diag([0.5, 0.0])
+    infinite_member = np.diag([0.5, input_error])
+    for possible in (finite_member, infinite_member):
+        assert np.linalg.norm(possible - nominal, ord=2) <= input_error
+        assert np.linalg.eigvalsh(possible).min() >= 0.0
+        assert np.trace(possible) <= 1.0
+    # The first matrix has C=0.5; the second needs C=infinity because sigma
+    # vanishes on its positive second diagonal entry. Both fit the same error.
+    result = minimum_domination_constant(
+        nominal, reference, input_error_estimate=input_error
+    )
+    assert result.outcome is CheckOutcome.INCONCLUSIVE
+    assert result.constant is None
+    assert result.support_compatible is None
+    assert result.reference_rank == 1
+    assert result.witness_effect is None
+    assert result.constant_error_estimate is None
+    assert result.constant_upper_bound is None
+
+
+def test_full_rank_reference_propagates_input_error() -> None:
+    result = minimum_domination_constant(
+        np.diag([0.25, 0.125]),
+        np.diag([0.75, 0.25]),
+        input_error_estimate=1e-12,
+    )
+    assert result.outcome is CheckOutcome.PASS
+    assert result.support_compatible is True
+    assert result.constant == pytest.approx(0.5)
+    assert 4e-12 <= result.constant_error_estimate <= 1e-10
 
 
 def test_unresolved_kernel_mass_does_not_become_a_finite_result() -> None:

@@ -123,7 +123,11 @@ its own matrix and spectral roundoff. Its precision budget is
 working-precision allowances; the evidence level remains `numerical`.
 Direct calls to `minimum_domination_constant` evaluate the supplied matrix.
 Pass `input_error_estimate` to request this propagated precision check when
-the matrix itself was computed approximately.
+the matrix itself was computed approximately. A positive input error permits
+perturbations outside the reference support. If the reference is not resolved
+as full rank, this check returns `inconclusive`, with `constant` and
+`support_compatible` both `null`. Omitting the input error or setting it to zero
+retains the support diagnostics for the supplied matrix.
 
 H.6 reports `current_outcome` and `suggested_outcome` for each syntax state.
 Their `*_condition_satisfied` flags are true only for `pass`; a false flag can
@@ -156,7 +160,7 @@ residual summaries, control-wise gains, and suggested codewords.
 |---:|---|
 | `0` | bundled expectations and every requested frozen comparison match |
 | `1` | a scientific expectation or requested frozen comparison differs |
-| `2` | command-line input is invalid or a requested comparison file is missing |
+| `2` | command-line input is invalid, a requested comparison file is missing, or a computation budget is exceeded |
 
 `reproduce --check` compares the normalized suite structure and rendered
 Markdown with the frozen evidence installed as package resources, so the
