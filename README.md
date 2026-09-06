@@ -1,5 +1,6 @@
 # rcc-refcert
 
+[![PyPI](https://img.shields.io/pypi/v/rcc-refcert.svg)](https://pypi.org/project/rcc-refcert/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22544968.svg)](https://doi.org/10.5281/zenodo.22544968)
 
 `rcc-refcert` is a Python research toolkit for
@@ -22,13 +23,14 @@ methods of **Reference-Contingent Complexity (RCC)**, introduced in
 
 | Goal | Entry point |
 |---|---|
-| Inspect the recorded evidence without running code | [Reference results](results/reference_report.md) |
-| Set up the package and reproduce the reference results | [Quick start](#quick-start) |
-| Follow a guided first run in Jupyter | [Quickstart notebook](RCC_Quickstart.ipynb) |
-| Follow a model from qualification to a lower bound | [Worked example](docs/END_TO_END_EXAMPLE.md) |
-| Understand what the numerical results establish | [Scientific scope](docs/SCIENTIFIC_SCOPE.md) |
-| Trace RCC paper formulas to implementation | [Paper-to-code map](docs/PAPER_MAP.md) |
-| Construct or audit a new finite-control model | [Model guide](docs/MODEL_GUIDE.md) |
+| Inspect the recorded evidence without running code | [Reference results](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/results/reference_report.md) |
+| Install the package and reproduce the reference results | [Install from PyPI](#install-from-pypi) |
+| Run the full test suite from source | [Quick start](#quick-start) |
+| Follow a guided first run in Jupyter | [Quickstart notebook](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Quickstart.ipynb) |
+| Follow a model from qualification to a lower bound | [Worked example](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/END_TO_END_EXAMPLE.md) |
+| Understand what the numerical results establish | [Scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/SCIENTIFIC_SCOPE.md) |
+| Trace RCC paper formulas to implementation | [Paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md) |
+| Construct or audit a new finite-control model | [Model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/MODEL_GUIDE.md) |
 
 > **Manuscript alignment.** This source tree is aligned with version 4 of the
 > RCC manuscript, currently being prepared as the next arXiv revision. The
@@ -93,6 +95,25 @@ objects. It can:
 This makes `rcc-refcert` a compact research testbed for a foundational task:
 turning quantum-complexity models into explicit objects whose supplied
 structure and generation costs can be examined.
+
+## Install from PyPI
+
+In a Python 3.10 or newer environment, install the package and check the
+bundled reference results:
+
+```bash
+python3 -m pip install rcc-refcert
+python3 -m rcc_refcert examples
+python3 -m rcc_refcert reproduce --check
+```
+
+Use `python` instead of `python3` when that is the interpreter name in your
+environment. The command-line tool and Python API work outside a source
+checkout; the frozen reference data are included in the installed package.
+For an exact version, install `rcc-refcert==0.1.0`.
+
+The source quickstart below also runs the independent test suite and provides
+the notebook, examples, and documentation for further exploration.
 
 ## Quick start
 
@@ -234,7 +255,7 @@ From the repository root, use the quickstart environment:
 On Windows, use `.venv\Scripts\python.exe` in these commands. If you installed
 into another environment, use that environment's Python interpreter.
 
-The [worked explanation](docs/END_TO_END_EXAMPLE.md) separates software
+The [worked explanation](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/END_TO_END_EXAMPLE.md) separates software
 checks, analytic model obligations, and the theorem-level consequence. The
 example states all model inputs explicitly.
 
@@ -271,7 +292,7 @@ above.
 For a new model, use `Action`, `FiniteControlModel`, `require_valid_model`, and
 `audit_model`. Supplied proof objects can be checked with
 `verify_bellman_choi`, `verify_reference_potential`, and
-`analyze_reference_gain_cost`. The [model guide](docs/MODEL_GUIDE.md) contains a
+`analyze_reference_gain_cost`. The [model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/MODEL_GUIDE.md) contains a
 complete minimal example.
 
 ## Results and scientific scope
@@ -281,12 +302,12 @@ Every check reports an `outcome`—`pass`, `fail`, `inconclusive`, or
 package establishes finite-input and fixed-model statements. The complete
 framework—including physical reference consistency, faithful transcription,
 family-uniform admissibility, and the RCC lower-bound theorem—is developed in
-the accompanying RCC manuscript. The [paper map](docs/PAPER_MAP.md) records
+the accompanying RCC manuscript. The [paper map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md) records
 the implemented objects and manuscript-version alignment.
 
-See [Scientific scope](docs/SCIENTIFIC_SCOPE.md) for how these results connect
-to the RCC theorem, [Output contract](docs/OUTPUT_CONTRACT.md) for result fields
-and exit codes, and [Conventions](docs/CONVENTIONS.md) for the numerical and
+See [Scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/SCIENTIFIC_SCOPE.md) for how these results connect
+to the RCC theorem, [Output contract](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/OUTPUT_CONTRACT.md) for result fields
+and exit codes, and [Conventions](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CONVENTIONS.md) for the numerical and
 tensor definitions.
 
 ## Extending the research kernel
@@ -305,19 +326,19 @@ evidence more rigorous. Examples include:
 
 Contributions are welcome across scientific models, algorithms, numerical
 reliability, documentation, and examples. See
-[Contributing](CONTRIBUTING.md) for how to propose and verify a change.
+[Contributing](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/CONTRIBUTING.md) for how to propose and verify a change.
 
 ## Repository structure
 
 | Path | Purpose |
 |---|---|
 | `src/rcc_refcert/` | Finite-control models, simulation, certificates, CLI, and report rendering |
-| [`examples/paired_reset_lower_bound.py`](examples/paired_reset_lower_bound.py) | Fixed model-to-lower-bound executable example |
+| [`examples/paired_reset_lower_bound.py`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/examples/paired_reset_lower_bound.py) | Fixed model-to-lower-bound executable example |
 | `tests/` | Scientific regressions and public-interface tests |
-| [`quickstart.py`](quickstart.py) | Environment setup, independent tests, and reference reproduction |
-| [`RCC_Quickstart.ipynb`](RCC_Quickstart.ipynb) | Guided run through the three reference cases |
-| [`results/reference_report.md`](results/reference_report.md) | Frozen human-readable reference evidence |
-| [`results/reference_suite.json`](results/reference_suite.json) | Frozen normalized structured evidence |
+| [`quickstart.py`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/quickstart.py) | Environment setup, independent tests, and reference reproduction |
+| [`RCC_Quickstart.ipynb`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Quickstart.ipynb) | Guided run through the three reference cases |
+| [`results/reference_report.md`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/results/reference_report.md) | Frozen human-readable reference evidence |
+| [`results/reference_suite.json`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/results/reference_suite.json) | Frozen normalized structured evidence |
 | `generated_results/` | Fresh locally generated evidence; ignored by Git |
 | `docs/` | Scientific scope, RCC paper map, conventions, model guide, and output contract |
 
@@ -335,7 +356,7 @@ The archived [v0.1.0 release](https://github.com/yeruciwenrou-dotcom/rcc-refcert
 has software DOI [10.5281/zenodo.22544968](https://doi.org/10.5281/zenodo.22544968).
 Use this DOI to cite this software version.
 
-See the [Changelog](CHANGELOG.md) for the capabilities included in this version.
+See the [Changelog](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/CHANGELOG.md) for the capabilities included in this version.
 Citation metadata for the software and associated RCC paper are provided in
-[`CITATION.cff`](CITATION.cff). The source code is available under the
-[MIT License](LICENSE).
+[`CITATION.cff`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/CITATION.cff). The source code is available under the
+[MIT License](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/LICENSE).
