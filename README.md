@@ -87,8 +87,8 @@ objects. It can:
   terminating program semidensity;
 - audit independent trajectory and block-superoperator realizations while
   preserving least-fixed-point semantics in nonhalting sectors;
-- test Bellman–Choi, reference-potential, and fixed-model domination
-  certificates;
+- verify Bellman–Choi and reference-potential certificates, and evaluate
+  fixed-model domination constants;
 - identify operations whose code length understates their reference gain and
   obtain a sufficient prefix-code completion.
 
@@ -309,6 +309,13 @@ See [Scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/m
 to the RCC theorem, [Output contract](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/OUTPUT_CONTRACT.md) for result fields
 and exit codes, and [Conventions](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CONVENTIONS.md) for the numerical and
 tensor definitions.
+
+The explicit matrix and path algorithms target small finite models. Audits
+check resource budgets before enumeration or dense matrix construction and
+report unresolved numerical precision explicitly. H.34 gives a minimum-constant
+estimate; passing H.3 and H.4 reports provide numerical upper constants with
+error budgets. See the [model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/MODEL_GUIDE.md#numerical-and-resource-limits)
+for input limits and budget settings.
 
 ## Extending the research kernel
 

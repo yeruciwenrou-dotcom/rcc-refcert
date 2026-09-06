@@ -1,5 +1,18 @@
 # Changelog
 
+## Source updates since 0.1.0
+
+- Fixed-point audits propagate matrix-assembly and solve errors to the output
+  and reference-scaled constant. Unresolved precision returns `inconclusive`;
+  H.34 estimates are distinguished from certificate upper constants.
+- Model audits consistently use the caller's tolerance. Empty Kraus branches
+  and codewords outside the supported numerical weight range are rejected.
+- Explicit enumeration and dense matrix construction check configurable
+  resource budgets before beginning expensive work.
+
+These changes are available in the source tree. The archived 0.1.0 release
+and its package distribution retain their original contents.
+
 ## 0.1.0 (2026-09-06)
 
 Initial release of `rcc-refcert`, a Python research toolkit for finite-control

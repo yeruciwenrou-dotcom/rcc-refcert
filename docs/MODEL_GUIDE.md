@@ -106,6 +106,10 @@ block, each action must provide a complete trace-preserving map:
 Rectangular Kraus matrices are allowed. Their shapes follow the declared source
 and target dimensions.
 
+Every declared branch must contain at least one Kraus operator. Omit a
+continuing branch to represent a zero map; empty tuples are rejected during
+model validation.
+
 ### Initial and reference states
 
 `initial_blocks` are placed at `start_syntax` and must have total trace one. The
@@ -122,7 +126,8 @@ reduce the model to its support before construction.
 3. computes the partial semidensity through `max_transient_steps` continuation
    steps;
 4. attempts the full-space linear fixed point;
-5. computes H.34 when the linear solve yields a numerically valid semidensity.
+5. evaluates H.34 when the linear output is valid and its propagated error
+   estimate meets the requested precision, then checks the reference scaling.
 
 ```python
 result = audit_model(
@@ -137,10 +142,55 @@ The least fixed-point semantics is primary. At the spectral-radius boundary,
 `linear_fixed_point_outcome` and `domination_outcome` are `not_applicable` and
 `inconclusive`, respectively. `truncated_output` remains available as a
 finite-depth diagnostic, while H.34 awaits the completed semidensity. If the
-linear solve is attempted but its output cannot be confirmed as a valid
-semidensity, both outcomes are `inconclusive`; the finite-depth result and raw
-computed output are retained. The [output contract](OUTPUT_CONTRACT.md) explains
-the corresponding diagnostics.
+linear output is invalid or its propagated error is unresolved, both outcomes
+are `inconclusive`; the finite-depth result and raw computed output are retained.
+Reference scaling can leave H.34 inconclusive even when H.2 passes. H.34's
+`constant_estimate` remains a point estimate, while `constant` is available
+only when its checks pass. The [output contract](OUTPUT_CONTRACT.md) explains
+the diagnostics and the upper constants provided by H.3 and H.4.
+
+### Numerical and resource limits
+
+The caller's `tol` is used throughout the model audit and its semantic
+calculations. H.2 checks an absolute output-error estimate against `tol`;
+H.34 checks its propagated constant-error estimate against
+`tol * max(1, constant_estimate)`. These working-precision diagnostics can
+conservatively leave valid models unresolved.
+
+Action weights use normal binary64 values, so action codewords are limited to
+1022 bits. Explicit program enumeration applies the same limit to accumulated
+codewords. Unsupported lengths raise `ModelValidationError` or
+`NumericalRangeError`; detected underflow during program weighting also raises
+`NumericalRangeError`.
+
+By default, an audit permits at most 100,000 enumerated syntax-tree node visits
+across its depth checks, and 1,048,576 complex elements in the combined
+transient and halt matrices. Prefixes that never halt count toward the
+enumeration budget. Matrix counts exclude copies and solver workspace, so the
+budget is an allocation precheck, not a bound on total process memory.
+
+```python
+from rcc_refcert import ComputationLimits, ResourceLimitError
+
+try:
+    result = audit_model(
+        model,
+        max_depth=4,
+        limits=ComputationLimits(
+            max_enumeration_nodes=100_000,
+            max_matrix_elements=1_048_576,
+        ),
+    )
+except ResourceLimitError as error:
+    print(error.outcome.value, error.resource, error.limit)
+```
+
+`ResourceLimitError` refuses the requested audit before the expensive work.
+Its `outcome` is `inconclusive`; `resource`, `estimate`, and `limit` identify
+the budget. Counting stops once a limit is exceeded, so `estimate` may be a
+capped count. Reduce the requested depth or explicitly raise the relevant
+budget. The low-level enumeration, matrix, and linear fixed-point functions
+also accept `limits`.
 
 ## Supplying proof objects
 

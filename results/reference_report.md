@@ -38,7 +38,7 @@ RCC paper map: H.1, H.2, H.3, H.4, H.6.
 |---|---|---|---:|
 | H.1 realization | pass | pass | max error 0 |
 | H.2 linear fixed point | pass | pass | rho(T) = 0.5 |
-| H.34 fixed-model domination | pass | pass | C* = 1 |
+| H.34 fixed-model domination | pass | pass | C* estimate = 1 |
 | H.3 Bellman–Choi | pass | pass | C <= 1.00000000011; candidate 1; correction <= 1.01e-10 |
 | H.4 reference potential | pass | pass | C <= 1.00000000011; candidate 1; correction <= 1.01e-10, C <= 2.00000000021; candidate 2; correction <= 2.01e-10 |
 | H.6 gain–cost | pass | pass | s: 1 |
@@ -48,6 +48,8 @@ RCC paper map: H.1, H.2, H.3, H.4, H.6.
 - H.1 was checked at action depths 1–8; the maximum spectral-norm difference was `0`.
 - The partial sum through 16 transient continuations has output trace `0.999992370605`.
 - The linear solve has condition number `2.000e+00` and residual `0`.
+- The full transient-space spectral radius is below one; numerical assembly and solve errors are propagated to the output.
+- H.34: fixed-model minimum estimated from Appendix-H Eq. (H.34).
 - `minimum Bellman–Choi value-map certificate` has minimum PSD residual eigenvalue `0`.
 - `tight C=1 reference-potential certificate` has minimum scalar Bellman margin `0`.
 - `positive-margin reference-potential certificate` has minimum scalar Bellman margin `0.5`.
@@ -68,7 +70,7 @@ RCC paper map: H.1, H.2, H.3, H.4, H.6.
 |---|---|---|---:|
 | H.1 realization | pass | pass | max error 0 |
 | H.2 linear fixed point | pass | pass | rho(T) = 0.353553390593 |
-| H.34 fixed-model domination | pass | pass | C* = 1.07142857143 |
+| H.34 fixed-model domination | pass | pass | C* estimate = 1.07142857143 |
 | H.3 Bellman–Choi | pass | pass | C <= 1.07142857154; candidate 1.07142857143; correction <= 1.08e-10 |
 | H.4 reference potential | pass | pass | C <= 1.33333333347; candidate 1.33333333333; correction <= 1.34e-10 |
 | H.6 gain–cost | fail (expected) | fail | s0: 2, s1: 1.5 |
@@ -78,6 +80,8 @@ RCC paper map: H.1, H.2, H.3, H.4, H.6.
 - H.1 was checked at action depths 1–8; the maximum spectral-norm difference was `0`.
 - The partial sum through 16 transient continuations has output trace `0.857142835855`.
 - The linear solve has condition number `2.541e+00` and residual `0`.
+- The full transient-space spectral radius is below one; numerical assembly and solve errors are propagated to the output.
+- H.34: fixed-model minimum estimated from Appendix-H Eq. (H.34).
 - `multiblock minimum value-map certificate` has minimum PSD residual eigenvalue `0`.
 - `multiblock rectangular reference-potential certificate` has minimum scalar Bellman margin `0`.
 
