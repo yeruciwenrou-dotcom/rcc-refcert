@@ -30,8 +30,7 @@ class BellmanChoiCertificate:
     """Supplied fixed-model H.3 proof object.
 
     ``choi_envelopes[x]`` is ``X_x = J(W_x)`` in the RCC paper's
-    input-tensor-output convention.  This object does not include a solver or
-    a model-family proof.
+    input-tensor-output convention.
     """
 
     choi_envelopes: dict[BlockKey, Array]
