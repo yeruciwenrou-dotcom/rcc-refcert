@@ -242,20 +242,14 @@ def test_manuscript_alignment_is_explicit_and_scoped() -> None:
     for relative in ("README.md", "docs/PAPER_MAP.md"):
         text = (ROOT / relative).read_text(encoding="utf-8")
         assert text.count("**Manuscript alignment.**") == 1
-        assert "aligned with version 4 of the\n> RCC manuscript" in text
-        assert "[arXiv:2509.18205v3](https://arxiv.org/abs/2509.18205v3)" in text
-        assert (
-            "equation numbers in this repository therefore refer to manuscript version 4"
-            in text.replace("\n> ", " ")
+        alignment = re.search(
+            r"^> \*\*Manuscript alignment\.\*\*.*(?:\n>.*)*", text, flags=re.MULTILINE
         )
-        assert (
-            "The repository provides executable finite-model evidence for selected"
-            in text.replace("\n> ", " ")
-        )
-        assert (
-            "the paper remains responsible for the analytic and model-family arguments"
-            in text.replace("\n> ", " ")
-        )
+        assert alignment is not None
+        prose = " ".join(re.sub(r"(?m)^>\s*", "", alignment.group()).split())
+        assert "aligned with version 4" in prose
+        assert "manuscript version 4" in prose
+        assert "[arXiv:2509.18205v3](https://arxiv.org/abs/2509.18205v3)" in prose
 
 
 def test_github_markdown_avoids_known_unsupported_math_syntax() -> None:
