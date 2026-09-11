@@ -2,8 +2,8 @@
 
 ## Terminal and JSON modes
 
-Every command defaults to reader-facing text. `--format json` selects a stable
-machine-facing document:
+The `examples`, `example`, and `reproduce` commands default to reader-facing
+text. `--format json` selects a stable machine-facing document:
 
 | command | schema |
 |---|---|
@@ -19,12 +19,16 @@ schema `rcc-refcert.paired-reset-lower-bound`, version `3`. It reports the
 model declaration, endpoint gap, lower bound, feasible preparation, exact
 fixed-model optimum, and certificate constants described below.
 
-Schema versions identify output formats independently of the package version.
+The `bound spectrum`, `bound counts`, and `bound replay` commands also offer
+text and JSON modes. `bound template` and `bound prepare-protocol` write JSON
+inputs for later commands. Their separate record contract is described
+[below](#terminal-state-bound-records). Schema versions identify output formats
+independently of the package version.
 
 ## Producer and source provenance
 
 Every machine-facing document carries a top-level `producer` object with the
-software name and package version. A fresh command or fixed-example result also
+software name and package version. A fresh reference-command or paired-reset result also
 carries `provenance.repository` and `provenance.tested_revision` when
 `RCC_REFCERT_SOURCE_REVISION` supplies a full 40-character Git commit. CI sets
 that variable to the exact tree tested by the workflow. Local runs without a
@@ -38,7 +42,7 @@ tracked JSON.
 
 ## Artifact roles
 
-The top-level `artifact_role` distinguishes a newly computed result from the
+For reference results, the top-level `artifact_role` distinguishes a newly computed result from the
 canonical normalized evidence checked into the repository:
 
 | artifact | `artifact_role` | purpose |
@@ -67,7 +71,7 @@ inconclusive, or was not applicable.
 
 ## Outcomes and expectations
 
-Checks report `outcome` and `evidence` separately. A bundled case also records
+Finite-control checks report `outcome` and `evidence` separately. A bundled case also records
 `expected_outcome` and `matches_expectation`. This is how an intentional H.70
 failure remains machine-distinguishable from an unexpected regression.
 
@@ -156,6 +160,8 @@ residual summaries, control-wise gains, and suggested codewords.
 
 ## Exit codes
 
+The reference-case and reproduction commands use:
+
 | code | meaning |
 |---:|---|
 | `0` | bundled expectations and every requested frozen comparison match |
@@ -166,7 +172,27 @@ residual summaries, control-wise gains, and suggested codewords.
 Markdown with the frozen evidence installed as package resources, so the
 default check works outside a repository checkout. `reproduce --check PATH`
 compares with another report and also checks a sibling `reference_suite.json`
-when one is present. The quickstart and source-tree CI pass the checked-in
+when one is present. At canonical `results/reference_report.md` and
+`reference_data/reference_report.md` locations, that sibling is required for
+both relative and absolute paths. Custom Markdown report paths can be checked
+alone. The quickstart and source-tree CI pass the checked-in
 `results/reference_report.md` explicitly, keeping the repository copies under
 direct regression. Both check forms are read-only. `reproduce --output PATH`
 writes only to the explicit destination.
+
+## Terminal-state bound records
+
+The `bound` command has its own `rcc-refcert.bound-record` schema, version 2,
+and `fresh-run-bound` artifact role. Existing output schemas retain their
+identities. A record preserves exact inputs, model declarations, calibration,
+reference treatment, scalar enclosures, source hashes, and producer version.
+`replay` compares a recomputed same-version scalar record; it does not verify
+external model premises or acquisition chronology.
+
+A completed zero bound exits 0; rejected inputs, unsupported contracts,
+resource limits, replay mismatches, and partial calculations exit 2.
+Deterministic spectrum records have no sampling confidence. Counts records
+state the one-sided coverage under the declared sampling model. All process
+bounds remain conditional on declared model premises. See
+[Terminal-state bounds](TERMINAL_BOUNDS.md) for the complete input, arithmetic,
+statistical, and replay contract.

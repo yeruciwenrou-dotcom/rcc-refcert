@@ -1,0 +1,1018 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RCC terminal-state bound record v2",
+  "description": "Shape validation, paired with records.validate_record for cross-field invariants. Neither validates external scientific premises.",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "rcc-refcert.bound-record"
+    },
+    "schema_version": {
+      "const": 2
+    },
+    "producer": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "const": "rcc-refcert"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "artifact_role": {
+      "const": "fresh-run-bound"
+    },
+    "analysis_state": {
+      "enum": [
+        "complete",
+        "partial"
+      ]
+    },
+    "record_role": {
+      "const": "conditional_cost_lower_bound"
+    },
+    "task": {
+      "type": "object",
+      "properties": {
+        "fingerprint": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "epsilon": {
+          "$ref": "#/$defs/exact"
+        },
+        "metric": {
+          "const": "normalized_trace_distance"
+        }
+      },
+      "required": [
+        "fingerprint",
+        "id",
+        "epsilon",
+        "metric"
+      ],
+      "additionalProperties": false
+    },
+    "model": {
+      "$ref": "#/$defs/model"
+    },
+    "qualification": {
+      "$ref": "#/$defs/qualification"
+    },
+    "path": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "enum": [
+            "spectrum",
+            "fixed_projector_counts"
+          ]
+        },
+        "cost_formula": {
+          "const": "C.4"
+        },
+        "information_formula": {
+          "enum": [
+            "C.10",
+            "D.17/C.18"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "cost_formula",
+        "information_formula"
+      ],
+      "additionalProperties": false
+    },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "dimension": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "generation_epsilon": {
+          "$ref": "#/$defs/exact"
+        },
+        "program_radius": {
+          "$ref": "#/$defs/exact"
+        },
+        "smoothing_radius": {
+          "$ref": "#/$defs/exact"
+        },
+        "bandwidth_bits_per_slot": {
+          "$ref": "#/$defs/interval"
+        },
+        "beta_bits": {
+          "$ref": "#/$defs/interval"
+        },
+        "reporting_unit": {
+          "type": "object",
+          "properties": {
+            "symbol": {
+              "const": "st_R"
+            },
+            "bits_per_unit": {
+              "$ref": "#/$defs/interval"
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            }
+          },
+          "required": [
+            "symbol",
+            "bits_per_unit",
+            "meaning"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "dimension",
+        "generation_epsilon",
+        "program_radius",
+        "smoothing_radius",
+        "bandwidth_bits_per_slot",
+        "beta_bits",
+        "reporting_unit"
+      ],
+      "additionalProperties": false
+    },
+    "calibration": {
+      "type": "object",
+      "properties": {
+        "statistical": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/statistics"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "deterministic": {
+          "type": "object",
+          "properties": {
+            "arithmetic": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "decimal_precision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "input_semantics": {
+              "const": "exact_as_declared"
+            },
+            "matrix_eigensolver_certified": {
+              "const": false
+            }
+          },
+          "required": [
+            "arithmetic",
+            "decimal_precision",
+            "input_semantics",
+            "matrix_eigensolver_certified"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "statistical",
+        "deterministic"
+      ],
+      "additionalProperties": false
+    },
+    "reference_treatment": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "const": "ideal_support"
+        },
+        "reference_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "required": [
+        "mode",
+        "reference_id"
+      ],
+      "additionalProperties": false
+    },
+    "confidence": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/confidence"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "information": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/spectrum_information"
+        },
+        {
+          "$ref": "#/$defs/counts_information"
+        }
+      ]
+    },
+    "cost": {
+      "type": "object",
+      "properties": {
+        "lower_bound_slots": {
+          "$ref": "#/$defs/finite"
+        },
+        "calculator_enclosure_slots": {
+          "$ref": "#/$defs/interval"
+        },
+        "integer_lower_bound_slots": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "enclosure_upper_is_process_upper_bound": {
+          "const": false
+        },
+        "numerical_status": {
+          "enum": [
+            "complete",
+            "precision_limited",
+            "iteration_budget_reached"
+          ]
+        },
+        "zero_reason": {
+          "enum": [
+            null,
+            "smoothing_saturated",
+            "sampling_margin_exhausted",
+            "reference_contrast_not_resolved",
+            "model_overhead_exhausted",
+            "numerical_resolution_limited"
+          ]
+        }
+      },
+      "required": [
+        "lower_bound_slots",
+        "calculator_enclosure_slots",
+        "integer_lower_bound_slots",
+        "enclosure_upper_is_process_upper_bound",
+        "numerical_status",
+        "zero_reason"
+      ],
+      "additionalProperties": false
+    },
+    "display": {
+      "type": "object",
+      "properties": {
+        "lower_bound_slots": {
+          "$ref": "#/$defs/finite"
+        },
+        "information_lower_bits": {
+          "$ref": "#/$defs/finite"
+        },
+        "rounding": {
+          "const": "toward_negative_infinity"
+        }
+      },
+      "required": [
+        "lower_bound_slots",
+        "information_lower_bits",
+        "rounding"
+      ],
+      "additionalProperties": false
+    },
+    "flags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4096
+      },
+      "allOf": [
+        {
+          "contains": {
+            "const": "model_premises_external_not_machine_verified"
+          }
+        },
+        {
+          "contains": {
+            "const": "no_general_reachability_or_optimality_inference"
+          }
+        }
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "input_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "input_snapshot": {
+          "type": "object",
+          "required": [
+            "task"
+          ]
+        },
+        "input_hash_semantics": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "method_reference": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "required": [
+        "input_sha256",
+        "input_snapshot",
+        "input_hash_semantics",
+        "method_reference"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema",
+    "schema_version",
+    "producer",
+    "artifact_role",
+    "analysis_state",
+    "record_role",
+    "task",
+    "model",
+    "qualification",
+    "path",
+    "parameters",
+    "calibration",
+    "reference_treatment",
+    "confidence",
+    "information",
+    "cost",
+    "display",
+    "flags",
+    "provenance"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "finite": {
+      "type": "string",
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$"
+    },
+    "exact": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?|/[1-9][0-9]*)$"
+    },
+    "interval": {
+      "type": "object",
+      "properties": {
+        "lower": {
+          "$ref": "#/$defs/finite"
+        },
+        "upper": {
+          "$ref": "#/$defs/finite"
+        }
+      },
+      "required": [
+        "lower",
+        "upper"
+      ],
+      "additionalProperties": false
+    },
+    "qualification_basis": {
+      "type": "object",
+      "properties": {
+        "basis": {
+          "enum": [
+            "analytic_argument_supplied",
+            "numerical_certificate_supplied",
+            "user_declared"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "required": [
+        "basis",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "qualification": {
+      "type": "object",
+      "properties": {
+        "RCon": {
+          "$ref": "#/$defs/qualification_basis"
+        },
+        "TC": {
+          "$ref": "#/$defs/qualification_basis"
+        },
+        "RA": {
+          "$ref": "#/$defs/qualification_basis"
+        }
+      },
+      "required": [
+        "RCon",
+        "TC",
+        "RA"
+      ],
+      "additionalProperties": false
+    },
+    "model": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "reference_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "dimension": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "atomic_action_classes": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "transcription": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "exact"
+            },
+            "a": {
+              "$ref": "#/$defs/exact"
+            },
+            "gamma_bits": {
+              "$ref": "#/$defs/exact"
+            }
+          },
+          "required": [
+            "mode",
+            "a",
+            "gamma_bits"
+          ],
+          "additionalProperties": false
+        },
+        "reference_domination": {
+          "type": "object",
+          "properties": {
+            "upper_constant": {
+              "$ref": "#/$defs/exact"
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "source_kind": {
+              "enum": [
+                "analytic_argument",
+                "numerical_upper_constant",
+                "user_declared_upper_bound"
+              ]
+            },
+            "evidence": {
+              "type": "object",
+              "properties": {
+                "method": {
+                  "enum": [
+                    "H.3",
+                    "H.4"
+                  ]
+                },
+                "outcome": {
+                  "const": "pass"
+                },
+                "level": {
+                  "const": "numerical"
+                },
+                "model_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "reference_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "model_sha256": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "certificate_sha256": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "reported_constant_exact": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "tolerance_exact": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "method",
+                "outcome",
+                "level",
+                "model_id",
+                "reference_id",
+                "model_sha256",
+                "certificate_sha256",
+                "reported_constant_exact",
+                "tolerance_exact"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "upper_constant",
+            "source",
+            "source_kind"
+          ],
+          "additionalProperties": false
+        },
+        "cost_domain": {
+          "enum": [
+            "integer_atomic_slots",
+            "unspecified"
+          ]
+        },
+        "qualification": {
+          "$ref": "#/$defs/qualification"
+        },
+        "reference_treatment": {
+          "const": "ideal_support"
+        }
+      },
+      "required": [
+        "id",
+        "reference_id",
+        "dimension",
+        "atomic_action_classes",
+        "transcription",
+        "reference_domination",
+        "cost_domain",
+        "qualification",
+        "reference_treatment"
+      ],
+      "additionalProperties": false
+    },
+    "protocol": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "task_fingerprint": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "witness_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "samples": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000000000
+        },
+        "delta_stat": {
+          "$ref": "#/$defs/exact"
+        },
+        "sampling": {
+          "const": "fixed_n_iid"
+        },
+        "selection": {
+          "const": "predeclared"
+        },
+        "readout": {
+          "const": "ideal"
+        },
+        "support": {
+          "const": "no_leakage"
+        }
+      },
+      "required": [
+        "id",
+        "task_fingerprint",
+        "witness_id",
+        "rank",
+        "samples",
+        "delta_stat",
+        "sampling",
+        "selection",
+        "readout",
+        "support"
+      ],
+      "additionalProperties": false
+    },
+    "statistics": {
+      "type": "object",
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "delta_stat": {
+          "$ref": "#/$defs/exact"
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "protocol": {
+          "$ref": "#/$defs/protocol"
+        },
+        "protocol_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "chronology_or_iid_independently_verified": {
+          "const": false
+        }
+      },
+      "required": [
+        "event_id",
+        "delta_stat",
+        "method",
+        "protocol",
+        "protocol_sha256",
+        "chronology_or_iid_independently_verified"
+      ],
+      "additionalProperties": false
+    },
+    "confidence": {
+      "type": "object",
+      "properties": {
+        "coverage_at_least_exact": {
+          "$ref": "#/$defs/exact"
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "required": [
+        "coverage_at_least_exact",
+        "scope"
+      ],
+      "additionalProperties": false
+    },
+    "spectrum_information": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "declared_exact_spectrum"
+        },
+        "information_semantics": {
+          "const": "enclosure_of_exact_smooth_information"
+        },
+        "information_bits": {
+          "$ref": "#/$defs/interval"
+        },
+        "one_shot_readout_st_R": {
+          "$ref": "#/$defs/interval"
+        },
+        "dimension": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "smoothing_radius": {
+          "$ref": "#/$defs/exact"
+        },
+        "cap_exact": {
+          "$ref": "#/$defs/exact"
+        },
+        "saturation_radius_exact": {
+          "$ref": "#/$defs/exact"
+        },
+        "relative_entropy_bits": {
+          "$ref": "#/$defs/interval"
+        },
+        "spectral_skew_bits": {
+          "$ref": "#/$defs/interval"
+        },
+        "smoothing_loss_bits": {
+          "$ref": "#/$defs/interval"
+        },
+        "witness": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "rank": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "target_mass_exact": {
+                  "$ref": "#/$defs/exact"
+                },
+                "reference_response_exact": {
+                  "$ref": "#/$defs/exact"
+                },
+                "operator_supplied": {
+                  "const": false
+                },
+                "selection_role": {
+                  "const": "mathematical_spectral_witness_not_experimental_predeclaration"
+                }
+              },
+              "required": [
+                "rank",
+                "target_mass_exact",
+                "reference_response_exact",
+                "operator_supplied",
+                "selection_role"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "information_semantics",
+        "information_bits",
+        "one_shot_readout_st_R",
+        "dimension",
+        "smoothing_radius",
+        "cap_exact",
+        "saturation_radius_exact",
+        "relative_entropy_bits",
+        "spectral_skew_bits",
+        "smoothing_loss_bits",
+        "witness"
+      ],
+      "additionalProperties": false
+    },
+    "counts_information": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "fixed_projector_counts"
+        },
+        "information_semantics": {
+          "const": "enclosure_of_witness_lower_bound_only; not upper bound on true Dmax"
+        },
+        "information_bits": {
+          "$ref": "#/$defs/interval"
+        },
+        "one_shot_readout_st_R": {
+          "$ref": "#/$defs/interval"
+        },
+        "occupancy_endpoint_enclosure": {
+          "$ref": "#/$defs/interval"
+        },
+        "occupancy_lower_used": {
+          "$ref": "#/$defs/finite"
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reference_response_exact": {
+          "$ref": "#/$defs/exact"
+        },
+        "samples": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "hits": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "witness_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "dataset_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "data_origin": {
+          "enum": [
+            "synthetic_fixture",
+            "observed_counts",
+            "simulation"
+          ]
+        },
+        "acquisition_protocol_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "acceptance_margin_exhausted": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "information_semantics",
+        "information_bits",
+        "one_shot_readout_st_R",
+        "occupancy_endpoint_enclosure",
+        "occupancy_lower_used",
+        "rank",
+        "reference_response_exact",
+        "samples",
+        "hits",
+        "witness_id",
+        "dataset_id",
+        "data_origin",
+        "acquisition_protocol_sha256",
+        "acceptance_margin_exhausted"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "path": {
+            "properties": {
+              "name": {
+                "const": "spectrum"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "information": {
+            "$ref": "#/$defs/spectrum_information"
+          },
+          "confidence": {
+            "type": "null"
+          },
+          "calibration": {
+            "properties": {
+              "statistical": {
+                "type": "null"
+              }
+            }
+          },
+          "path": {
+            "properties": {
+              "information_formula": {
+                "const": "C.10"
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "information": {
+            "$ref": "#/$defs/counts_information"
+          },
+          "confidence": {
+            "$ref": "#/$defs/confidence"
+          },
+          "calibration": {
+            "properties": {
+              "statistical": {
+                "$ref": "#/$defs/statistics"
+              }
+            }
+          },
+          "path": {
+            "properties": {
+              "information_formula": {
+                "const": "D.17/C.18"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "analysis_state": {
+            "const": "complete"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "cost": {
+            "properties": {
+              "numerical_status": {
+                "const": "complete"
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "cost": {
+            "properties": {
+              "numerical_status": {
+                "enum": [
+                  "precision_limited",
+                  "iteration_budget_reached"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "model": {
+            "properties": {
+              "cost_domain": {
+                "const": "unspecified"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "cost": {
+            "properties": {
+              "integer_lower_bound_slots": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "cost": {
+            "properties": {
+              "integer_lower_bound_slots": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

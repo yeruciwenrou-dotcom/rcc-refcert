@@ -13,6 +13,12 @@ mixed reference. This produces a one-bit endpoint gap and a preparation whose
 cost can be checked directly. The reference-preserving `dephase-or-halt` case
 remains a separate, closed-form example of the qualification machinery.
 
+For variable exact spectra, nonzero tolerances, and fixed-projector counts,
+continue to [Terminal-state bounds](TERMINAL_BOUNDS.md). Its four-dimensional
+eight-output model supplies a second complete finite example through the
+shared bounds API. The paired-reset calculation below retains its one-qubit
+model, exact endpoint, and explicit tightness witness.
+
 ## Run the example
 
 From the repository root, follow the [quick start](../README.md#quick-start),

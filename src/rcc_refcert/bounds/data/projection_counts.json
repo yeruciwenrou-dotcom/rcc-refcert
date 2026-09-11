@@ -1,0 +1,61 @@
+{
+  "task": {
+    "model": {
+      "id": "terminal-eight-C4",
+      "reference_id": "uniform-C4",
+      "dimension": 4,
+      "atomic_action_classes": 8,
+      "transcription": {
+        "mode": "exact",
+        "a": "0",
+        "gamma_bits": "0"
+      },
+      "reference_domination": {
+        "upper_constant": "1",
+        "source": "rcc_refcert.bounds.terminal_model: fixed eight-output model",
+        "source_kind": "analytic_argument"
+      },
+      "cost_domain": "integer_atomic_slots",
+      "reference_treatment": "ideal_support",
+      "qualification": {
+        "RCon": {
+          "basis": "analytic_argument_supplied",
+          "source": "rcc_refcert.bounds.terminal_model: fixed eight-output model"
+        },
+        "TC": {
+          "basis": "analytic_argument_supplied",
+          "source": "rcc_refcert.bounds.terminal_model: fixed eight-output model"
+        },
+        "RA": {
+          "basis": "analytic_argument_supplied",
+          "source": "rcc_refcert.bounds.terminal_model: fixed eight-output model"
+        }
+      }
+    },
+    "target": {
+      "id": "mixed-cycle-0",
+      "epsilon": "0.1",
+      "metric": "normalized_trace_distance"
+    }
+  },
+  "protocol": {
+    "id": "projection-fixed-N1000",
+    "witness_id": "basis-vector-0",
+    "rank": 1,
+    "samples": 1000,
+    "delta_stat": "1/20",
+    "sampling": "fixed_n_iid",
+    "selection": "predeclared",
+    "readout": "ideal",
+    "support": "no_leakage",
+    "task_fingerprint": "7c4596d236e49d0e6aaa67040a358c5e58315a428dfc6d008e4bc217d82c296e"
+  },
+  "data": {
+    "protocol_id": "projection-fixed-N1000",
+    "samples": 1000,
+    "hits": 550,
+    "origin": "synthetic_fixture",
+    "dataset_id": "illustrative-counts-550-of-1000",
+    "protocol_sha256": "3d4835cbedf24429b64910cb54c5077c7077a40df8506e32fbe9b1b3f0632e77"
+  }
+}

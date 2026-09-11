@@ -9,6 +9,8 @@ with the resources spent on generation.
 researchers to test and extend. Contributions can bring new physical models
 into the framework, compare certificate constructions, improve numerical
 reliability, or help readers reproduce and understand the results.
+The terminal-state interfaces also support exact-spectrum and fixed-projector
+calculations with explicit model assumptions, sampling contracts, and replay.
 
 Contributions can address one layer at a time:
 
@@ -49,9 +51,13 @@ Keep the claim layers visible in code, tests, and prose:
 3. a model-family statement requiring a uniform argument;
 4. the RCC theorem under its complete physical and transcription hypotheses.
 
-The package directly produces the first two layers. A family-level or
+The finite-control kernel directly produces the first two layers. The
+terminal-state calculator evaluates a cost lower bound conditionally on the
+declared model arguments. Changes to that route must preserve the exact-input,
+one-sided arithmetic, sampling, and cost-unit contracts in
+[`docs/TERMINAL_BOUNDS.md`](docs/TERMINAL_BOUNDS.md). A family-level or
 theorem-level claim also needs its uniform analytic, physical, and transcription
-arguments.
+arguments; scalar replay does not discharge those obligations.
 
 ## Adding a model or certificate
 
@@ -60,7 +66,7 @@ convention risk, or mathematical boundary. Document:
 
 - the reference state, control spaces, actions, codewords, and intended
   physical interpretation;
-- the Appendix F/H objects it exercises;
+- the RCC objects and formulas it exercises;
 - the expected outcomes, including designed route failures or boundaries;
 - the test that would fail under the most plausible incorrect implementation.
 
@@ -81,14 +87,14 @@ Install the development environment and run the core checks:
 
 ```bash
 python -m pip install -e ".[dev]"
-ruff check src tests examples quickstart.py RCC_Quickstart.ipynb
-ruff format --check src tests examples quickstart.py RCC_Quickstart.ipynb
+ruff check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb
+ruff format --check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb
 python -W error -m pytest
 rcc-refcert reproduce --check
 python -m build
 ```
 
-CI also executes the Notebook in its declared kernel, installs both distribution
+CI also executes both notebooks in their declared kernel, installs both distribution
 formats outside the checkout, and checks the public entry points on Windows
 and macOS. Certificate changes must preserve the distinction between a supplied
 candidate and the returned upper constant, including near-critical and

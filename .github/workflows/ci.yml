@@ -21,7 +21,7 @@ jobs:
           python-version: "3.10"
           cache: pip
       - name: Install source-tree test dependencies
-        run: python -m pip install "numpy==1.26.4" "pytest>=8"
+        run: python -m pip install "numpy==1.26.4" "pytest>=8" "jsonschema>=4.18"
       - name: Test without installed package metadata
         run: PYTHONPATH=src python -W error -m pytest
       - name: Reproduce frozen report from source
@@ -58,8 +58,8 @@ jobs:
           python -m pip install -e ".[dev]"
       - name: Test
         run: |
-          ruff check src tests examples quickstart.py RCC_Quickstart.ipynb
-          ruff format --check src tests examples quickstart.py RCC_Quickstart.ipynb
+          ruff check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb
+          ruff format --check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb
           python -W error -m pytest
       - name: Check installed version identity
         run: |
@@ -83,6 +83,7 @@ jobs:
       - name: Install and exercise each distribution outside the checkout
         run: |
           distribution_directory="$PWD/dist"
+          smoke_script="$PWD/tests/distribution_smoke.py"
           for artifact in "$distribution_directory"/*.whl "$distribution_directory"/*.tar.gz; do
             installation_root="$(mktemp -d)"
             environment="$installation_root/environment"
@@ -90,6 +91,7 @@ jobs:
             "$environment/bin/python" -m pip install "$artifact"
             mkdir "$installation_root/run"
             cd "$installation_root/run"
+            "$environment/bin/python" "$smoke_script"
             "$environment/bin/rcc-refcert" reproduce --check
             "$environment/bin/rcc-refcert" example dephase-or-halt --format json
             "$environment/bin/python" -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert')"

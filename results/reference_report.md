@@ -4,7 +4,7 @@ This report presents executable evidence for RCC's finite-control model-qualific
 
 ## Run summary
 
-Package: `rcc-refcert 0.1.1`  
+Package: `rcc-refcert 0.1.2rc3`  
 Action depth: `1–8`  
 Maximum transient continuations: `16`  
 Numerical tolerance: `1.0e-10`

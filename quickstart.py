@@ -64,7 +64,11 @@ def ensure_environment() -> Path:
 
 def _dependency_fingerprint() -> str:
     digest = hashlib.sha256()
-    for path in (ROOT / "pyproject.toml", LOCK_FILE):
+    for path in (
+        ROOT / "pyproject.toml",
+        LOCK_FILE,
+        ROOT / "src/rcc_refcert/_version.py",
+    ):
         digest.update(path.name.encode("utf-8"))
         digest.update(b"\0")
         digest.update(path.read_bytes())

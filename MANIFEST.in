@@ -12,3 +12,6 @@ recursive-include results *.json
 recursive-include tests *.py
 recursive-include src/rcc_refcert/reference_data *.md
 recursive-include src/rcc_refcert/reference_data *.json
+
+include RCC_Bounds_Quickstart.ipynb
+recursive-include src/rcc_refcert/bounds/data *.json

@@ -1,0 +1,47 @@
+{
+  "task": {
+    "model": {
+      "id": "terminal-eight-C4",
+      "reference_id": "uniform-C4",
+      "dimension": 4,
+      "atomic_action_classes": 8,
+      "transcription": {
+        "mode": "exact",
+        "a": "0",
+        "gamma_bits": "0"
+      },
+      "reference_domination": {
+        "upper_constant": "1",
+        "source": "rcc_refcert.bounds.terminal_model: fixed eight-output model",
+        "source_kind": "analytic_argument"
+      },
+      "cost_domain": "integer_atomic_slots",
+      "reference_treatment": "ideal_support",
+      "qualification": {
+        "RCon": {
+          "basis": "analytic_argument_supplied",
+          "source": "rcc_refcert.bounds.terminal_model: fixed eight-output model"
+        },
+        "TC": {
+          "basis": "analytic_argument_supplied",
+          "source": "rcc_refcert.bounds.terminal_model: fixed eight-output model"
+        },
+        "RA": {
+          "basis": "analytic_argument_supplied",
+          "source": "rcc_refcert.bounds.terminal_model: fixed eight-output model"
+        }
+      }
+    },
+    "target": {
+      "id": "mixed-cycle-0",
+      "epsilon": "0.1",
+      "metric": "normalized_trace_distance"
+    }
+  },
+  "spectrum": [
+    "0.55",
+    "0.30",
+    "0.10",
+    "0.05"
+  ]
+}

@@ -11,8 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOK = ROOT / "RCC_Quickstart.ipynb"
 
 
-def main() -> None:
-    notebook = nbformat.read(NOTEBOOK, as_version=4)
+def execute(path: Path) -> None:
+    notebook = nbformat.read(path, as_version=4)
     nbformat.validate(notebook)
     kernel_name = notebook.metadata.kernelspec.name
     executed = NotebookClient(
@@ -30,8 +30,13 @@ def main() -> None:
     if errors:
         raise RuntimeError(f"Notebook produced error outputs: {errors}")
     print(
-        f"Validated and executed {len(executed.cells)} cells with kernel {kernel_name}."
+        f"Validated and executed {path.name}: {len(executed.cells)} cells with kernel {kernel_name}."
     )
+
+
+def main() -> None:
+    for path in (NOTEBOOK, ROOT / "RCC_Bounds_Quickstart.ipynb"):
+        execute(path)
 
 
 if __name__ == "__main__":
