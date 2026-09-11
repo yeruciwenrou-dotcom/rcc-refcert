@@ -15,6 +15,8 @@ from fractions import Fraction
 
 from .scalar import BudgetError, InputError, UnsupportedContract, rational, require_int
 
+MATRIX_HASH_FORMAT = "rcc-refcert.matrix-bytes.v1"
+
 
 def json_ready(value: object, depth: int = 0) -> object:
     """Lossless JSON representation of supported exact Python input types.
@@ -160,7 +162,13 @@ class Task:
                     "tolerance_exact",
                 },
                 "reference evidence",
+                {"input_hash_format"},
             )
+            if (
+                "input_hash_format" in e
+                and e["input_hash_format"] != MATRIX_HASH_FORMAT
+            ):
+                raise InputError("unsupported reference input hash format")
             if (
                 r["source_kind"] != "numerical_upper_constant"
                 or e["method"] not in ("H.3", "H.4")

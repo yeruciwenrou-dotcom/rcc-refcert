@@ -12,6 +12,12 @@
 - Refresh quickstart installations when the dynamic version changes. Require
   paired JSON/Markdown evidence at canonical report locations for both absolute
   and relative paths; custom Markdown-only reports remain supported.
+- Hash certificate matrices with a versioned numeric representation and check
+  the adapter's matrix budget before verification. Preserve earlier declarations.
+- Stop truncated program sums after the final requested halting term, avoiding
+  an unused continuation that could trigger underflow.
+- Read serialized scalar endpoints under a separate bounded decimal contract,
+  preserving record generation and replay for extreme accepted exact inputs.
 
 Existing reference numbers and expected outcomes are unchanged. Reference
 copies update only their producer version.

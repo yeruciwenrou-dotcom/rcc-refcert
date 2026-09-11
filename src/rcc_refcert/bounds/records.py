@@ -10,7 +10,7 @@ from __future__ import annotations
 from fractions import Fraction
 
 from .contracts import Task, canonical_hash, validate_protocol
-from .scalar import InputError, ceil_fraction, rational, require_int
+from .scalar import InputError, ceil_fraction, decimal_endpoint, rational, require_int
 
 
 def _fail(message: str) -> None:
@@ -22,7 +22,7 @@ def _interval(raw: dict, name: str) -> tuple[Fraction, Fraction]:
         _fail(name + " must contain exactly lower and upper")
     if any(not isinstance(raw[k], str) for k in raw):
         _fail(name + " endpoints must be decimal strings")
-    lo, hi = rational(raw["lower"], name), rational(raw["upper"], name)
+    lo, hi = decimal_endpoint(raw["lower"], name), decimal_endpoint(raw["upper"], name)
     if lo > hi:
         _fail(name + " is reversed")
     return lo, hi
@@ -69,7 +69,7 @@ def validate_record(record: dict) -> None:
             _fail("invalid model scale or overhead")
         cost = record["cost"]
         clo, chi = _interval(cost["calculator_enclosure_slots"], "cost calculator")
-        lower = rational(cost["lower_bound_slots"], "cost lower")
+        lower = decimal_endpoint(cost["lower_bound_slots"], "cost lower")
         if (
             not isinstance(cost["lower_bound_slots"], str)
             or not 0 <= lower == clo <= chi
@@ -98,9 +98,13 @@ def validate_record(record: dict) -> None:
         flags = record["flags"]
         if "model_premises_external_not_machine_verified" not in flags:
             _fail("missing external-premise flag")
-        if not 0 <= rational(record["display"]["lower_bound_slots"]) <= lower:
+        if not 0 <= decimal_endpoint(record["display"]["lower_bound_slots"]) <= lower:
             _fail("display raises the lower bound")
-        if not 0 <= rational(record["display"]["information_lower_bits"]) <= ilo:
+        if (
+            not 0
+            <= decimal_endpoint(record["display"]["information_lower_bits"])
+            <= ilo
+        ):
             _fail("display raises information input")
         path = record["path"]["name"]
         stat = record["calibration"]["statistical"]

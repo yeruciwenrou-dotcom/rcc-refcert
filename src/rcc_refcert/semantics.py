@@ -197,9 +197,10 @@ def truncated_semidensity(
         raise ValueError("max_transient_steps must be nonnegative")
     total = np.zeros((model.output_dim, model.output_dim), dtype=complex)
     state = model.initial_transient_state()
-    for _ in range(max_transient_steps + 1):
+    for step in range(max_transient_steps + 1):
         total += apply_halt_map(model, state)
-        state = apply_transient_map(model, state)
+        if step < max_transient_steps:
+            state = apply_transient_map(model, state)
     return total
 
 

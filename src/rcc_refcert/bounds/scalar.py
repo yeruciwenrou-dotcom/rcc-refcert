@@ -16,6 +16,7 @@ from math import isqrt
 Scalar = str | int | Fraction | Decimal
 PRECISION = 64
 MAX_INPUT_BITS = 8192
+MAX_ENDPOINT_EXPONENT = 8192
 
 
 class InputError(ValueError):
@@ -64,6 +65,27 @@ def rational(value: Scalar, name: str = "value") -> Fraction:
     ):
         raise BudgetError(f"{name}: rational input exceeds {MAX_INPUT_BITS}-bit budget")
     return result
+
+
+def decimal_endpoint(value: str, name: str = "endpoint") -> Fraction:
+    """Read a finite result decimal under a separate representation budget.
+
+    Outward rounding can add denominator digits to an accepted exact input.
+    Bound string length and decimal exponent before constructing its Fraction.
+    """
+    if not isinstance(value, str):
+        raise InputError(f"{name}: endpoint must be a decimal string")
+    if len(value) > 512:
+        raise BudgetError(f"{name}: endpoint exceeds 512 characters")
+    try:
+        dec = Decimal(value)
+    except Exception as exc:
+        raise InputError(f"{name}: invalid endpoint decimal") from exc
+    if not dec.is_finite():
+        raise InputError(f"{name}: endpoint must be finite")
+    if abs(dec.as_tuple().exponent) > MAX_ENDPOINT_EXPONENT:
+        raise BudgetError(f"{name}: endpoint exponent exceeds calculation budget")
+    return Fraction(dec)
 
 
 def require_int(value: object, name: str, minimum: int = 0) -> int:
