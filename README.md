@@ -1,7 +1,7 @@
 # rcc-refcert
 
 [![PyPI](https://img.shields.io/pypi/v/rcc-refcert.svg?label=PyPI)](https://pypi.org/project/rcc-refcert/)
-[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22554288-blue)](https://doi.org/10.5281/zenodo.22554288)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22544967-blue)](https://doi.org/10.5281/zenodo.22544967)
 
 `rcc-refcert` is a Python research toolkit for
 **structure-fair quantum circuit complexity**.
@@ -21,9 +21,9 @@ and conditional target-state bounds from **Reference-Contingent Complexity
 (RCC)**, introduced in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
 
-For terminal-state calculations, install this source tree using the
-[quick start](#quick-start). The PyPI 0.1.1 installation below reproduces the
-finite-control reference results.
+Install from [PyPI](#install-from-pypi) to use the model audits and terminal-state
+bounds. The [source quickstart](#quick-start) also runs the verification suite
+and provides the notebooks and worked examples.
 
 ## Start here
 
@@ -115,7 +115,7 @@ In a Python 3.10 or newer environment, install the package and check the
 bundled reference results:
 
 ```bash
-python3 -m pip install rcc-refcert
+python3 -m pip install --upgrade rcc-refcert
 python3 -m rcc_refcert examples
 python3 -m rcc_refcert reproduce --check
 ```
@@ -123,11 +123,11 @@ python3 -m rcc_refcert reproduce --check
 Use `python` instead of `python3` when that is the interpreter name in your
 environment. The command-line tool and Python API work outside a source
 checkout; the frozen reference data are included in the installed package.
-For an exact version, install `rcc-refcert==0.1.1`.
+For an exact version, install `rcc-refcert==0.1.2`.
 
-The source quickstart below installs the current code, including terminal-state
-bounds, and runs the independent test suite. The checkout also provides both
-notebooks, worked examples, and the full documentation.
+The source quickstart below installs the code and runs the independent test
+suite. The checkout also provides both notebooks, worked examples, and the full
+documentation.
 
 ## Quick start
 
@@ -235,13 +235,13 @@ commands.
 
 ## Target spectra and measured counts
 
-After the source quickstart, run the spectrum example with its interpreter:
+With the package installed, run the spectrum example:
 
 ```bash
-.venv/bin/python -m rcc_refcert bound template spectrum > spectrum.json
-.venv/bin/python -m rcc_refcert bound spectrum spectrum.json
-.venv/bin/python -m rcc_refcert bound spectrum spectrum.json --format json > bound.json
-.venv/bin/python -m rcc_refcert bound replay bound.json
+python -m rcc_refcert bound template spectrum > spectrum.json
+python -m rcc_refcert bound spectrum spectrum.json
+python -m rcc_refcert bound spectrum spectrum.json --format json > bound.json
+python -m rcc_refcert bound replay bound.json
 ```
 
 The template declares a fixed four-dimensional model and a complete exact
@@ -249,8 +249,8 @@ spectrum. Its integer-slot lower bound is one. A second template provides a
 synthetic fixed-projector example with 550 hits in 1000 trials:
 
 ```bash
-.venv/bin/python -m rcc_refcert bound template counts > counts.json
-.venv/bin/python -m rcc_refcert bound counts counts.json
+python -m rcc_refcert bound template counts > counts.json
+python -m rcc_refcert bound counts counts.json
 ```
 
 For real measurements, prepare the protocol before collecting data using
@@ -258,8 +258,9 @@ For real measurements, prepare the protocol before collecting data using
 [counts guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md#fixed-projector-counts)
 explains the fixed-projector, fixed-sample-size contract.
 
-On Windows, use `.venv\Scripts\python.exe` in these commands. If you installed
-this source into another environment, use that environment's interpreter.
+Use the interpreter of the environment where you installed the package.
+After the source quickstart, this is `.venv/bin/python` on macOS and Linux,
+or `.venv\Scripts\python.exe` on Windows.
 Templates are included in the installed package and work outside the checkout.
 Both routes use a uniform reference on an ideal support and exact transcription.
 Their preparation-cost bounds are conditional on the declared model premises;
@@ -434,10 +435,10 @@ python -m rcc_refcert reproduce --check
 python -m build
 ```
 
-The [v0.1.1 release](https://github.com/yeruciwenrou-dotcom/rcc-refcert/releases/tag/v0.1.1)
-is archived on [Zenodo](https://doi.org/10.5281/zenodo.22554288).
-Use this version DOI for reproducible citations of 0.1.1; the
-[all-versions DOI](https://doi.org/10.5281/zenodo.22544967) represents the project across releases.
+Source releases are archived on
+[Zenodo](https://doi.org/10.5281/zenodo.22544967).
+For reproducible citations, use the version DOI of the release you ran; the
+all-versions DOI represents the project across releases.
 
 See the [Changelog](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/CHANGELOG.md) for the capabilities included in this version.
 Citation metadata for the software and associated RCC paper are provided in
