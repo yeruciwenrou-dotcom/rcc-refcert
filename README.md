@@ -5,13 +5,14 @@
 
 `rcc-refcert` is a Python research toolkit for
 **structure-fair quantum circuit complexity**.
-It helps researchers make the physical generation model explicit: which
-resources are supplied, which quantum processes are allowed, and how their
-description and generation costs are counted.
+It helps researchers build and audit quantum generation models, verify
+reference certificates, and compute conditional lower bounds on quantum state
+preparation cost from target-state information.
 
-You can build and audit finite-control quantum-process models, check reference
-certificates and gain–cost assignments, compute terminal-state bounds from
-exact spectra or fixed-projector counts, and develop new model and certificate
+Each model specifies the supplied resources, allowed quantum processes, and
+rules for counting description and generation costs. You can examine reference
+gain–cost assignments, use exact spectra or fixed-projector counts in
+terminal-state calculations, and develop new model and certificate
 constructions. Bundled examples provide reproducible numerical evidence,
 including a worked chain from a declared model to a lower bound on quantum
 state preparation cost.
