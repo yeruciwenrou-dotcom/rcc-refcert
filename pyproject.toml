@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rcc-refcert"
 dynamic = ["version"]
-description = "Python reference implementation for finite-control certificates in structure-fair quantum circuit complexity"
+description = "Research toolkit for finite-control certificates and terminal-state cost bounds in structure-fair quantum circuit complexity"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -49,7 +49,7 @@ Repository = "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 rcc-refcert = "rcc_refcert.cli:main"
 
 [project.optional-dependencies]
-dev = ["build>=1.2", "pytest>=8", "ruff>=0.11"]
+dev = ["build>=1.2", "pytest>=8", "ruff>=0.11", "jsonschema>=4.18"]
 notebook = [
   "ipykernel>=6",
   "jupyterlab>=4",
@@ -64,7 +64,7 @@ where = ["src"]
 version = {attr = "rcc_refcert._version.__version__"}
 
 [tool.setuptools.package-data]
-rcc_refcert = ["reference_data/*.json", "reference_data/*.md"]
+rcc_refcert = ["reference_data/*.json", "reference_data/*.md", "bounds/data/*.json"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

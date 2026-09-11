@@ -31,6 +31,8 @@ Born weight. The package keeps those two sources of weight separate.
 4. Inspect which actions produce large reference gains.
 5. Compare the current code lengths with the gain–cost condition.
 6. Test a supplied certificate or the suggested sufficient re-encoding.
+7. For a supported terminal-state task, combine the model declaration with an
+   exact target spectrum or a predeclared fixed-projector acquisition protocol.
 
 ## A complete two-action model
 
@@ -210,6 +212,15 @@ the returned constant includes the numerical correction budget, while
 pass yet leave the final error budget inconclusive, particularly for slowly
 halting dynamics. Such a report has `constant=None`; its checks explain the
 unresolved correction.
+
+To use an H.3 or H.4 proof object in a terminal-state task,
+`rcc_refcert.bounds.with_reference_certificate` verifies it against the actual
+model and transfers only a passing report's usable `constant`. The task must
+match the model identity, dimension, and uniform reference. Preserve the
+physical and transcription arguments alongside the task; a model audit alone
+does not supply them. Freeze a counts protocol only after this task is settled.
+The [terminal-state guide](TERMINAL_BOUNDS.md#connect-an-h3-or-h4-proof-object)
+describes the adapter, its numerical evidence, and the required inputs.
 
 ## Turning a model into a reference case
 

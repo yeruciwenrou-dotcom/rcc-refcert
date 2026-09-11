@@ -11,6 +11,12 @@ from .audit import (
     audit_reference_suite,
 )
 from .bellman_choi import BellmanChoiCertificate, BellmanChoiReport, verify_bellman_choi
+from .bounds import (
+    bound_from_counts,
+    bound_from_spectrum,
+    prepare_protocol,
+    replay_record,
+)
 from .cases import CASES, CaseStudy, get_case
 from .domination import DominationResult, minimum_domination_constant
 from .fixed_point import linear_value_choi_envelopes
@@ -59,9 +65,13 @@ __all__ = [
     "audit_case",
     "audit_model",
     "audit_reference_suite",
+    "bound_from_counts",
+    "bound_from_spectrum",
     "get_case",
     "linear_value_choi_envelopes",
     "minimum_domination_constant",
+    "prepare_protocol",
+    "replay_record",
     "require_valid_model",
     "verify_bellman_choi",
     "verify_reference_potential",

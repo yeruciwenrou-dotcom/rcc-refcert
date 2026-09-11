@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+- Add conditional terminal-state cost bounds from complete exact spectra and
+  predeclared fixed-projector counts, with conservative scalar enclosures.
+- Add task-bound acquisition protocols, lossless JSON inputs, saved records,
+  same-version replay, installed templates and a guided bounds notebook.
+- Connect H.3/H.4 proof objects through fresh numerical verification and exact
+  preservation of the propagated upper constant. Include an eight-output
+  finite model with constructive one-slot witnesses.
+- Refresh quickstart installations when the dynamic version changes. Require
+  paired JSON/Markdown evidence at canonical report locations for both absolute
+  and relative paths; custom Markdown-only reports remain supported.
+
+Existing reference numbers and expected outcomes are unchanged. Reference
+copies update only their producer version.
+
 ## 0.1.1 (2026-09-06)
 
 - Fixed-point audits propagate matrix-assembly and solve errors to the output

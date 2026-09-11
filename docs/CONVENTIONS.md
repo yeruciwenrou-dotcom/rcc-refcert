@@ -160,3 +160,7 @@ These checks are numerical verification in working precision, not an
 interval-arithmetic or exact-arithmetic proof. The conservative scalar
 propagation can be inconclusive for a mathematically valid candidate. Strict
 verification remains an extension point.
+
+## Exact scalar bound calculations
+
+Terminal-state inputs use exact declared spectra and normalized trace distance on a uniform ideal reference support. Decimal logarithm enclosures and rational endpoints preserve the bound direction; they do not certify NumPy eigenvalues or matrix-input uncertainty. The H.3/H.4 adapter preserves the exact binary value of the propagated numerical upper constant, without replacing it by a shortened decimal. Integer-slot rounding applies only to a declared integer cost domain. Details and budgets are in [Terminal-state bounds](TERMINAL_BOUNDS.md).

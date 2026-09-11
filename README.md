@@ -10,14 +10,20 @@ resources are supplied, which quantum processes are allowed, and how their
 description and generation costs are counted.
 
 You can build and audit finite-control quantum-process models, check reference
-certificates and gain–cost assignments, and develop new model and certificate
+certificates and gain–cost assignments, compute terminal-state bounds from
+exact spectra or fixed-projector counts, and develop new model and certificate
 constructions. Bundled examples provide reproducible numerical evidence,
 including a worked chain from a declared model to a lower bound on quantum
 state preparation cost.
 
-The toolkit implements the finite-control models and reference-certificate
-methods of **Reference-Contingent Complexity (RCC)**, introduced in
+The toolkit implements finite-control models, reference-certificate methods,
+and conditional target-state bounds from **Reference-Contingent Complexity
+(RCC)**, introduced in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
+
+For terminal-state calculations, install this source tree using the
+[quick start](#quick-start). The PyPI 0.1.1 installation below reproduces the
+finite-control reference results.
 
 ## Start here
 
@@ -25,8 +31,9 @@ methods of **Reference-Contingent Complexity (RCC)**, introduced in
 |---|---|
 | Inspect the recorded evidence without running code | [Reference results](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/results/reference_report.md) |
 | Install the package and reproduce the reference results | [Install from PyPI](#install-from-pypi) |
+| Compute a bound from a target spectrum or fixed-projector counts | [Terminal-state bounds](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md) |
 | Run the full test suite from source | [Quick start](#quick-start) |
-| Follow a guided first run in Jupyter | [Quickstart notebook](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Quickstart.ipynb) |
+| Follow model audits or target-state calculations in Jupyter | [Notebook setup and selection](#jupyter-notebook) |
 | Follow a model from qualification to a lower bound | [Worked example](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/END_TO_END_EXAMPLE.md) |
 | Understand what the numerical results establish | [Scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/SCIENTIFIC_SCOPE.md) |
 | Trace RCC paper formulas to implementation | [Paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md) |
@@ -83,6 +90,11 @@ objects. It can:
 - reproduce the Appendix F/H reference cases and their numerical evidence;
 - follow one complete fixed-model chain from a physical declaration and
   program semidensity to a numerical one-shot RCC lower bound;
+- compute conditional preparation-cost lower bounds from complete exact
+  spectra or predeclared fixed-projector counts, with explicit tolerance,
+  sampling coverage, and atomic-slot units;
+- save calculation inputs and results in a versioned record and replay the
+  scalar calculation with the same package version;
 - construct a prefix-controlled quantum-process model and compute its
   terminating program semidensity;
 - audit independent trajectory and block-superoperator realizations while
@@ -210,8 +222,35 @@ After the quickstart has created `.venv`, macOS and Linux users can run:
 .venv/bin/python -m jupyterlab
 ```
 
-Open `RCC_Quickstart.ipynb` and select **Python (rcc-refcert)** as its kernel.
-On Windows, use `.venv\Scripts\python` in the same commands.
+Open `RCC_Quickstart.ipynb` for the reference-model audits or
+`RCC_Bounds_Quickstart.ipynb` for spectra, fixed-projector counts, and replay.
+Select **Python (rcc-refcert)** as the kernel. The `ipykernel install` command
+registers this name; installing the notebook dependencies alone does not.
+If you use another environment, run all three commands with that environment's
+Python interpreter. On Windows, use `.venv\Scripts\python.exe` in the same
+commands.
+
+## Target spectra and measured counts
+
+From the repository root, install with `python -m pip install .` using your
+chosen environment, then run:
+
+```bash
+rcc-refcert bound template spectrum > spectrum.json
+rcc-refcert bound spectrum spectrum.json
+rcc-refcert bound spectrum spectrum.json --format json > bound.json
+rcc-refcert bound replay bound.json
+```
+
+The template declares a fixed four-dimensional model and a complete exact
+spectrum. Its integer-slot lower bound is one. The same API supports
+predeclared fixed-projector counts with an explicit sampling budget and
+acquisition digest. Both routes use a uniform reference on an ideal support
+and exact transcription. Their preparation-cost bounds are conditional on the
+declared model premises; sampling coverage describes the counts alone.
+See the [guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md)
+and [bounds notebook](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Bounds_Quickstart.ipynb)
+for inputs, units, zero results and limitations.
 
 ## End-to-end RCC lower-bound example
 
@@ -295,15 +334,26 @@ For a new model, use `Action`, `FiniteControlModel`, `require_valid_model`, and
 `analyze_reference_gain_cost`. The [model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/MODEL_GUIDE.md) contains a
 complete minimal example.
 
+For target-state calculations, `rcc_refcert.bounds` exposes
+`bound_from_spectrum`, `bound_from_counts`, `prepare_protocol`, and
+`replay_record`. Its [input guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md)
+includes a runnable API example and explains how to connect an H.3 or H.4
+proof object to the declared task.
+
 ## Results and scientific scope
 
-Every check reports an `outcome`—`pass`, `fail`, `inconclusive`, or
+Finite-control checks report an `outcome`—`pass`, `fail`, `inconclusive`, or
 `not_applicable`—separately from its `evidence`, currently `numerical`. The
 package establishes finite-input and fixed-model statements. The complete
 framework—including physical reference consistency, faithful transcription,
 family-uniform admissibility, and the RCC lower-bound theorem—is developed in
 the accompanying RCC manuscript. The [paper map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md) records
 the implemented objects and manuscript-version alignment.
+
+Terminal-state records separately identify the scalar enclosure, any numerical
+reference-certificate evidence, and any sampling confidence. The calculator
+evaluates the RCC cost inversion under the supplied hypotheses. A completed
+zero lower bound is a valid result; it does not establish zero preparation cost.
 
 See [Scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/SCIENTIFIC_SCOPE.md) for how these results connect
 to the RCC theorem, [Output contract](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/OUTPUT_CONTRACT.md) for result fields
@@ -326,7 +376,7 @@ evidence more rigorous. Examples include:
 
 - finite-control models with new physical resources or boundary behavior;
 - automated Bellman–Choi or reference-potential certificate search;
-- rigorous interval or exact-arithmetic verification;
+- rigorous matrix-interval or exact-matrix certificate verification;
 - family-uniform certificate constructions and scaling diagnostics;
 - alternative reference gain–cost encodings and negative witnesses;
 - serialization, solver, and larger-state-space backends.
@@ -339,22 +389,23 @@ reliability, documentation, and examples. See
 
 | Path | Purpose |
 |---|---|
-| `src/rcc_refcert/` | Finite-control models, simulation, certificates, CLI, and report rendering |
+| `src/rcc_refcert/` | Finite-control models, simulation, certificates, terminal-state bounds, CLI, and report rendering |
 | [`examples/paired_reset_lower_bound.py`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/examples/paired_reset_lower_bound.py) | Fixed model-to-lower-bound executable example |
 | `tests/` | Scientific regressions and public-interface tests |
 | [`quickstart.py`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/quickstart.py) | Environment setup, independent tests, and reference reproduction |
 | [`RCC_Quickstart.ipynb`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Quickstart.ipynb) | Guided run through the three reference cases |
+| [`RCC_Bounds_Quickstart.ipynb`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Bounds_Quickstart.ipynb) | Guided exact-spectrum and fixed-projector calculations |
 | [`results/reference_report.md`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/results/reference_report.md) | Frozen human-readable reference evidence |
 | [`results/reference_suite.json`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/results/reference_suite.json) | Frozen normalized structured evidence |
 | `generated_results/` | Fresh locally generated evidence; ignored by Git |
-| `docs/` | Scientific scope, RCC paper map, conventions, model guide, and output contract |
+| `docs/` | Scientific scope, RCC paper map, conventions, model and terminal-state guides, and output contract |
 
 ## Development, citation, and license
 
 ```bash
 python -m pip install -e ".[dev]"
-ruff check src tests examples quickstart.py RCC_Quickstart.ipynb
-ruff format --check src tests examples quickstart.py RCC_Quickstart.ipynb
+ruff check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb
+ruff format --check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb
 python -W error -m pytest
 python -m build
 ```

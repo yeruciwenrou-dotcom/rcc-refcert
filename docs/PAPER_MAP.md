@@ -17,8 +17,8 @@ mathematical objects to executable checks.
 | Section II | declares the reference-contingent, structure-fair physical generation model and its qualification conditions | represents a finite-control instance with explicit references, controls, channels, codewords, and halting semantics |
 | Appendix F | constructs admissible native models, including an approximately universal qubit state-generation family, and proves the class is nonempty and nontrivial | reproduces rank coding, reference balance, selected nontrivial-generation constructions, and global-reset witnesses |
 | Appendix H | develops finite-control semidensities and sufficient reference-certificate routes | implements H.1–H.6 realization, fixed-point, domination, certificate, and gain–cost checks |
-| Section III | derives the RCC lower bound from the complete model hypotheses | the fixed paired-reset example evaluates the exact epsilon-zero endpoint and cost inversion after its analytic model inputs are stated; the RCC paper supplies the general theorem |
-| Section IV and Appendices B–D | convert finite terminal-state evidence, support treatment, calibration, and multiple audit paths into one-sided RCC lower-bound certificates | supplies qualified-model inputs, a deterministic endpoint example, and structured evidence roles; the paper supplies the finite-sample statistical and calibration layer |
+| Section III and Appendix A | derive the RCC lower bound from the complete model hypotheses | evaluates uniform-reference exact-spectrum smoothing and canonical cost inversion under declared model inputs; the paired-reset example also verifies a matching one-slot preparation |
+| Section IV and Appendices B–D | convert terminal-state evidence, support treatment, calibration, and multiple audit paths into one-sided RCC lower-bound certificates | implements the fixed-projector, fixed-N Hoeffding route and scalar result records for ideal support and readout; support uncertainty, readout/leakage corrections, and multi-path synthesis remain outside the implementation |
 
 The code therefore provides executable evidence for a qualified finite model.
 The RCC theorem additionally depends on the physical and analytic premises
@@ -90,8 +90,29 @@ verified one-slot program makes that bound tight for this fixed model.
 
 ## Complete framework
 
-`rcc-refcert` implements the finite-control qualification layer mapped above.
+`rcc-refcert` implements the finite-control qualification layer and the
+conditional terminal-state calculations mapped here.
 The [RCC paper](https://arxiv.org/abs/2509.18205) presents the complete physical
 model and lower-bound framework, including transcription, family-level
 arguments, finite-sample auditing, windowed RCC, dynamical witnesses, and the
 Complexity-Windowed Thermodynamics (CWT) interfaces.
+
+## Terminal-state calculation interfaces
+
+| paper location | implemented responsibility | implementation |
+|---|---|---|
+| Appendix A.5 | process-to-information inequality for any admissible history, used under the declared model hypotheses | `bounds/contracts.py`, `bounds/api.py` |
+| Appendix A.6, Theorem A.1, Eqs. (A.40)–(A.41) | exact spectrum cap and normalized trace-distance smoothing against the uniform reference | `bounds/information.py` |
+| Appendix A.7 and Appendices C.1–C.2 | canonical inversion with conservative scalar endpoints and declared cost units | `bounds/scalar.py`, `bounds/api.py` |
+| Eq. (C.18) and Appendix D.3 | convert a fixed-projector probability lower endpoint to a one-shot information lower bound | `bounds/information.py` |
+| Appendix D.1, Eq. (D.5) | one-sided Hoeffding endpoint for a predeclared projector and fixed-N iid sampling | `bounds/contracts.py`, `bounds/information.py` |
+| Appendix D.6, Eq. (D.47) | model, path, calibration, reference, and evidence fields for the implemented scalar routes | `bounds/records.py` |
+| Appendices H.3–H.4 | verify a supplied proof object and transfer its usable upper constant into the task | `bounds/certificates.py` |
+
+Eq. (D.5) is the Hoeffding formula in Appendix D.1; Appendix D.5 is the
+separate readout/leakage treatment. The calculator implements the former
+under ideal readout and no leakage. Its record schema adds exact input
+snapshots, hashes, and same-version replay to the paper's reporting fields.
+The H.3/H.4 adapter retains the matrix kernel's numerical evidence level.
+Full assumptions and the fixed eight-output example are in
+[Terminal-state bounds](TERMINAL_BOUNDS.md).

@@ -160,6 +160,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_format_argument(reproduce)
     _add_numerical_arguments(reproduce)
+    bound = commands.add_parser(
+        "bound", help="compute and replay terminal-state cost bounds"
+    )
+    bound_commands = bound.add_subparsers(dest="bound_command", required=True)
+    template = bound_commands.add_parser(
+        "template", help="print an installed exact-input example"
+    )
+    template.add_argument("name", choices=("spectrum", "counts", "protocol"))
+    template.set_defaults(output_format="json", details=False)
+    for name in ("spectrum", "counts", "prepare-protocol", "replay"):
+        command = bound_commands.add_parser(name)
+        command.add_argument("input", type=Path)
+        command.add_argument("--details", action="store_true")
+        _add_format_argument(command)
     return parser
 
 
@@ -213,7 +227,11 @@ def _run_reproduce(
         if candidate.is_file():
             reference_path = candidate
             reference_match = reference_payload_matches(candidate, suite)
-        elif report_path == Path("results/reference_report.md"):
+        elif (
+            report_path.resolve().name == _BUNDLED_REPORT_NAME
+            and report_path.resolve().parent.name
+            in {"results", _BUNDLED_REFERENCE_DIRECTORY}
+        ):
             parser.error(f"structured reference result not found: {candidate}")
 
     if arguments.output_format == "json":
@@ -258,6 +276,10 @@ def _run_reproduce(
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     arguments = parser.parse_args(argv)
+    if arguments.command == "bound":
+        from .bounds.cli import run
+
+        return run(arguments)
     try:
         source_revision = (
             source_revision_from_environment()

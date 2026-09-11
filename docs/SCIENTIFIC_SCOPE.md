@@ -23,6 +23,9 @@ qualification machinery for this model class. Given prefix-coded quantum
 operations and a reference state, it constructs the terminating program
 semidensity, verifies reference certificates, evaluates the reference gain of
 individual actions, and tests the corresponding code-length allocation.
+Its terminal-state calculator then accepts declared model inputs and a target's
+exact spectrum or fixed-projector counts to evaluate a conditional lower bound
+on preparation cost.
 
 The implementation fixes program-semidensity and certificate conventions and
 reproduces selected constructions from Appendices F and H of RCC manuscript
@@ -36,18 +39,21 @@ machinery. Together they make the Section II model an explicit, auditable
 construction. Section III uses the qualified model hypotheses in the RCC lower
 bound.
 
-`rcc-refcert` concentrates on the finite-control qualification layer. The RCC
-paper develops the complete framework, including physical reference
-consistency, faithful transcription, finite-sample terminal-state auditing,
+`rcc-refcert` connects finite-control qualification to selected terminal-state
+lower-bound calculations. The RCC paper develops the complete framework,
+including physical reference consistency, faithful transcription,
 windowed RCC, cross-reference compilation, the Complexity-Windowed
 Thermodynamics (CWT) interfaces, and the lower-bound theorem.
 
 Section IV and Appendices B–D develop the finite-sample terminal-state audit:
 support treatment, confidence construction, readout calibration, one-shot
-conversion, and multi-path certificate synthesis. The current kernel supplies
-qualified-model inputs, a deterministic endpoint example, and structured
-evidence roles for that layer. The paper provides its finite-sample statistical
-and calibration framework.
+conversion, and multi-path certificate synthesis. The implemented subset uses
+a uniform reference on an ideal support, exact transcription, complete exact
+spectra, or one predeclared projector with fixed-N iid counts. It computes the
+one-sided Hoeffding endpoint, converts the information lower bound through the
+canonical cost inverse, and saves the calculation for replay. Support
+uncertainty, readout/leakage corrections, and multi-path synthesis require the
+broader contracts developed in the paper.
 
 ## From programs to the terminating output
 
@@ -118,7 +124,7 @@ RCC analysis supplies its target-independent transcription calibration.
 
 ## Outcome and evidence
 
-Results use two axes:
+Finite-control checks use two axes:
 
 | field | values | meaning |
 |---|---|---|
@@ -132,6 +138,12 @@ A passing H.3 or H.4 result returns the candidate plus a reserved numerical
 error budget. The candidate, usable upper constant, and correction are separate
 fields; a rejected or inconclusive certificate has no usable constant.
 
+Terminal-state records separately describe exact scalar input and enclosure,
+any numerical reference-certificate evidence, and the sampling confidence of
+the counts route. None of these fields verifies the external physical and
+transcription premises. See [Terminal-state bounds](TERMINAL_BOUNDS.md) for
+their input and replay semantics.
+
 ## How the results connect to RCC
 
 The executable evidence connects to the RCC results in a precise order:
@@ -143,9 +155,10 @@ The executable evidence connects to the RCC results in a precise order:
 4. the RCC lower bound after every theorem hypothesis, including transcription
    and resource conditions, is established.
 
-The package produces levels one and two. Levels three and four combine those
-outputs with the uniform analytic and transcription arguments developed in the
-RCC paper.
+The finite-control kernel produces levels one and two. The terminal-state
+calculator evaluates the level-four cost inversion conditionally on supplied
+model hypotheses, including the required analytic and transcription arguments.
+A finite calculation alone does not establish the uniform model-family step.
 
 The [paired-reset example](END_TO_END_EXAMPLE.md) follows this connection for
 one fixed finite model. It computes the program semidensity and one-shot
@@ -165,6 +178,11 @@ too small for their reference gain. These tasks make the repository a testbed
 for model design, cost assignment, negative witnesses, and rigorous certificate
 verification.
 
+The terminal-state interfaces also let researchers study how target spectra,
+preparation tolerance, sampling budgets, and model overhead change a conditional
+cost lower bound. Saved exact inputs and replayable scalar records make those
+comparisons inspectable independently of the bundled models.
+
 ## Extension points
 
 The current kernel accepts Python-declared finite synchronous models and
@@ -173,3 +191,14 @@ interfaces provide natural extension points for model serialization, automated
 certificate search, interval PSD verification, broader control semantics,
 family-uniform diagnostics, and larger simulation backends. These interfaces
 define the package's current extension directions.
+
+## Conditional target-state bounds
+
+The fixed eight-output example has a complete finite program domain and
+one-slot witnesses for its named pure and mixed targets. It illustrates both
+the continuous bound and the stronger rounding available for declared integer
+atomic-slot costs. These fixed-model witnesses do not establish large-system
+scaling or reachability of arbitrary user targets. Matrix spectral
+certification, approximate transcription, optional stopping, and
+readout/leakage corrections are outside the implemented contract. See
+[Terminal-state bounds](TERMINAL_BOUNDS.md).
