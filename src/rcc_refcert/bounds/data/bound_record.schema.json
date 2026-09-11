@@ -544,6 +544,9 @@
                   "type": "string",
                   "minLength": 1
                 },
+                "input_hash_format": {
+                  "const": "rcc-refcert.matrix-bytes.v1"
+                },
                 "reported_constant_exact": {
                   "type": "string",
                   "minLength": 1

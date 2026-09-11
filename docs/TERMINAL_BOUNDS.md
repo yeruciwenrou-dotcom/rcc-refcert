@@ -88,11 +88,21 @@ conservative endpoint and report their numerical status.
 The input budgets include 4096 eigenvalues, a 65536-bit aggregate denominator
 estimate before spectrum arithmetic, 8192-bit rational inputs, bounded exact
 decimal exponents, 32 levels of JSON nesting, and a 2 MB CLI input. Counts
-are limited to $10^{12}$ samples. The dense H.3/H.4 adapter checks a reference
-dimension limit of 1024 before allocation; the matrix kernel's own budgets
-also apply. Scalar strings allow 512 characters for decimal notation and 5000
+are limited to $10^{12}$ samples. Scalar strings allow 512 characters for decimal notation and 5000
 for integer or fraction notation; all forms share the rational bit budget.
-Inputs beyond these budgets fail explicitly.
+User decimals have an absolute exponent limit of 2048. Serialized result
+decimals have a separate 512-character and absolute exponent limit of 8192,
+allowing outward-rounded endpoints to represent accepted exact inputs.
+Inputs and records beyond their respective budgets fail explicitly.
+
+Before reference allocation, hashing or verification, the H.3/H.4 adapter
+checks an output-dimension limit of 1024 and a matrix-element estimate. The
+estimate sums numeric input entries, one family of Choi blocks (H.3) or control
+matrices (H.4), the output matrix, and the block-level correction system.
+Its default limit is 1048576 elements; pass `limits=ComputationLimits(...)`
+from `rcc_refcert` to adjust `max_matrix_elements`. This is an algorithm
+preflight estimate, not a peak-memory or execution-time bound. Direct calls
+to the H.3/H.4 verifiers do not use the adapter's preflight.
 
 ## Fixed-projector counts
 
@@ -163,6 +173,16 @@ that actual finite-control model. The task model ID must match the model name,
 the dimensions must match, and the reference matrix must be the nominal uniform
 state. The returned task records hashes of the actual binary model and proof
 object, the numerical evidence level, tolerance, method and source.
+
+New bindings identify their `input_hash_format` as
+`rcc-refcert.matrix-bytes.v1`. Arrays are hashed in bounded C-order chunks,
+with shape, numeric dtype and little-endian representation recorded in the
+snapshot. Equivalent memory layouts and byte orders give the same digest;
+shape, dtype and entry changes remain distinguishable. Supported array types
+are NumPy booleans, integers through 64 bits, floats through 64 bits and
+complex numbers through 128 bits. Earlier declarations without a format field
+remain readable; their hashes describe the earlier value-list snapshots.
+Replay continues to require the recorded producer version.
 
 Only a passing report's propagated `constant` is used. Its exact binary value
 is preserved as a rational number, with the nonnegative-overhead convention
