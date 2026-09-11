@@ -8,7 +8,7 @@ admissibility (`RA`) remain separately supplied model arguments.
 
 ## First calculation
 
-Install this source tree with `python -m pip install .`, then run:
+Install with `python -m pip install "rcc-refcert==0.1.2"`, then run:
 
 ```bash
 rcc-refcert bound template spectrum > spectrum.json

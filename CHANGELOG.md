@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.2 (2026-09-12)
 
 - Add conditional terminal-state cost bounds from complete exact spectra and
   predeclared fixed-projector counts, with conservative scalar enclosures.

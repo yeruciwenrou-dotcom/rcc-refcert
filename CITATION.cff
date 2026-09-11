@@ -2,27 +2,34 @@ cff-version: 1.2.0
 message: "If you use this software, cite the software and the associated RCC paper."
 title: "rcc-refcert: a Python research toolkit for structure-fair quantum circuit complexity"
 type: software
-version: 0.1.1
-doi: "10.5281/zenodo.22554288"
-date-released: 2026-09-06
+version: 0.1.2
+doi: "10.5281/zenodo.22544967"
+date-released: 2026-09-12
 license: MIT
 repository-code: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 abstract: >-
   rcc-refcert is a Python research toolkit for structure-fair quantum circuit
-  complexity. It implements finite-control models and reference-certificate
-  methods of Reference-Contingent Complexity (RCC), making the supplied resources,
-  allowed quantum processes, and description and generation costs explicit.
+  complexity. It implements finite-control models, reference certificates and
+  conditional terminal-state bounds from Reference-Contingent Complexity (RCC),
+  making supplied resources, allowed quantum processes, and description and
+  generation costs explicit.
   Researchers can construct prefix-controlled quantum-process models, compute
   terminating program semidensities, and check Bellman-Choi, reference-potential,
-  fixed-model domination, and reference gain-cost certificates. Three bundled
-  reference cases cover closed-form, multiblock, and nonhalting behavior. A worked
-  paired-reset model connects the physical declaration to a numerical RCC lower
+  fixed-model domination, and reference gain-cost conditions. Complete exact
+  spectra and predeclared fixed-projector counts provide conditional lower
+  bounds on preparation cost in atomic slots. Freshly verified H.3/H.4 proof
+  objects can supply the reference-domination constant; versioned records
+  preserve calculation inputs, evidence levels and same-version scalar replay.
+  Three bundled reference cases cover closed-form, multiblock, and nonhalting
+  behavior. A worked paired-reset model connects the physical declaration to a
+  numerical RCC lower
   bound of one slot, attained by an explicit one-slot preparation. The package
-  provides a Python API, command-line tools, a Jupyter quickstart, and versioned
-  numerical reports. Its checks provide reproducible evidence for declared
+  provides a Python API, command-line tools, two Jupyter tutorials, and versioned
+  reports. Matrix checks provide reproducible numerical evidence for declared
   finite models, with explicit pass, fail, inconclusive, and not-applicable
-  outcomes. The accompanying paper supplies the physical and analytic premises
-  of the general RCC framework.
+  outcomes. Terminal-state records distinguish scalar enclosures, numerical
+  certificate evidence and sampling coverage. The accompanying paper supplies
+  the physical and analytic premises of the general RCC framework.
 keywords:
   - quantum circuit complexity
   - structure-fairness
