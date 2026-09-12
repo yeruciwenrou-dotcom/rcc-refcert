@@ -95,7 +95,7 @@ conditional terminal-state calculations mapped here.
 The [RCC paper](https://arxiv.org/abs/2509.18205) presents the complete physical
 model and lower-bound framework, including transcription, family-level
 arguments, finite-sample auditing, windowed RCC, dynamical witnesses, and the
-Complexity-Windowed Thermodynamics (CWT) interfaces.
+Complexity Window Thermodynamics (CWT) interfaces.
 
 ## Terminal-state calculation interfaces
 

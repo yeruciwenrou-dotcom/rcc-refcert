@@ -47,12 +47,12 @@ the executable entry point is
 | Input | Fixed value | Role |
 |---|---|---|
 | Hilbert space | one qubit | common input and output space |
-| Reference state | $\sigma_R=I/2$ | structural vacuum and initial state |
+| Reference state | $\sigma_R=I/2$ | structured vacuum and initial state |
 | Physical actions | reset to $\lvert0\rangle$ or $\lvert1\rangle$ | Appendix-F paired non-unital dynamics |
 | Program domain | `0`, `1` | complete prefix-free domain for this terminal model |
 | Target state | $\rho=\lvert0\rangle\langle0\rvert$ | endpoint whose information gap is audited |
 | Generation tolerance | $\epsilon=0$ | exact one-shot branch |
-| Cost unit | one terminal reset slot | legal cost set for the example |
+| Cost unit | one terminal reset slot | admissible cost set for the example |
 | Control bandwidth | $\Gamma_R=2$, $g_R=\log_2\Gamma_R=1$ | one bit per atomic choice |
 | RCC reporting unit | $1\thinspace{\rm st}_R=g_R=1$ bit | one R-structon per atomic control bandwidth |
 | Transcription | $\Lambda_R(L)=\Phi_{1,0}(L)=L$ | $a=0$ and $\gamma=0$ |
@@ -123,7 +123,7 @@ F_{1,0}(1)
 =1.
 $$
 
-The legal program `0` also supplies the matching upper-bound witness: one reset
+The admissible program `0` also supplies the matching upper-bound witness: one reset
 slot prepares the target exactly. Consequently,
 
 $$
@@ -138,7 +138,7 @@ tightness.
 | Layer | Responsibility in this example |
 |---|---|
 | Software calculation | constructs $M_U$; checks trajectory/superoperator agreement, trace, nonhalting mass, spectral radius, fixed-model domination, supplied H.3/H.4 proof objects, H.77 balance, and the exact $D_{\max}^{0}$ input; verifies that program `0` prepares the target in one slot |
-| Analytic model declaration | fixes the physical reference and resource meaning (`RCon`), identifies all legal histories and their exact prefix-free transcription (`TC`), and identifies the enumerated set as the complete program domain used by `RA` |
+| Analytic model declaration | fixes the physical reference and resource meaning (`RCon`), identifies all admissible histories and their exact prefix-free transcription (`TC`), and identifies the enumerated set as the complete program domain used by `RA` |
 | RCC theorem and explicit witness | the theorem converts the one-bit, one R-structon (`st_R`) endpoint gap and fixed model constants into the lower bound through Section III, Theorem 3.1; Appendix A supplies the canonical inversion; the one-slot target-preparation program supplies the matching upper bound |
 
 ## How the H.70 diagnostic relates to the final inference

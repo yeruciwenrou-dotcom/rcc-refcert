@@ -151,7 +151,7 @@ trace preserving and resets every normalized input to the named diagonal state.
 The eight length-three codewords exhaust its complete program domain. Their
 Kraft sum is one, and their equal-weight output sum is exactly $I/4$.
 
-Each legal process is a single terminal action costing one atomic slot; no
+Each admissible process is a single terminal action costing one atomic slot; no
 zero-action program terminates. Exact transcription therefore uses $a=0$ and
 $\gamma=0$ with bandwidth $g=3$ bits per slot. Reference domination has
 $C_U=1$ by the exact equal-weight sum. Distinctness follows from the different

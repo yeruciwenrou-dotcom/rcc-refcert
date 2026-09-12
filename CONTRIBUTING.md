@@ -1,7 +1,7 @@
 # Contributing
 
 RCC studies quantum circuit complexity under an explicit physical generation
-model. Its structure-fairness principle accounts for the structure supplied by
+model. Its principle of structural fairness accounts for the structure supplied by
 the reference background, available dynamics, and program description, together
 with the resources spent on generation.
 
