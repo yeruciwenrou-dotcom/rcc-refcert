@@ -17,7 +17,7 @@ The target specifies the structure that every successful preparation must
 realize; the model fixes the reference background, available operations,
 control interface, program semantics, and resource unit that determine what is
 already supplied and how the remaining generation responsibility is measured.
-Structure fairness requires target-shortening resources to be represented in
+Structural fairness requires target-shortening resources to be represented in
 those same coordinates. `rcc-refcert` implements the finite-control
 qualification machinery for this model class. Given prefix-coded quantum
 operations and a reference state, it constructs the terminating program
@@ -42,7 +42,7 @@ bound.
 `rcc-refcert` connects finite-control qualification to selected terminal-state
 lower-bound calculations. The RCC paper develops the complete framework,
 including physical reference consistency, faithful transcription,
-windowed RCC, cross-reference compilation, the Complexity-Windowed
+windowed RCC, cross-reference compilation, the Complexity Window
 Thermodynamics (CWT) interfaces, and the lower-bound theorem.
 
 Section IV and Appendices B–D develop the finite-sample terminal-state audit:

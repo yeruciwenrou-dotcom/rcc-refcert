@@ -57,7 +57,7 @@ resources are fixed.
 The same target state can have different preparation costs under different
 backgrounds. A reset channel, a supplied ancilla, or a short control macro may
 already carry structure that makes the target easier to prepare. RCC's
-**structure-fairness principle** requires this supplied structure to be
+**principle of structural fairness** requires this supplied structure to be
 represented in the reference or charged through the dynamics and resource
 coordinates. The generation model fixes the reference background, allowed
 operations, control language, program prior, success semantics, and cost unit
@@ -66,9 +66,11 @@ relative to that complete specification.
 
 Within a declared model, $C_{\rm opt}^{(\epsilon)}$ is the infimum of the cost
 over all admissible histories that prepare the target within accuracy
-$\epsilon$. Universality concerns the joint target-generation coverage of the
-admissible model class; optimality concerns all legal histories within a given
-member. Under the theorem's hypotheses, including reference consistency,
+$\epsilon$. Universality is witnessed by an admissible model family fixed before target
+selection, with each size-indexed member able to approximate every pure and mixed
+state to any positive tolerance. Optimality is the infimum over all admissible
+successful histories for a fixed member, target, and tolerance. Under the
+theorem's hypotheses, including reference consistency,
 faithful transcription, and reference admissibility, RCC converts the target's
 one-shot structural gap into a lower bound on every such history and hence on
 the global process optimum. Final-state evidence can thus bound the minimum
@@ -293,7 +295,7 @@ $$
 
 under the model's stated analytic inputs.
 
-The legal program `0` prepares the target exactly in one slot, giving the
+The admissible program `0` prepares the target exactly in one slot, giving the
 matching upper bound. Thus the transparent fixed model satisfies
 
 $$
