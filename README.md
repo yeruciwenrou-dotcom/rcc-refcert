@@ -59,9 +59,14 @@ Structure supplied as a fixed background is represented in the reference;
 additional structure directed toward the target must be generated and counted.
 The reference, allowed dynamics, control language and program prior, success
 criterion, and atomic cost unit are fixed together before target selection.
-This complete specification defines the physical generation model.
+This complete specification defines the physical generation model. Complexity
+is therefore a relational physical quantity, measured relative to what the
+model supplies and charges.
 
 ### What RCC measures
+
+RCC is a structure-fair, model-relative framework for defining and
+lower-bounding quantum circuit complexity.
 
 For a fixed model, target, and accuracy $\epsilon$,
 $C_{\rm opt}^{(\epsilon)}$ is the infimum of the declared cost over all
