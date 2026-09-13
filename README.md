@@ -4,22 +4,18 @@
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22712591-blue)](https://doi.org/10.5281/zenodo.22712591)
 
 `rcc-refcert` is a Python research toolkit for
-**structure-fair quantum circuit complexity**.
-It helps researchers build and audit quantum generation models, verify
-reference certificates, and compute conditional lower bounds on quantum
-circuit complexity from terminal-state information.
+**structure-fair quantum circuit complexity**: how much must be spent to
+prepare a quantum state once the physical background, available operations,
+and cost rules have been fixed?
 
-Each model specifies the supplied resources, allowed quantum processes, and
-rules for counting description and generation costs. You can examine reference
-gain–cost assignments and develop new model and certificate constructions.
-The terminal-state tools apply this framework to quantum state preparation,
-using exact spectra or fixed-projector counts. Bundled examples provide
-reproducible numerical evidence,
-including a worked chain from a declared model to a lower bound on quantum
-state preparation cost.
+The package helps researchers build and audit quantum generation models,
+verify reference certificates, and compute conditional lower bounds on
+preparation cost from exact target spectra or predeclared measurement counts.
+Bundled examples connect a declared model to a reproducible lower-bound
+calculation. The same interfaces support new finite-control models and
+certificate constructions.
 
-The toolkit implements finite-control models, reference-certificate methods,
-and conditional target-state bounds from **Reference-Contingent Complexity
+These tools implement selected parts of **Reference-Contingent Complexity
 (RCC)**, introduced in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
 
@@ -31,6 +27,7 @@ and provides the notebooks and worked examples.
 
 | Goal | Entry point |
 |---|---|
+| Understand why the reference and resource accounting matter | [Conceptual introduction](#why-reference-contingent-complexity) |
 | Inspect the recorded evidence without running code | [Reference results](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/results/reference_report.md) |
 | Install the package and reproduce the reference results | [Install from PyPI](#install-from-pypi) |
 | Compute a bound from a target spectrum or fixed-projector counts | [Terminal-state bounds](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md) |
@@ -49,41 +46,62 @@ and provides the notebooks and worked examples.
 
 ## Why reference-contingent complexity
 
-RCC is a structure-fair, model-relative framework for defining and
-lower-bounding quantum circuit complexity. It asks how much of a target's
-structure must be generated when the physical background and available
-resources are fixed.
+Preparing a pure qubit illustrates why the resource accounting matters.
+A reset operation can produce $\lvert0\rangle$ in a single step, but the
+physical process that removes entropy may be absent from a gate count.
+Likewise, a supplied pure ancilla already contains structure that a
+preparation procedure can use. The same target can therefore have different
+costs depending on what the background supplies and which operations are
+charged.
 
-The same target state can have different preparation costs under different
-backgrounds. A reset channel, a supplied ancilla, or a short control macro may
-already carry structure that makes the target easier to prepare. RCC's
-**principle of structural fairness** requires this supplied structure to be
-represented in the reference or charged through the dynamics and resource
-coordinates. The generation model fixes the reference background, allowed
-operations, control language, program prior, success semantics, and cost unit
-together. Complexity is therefore a relational physical quantity, measured
-relative to that complete specification.
+RCC's **principle of structural fairness** makes that dependence explicit.
+Structure supplied as a fixed background is represented in the reference;
+additional structure directed toward the target must be generated and counted.
+The reference, allowed dynamics, control language and program prior, success
+criterion, and atomic cost unit are fixed together before target selection.
+This complete specification defines the physical generation model.
 
-Within a declared model, $C_{\rm opt}^{(\epsilon)}$ is the infimum of the cost
-over all admissible histories that prepare the target within accuracy
-$\epsilon$. Universality is witnessed by an admissible model family fixed before target
-selection, with each size-indexed member able to approximate every pure and mixed
-state to any positive tolerance. Optimality is the infimum over all admissible
-successful histories for a fixed member, target, and tolerance. Under the
-theorem's hypotheses, including reference consistency,
-faithful transcription, and reference admissibility, RCC converts the target's
-one-shot structural gap into a lower bound on every such history and hence on
-the global process optimum. Final-state evidence can thus bound the minimum
-cost without identifying an optimal preparation path.
+### What RCC measures
 
-Section II of the RCC paper formulates this physical model. Appendix F proves
-that the model class is nonempty and constructs an admissible qubit model family
-that can approximate arbitrary pure and mixed states; Appendix H supplies
-constructive finite-control qualification routes. This repository implements
-selected finite-control constructions from that chain, while Section III states
-the main lower-bound theorem. Researchers can use the package to check how a
-model's quantum dynamics, program weights, reference certificates, and
-description costs fit together.
+For a fixed model, target, and accuracy $\epsilon$,
+$C_{\rm opt}^{(\epsilon)}$ is the infimum of the declared cost over all
+admissible successful preparation histories. It asks for the least cost
+compatible with that model.
+
+The paper constructs an admissible model family fixed before target selection,
+whose size-indexed members can approximate arbitrary finite-dimensional pure
+and mixed states to any positive tolerance. This is the universality claim.
+The optimization is over preparation histories within a fixed member; the
+reference and cost rules remain part of the declared problem.
+
+### How the final state gives a lower bound
+
+Every successful history must leave the required structure in its final state.
+RCC quantifies the target's one-shot information gap relative to the reference
+and converts it into a cost lower bound using the model's atomic control
+bandwidth and transcription rules. Under the theorem's reference-consistency,
+faithful-transcription, and reference-admissibility hypotheses, this bound
+applies to every admissible preparation history and hence to their optimum.
+An endpoint measurement can thus certify a minimum cost without reconstructing
+the preparation history.
+
+The [paired-reset example](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/END_TO_END_EXAMPLE.md)
+makes the chain concrete. A qubit starts at the maximally mixed reference
+$I/2$. Two reset directions, to $\lvert0\rangle$ and $\lvert1\rangle$, are
+available before the target is chosen; their uniform average preserves the
+reference. For the target $\lvert0\rangle$, the one-shot gap is one bit.
+With the example's declared model constants and cost unit, the theorem gives
+a lower bound of one atomic reset slot. A permitted one-slot preparation
+supplies the matching upper bound, so the optimum is exactly one in this
+fixed model.
+
+The package exposes the model inputs, numerical certificate checks, and
+scalar cost inversion that make such examples reproducible. The
+[scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/SCIENTIFIC_SCOPE.md)
+explains the evidence each calculation supplies; the
+[paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md)
+connects the implementation to the full model construction and lower-bound
+theorem.
 
 ## What this repository implements
 
