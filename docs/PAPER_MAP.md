@@ -5,10 +5,8 @@ This map locates the repository inside the argument of
 mathematical objects to executable checks.
 
 > **Manuscript alignment.** This source tree is aligned with version 4 of the
-> RCC manuscript, currently being prepared as the next arXiv revision. The
-> publicly available paper is presently
-> [arXiv:2509.18205v3](https://arxiv.org/abs/2509.18205v3); appendix labels and
-> equation numbers in this repository therefore refer to manuscript version 4.
+> [RCC manuscript](https://arxiv.org/abs/2509.18205). Appendix labels and
+> equation numbers refer to manuscript version 4.
 
 ## Theory-to-software chain
 

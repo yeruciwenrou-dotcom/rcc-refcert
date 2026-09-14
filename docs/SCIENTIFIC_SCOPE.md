@@ -29,8 +29,8 @@ on preparation cost.
 
 The implementation fixes program-semidensity and certificate conventions and
 reproduces selected constructions from Appendices F and H of RCC manuscript
-version 4. The [paper map](PAPER_MAP.md) explains its relation to the publicly
-available paper and identifies the implemented objects.
+version 4. The [paper map](PAPER_MAP.md) locates the implemented objects and
+checks in the RCC manuscript.
 
 Appendix F proves that the model class is nonempty and constructs an admissible
 qubit model family with approximately universal pure- and mixed-state
