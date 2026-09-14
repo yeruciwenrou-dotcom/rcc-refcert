@@ -186,8 +186,9 @@ verification dependencies, runs the independent test suite, checks both frozen
 reference files, and writes fresh evidence to `generated_results/`. Later runs
 reuse the installation, refreshing it when the package metadata, dependency
 lock, or package version changes.
-The three reference cases should all report `MATCH`; the designed route failure
-and nonhalting boundary are described in the reference-case table below.
+The reference checks should report `MATCH`. The three cases retain their
+expected outcomes: `PASS`, `EXPECTED ROUTE FAILURE`, and `EXPECTED BOUNDARY`,
+as described in the reference-case table below.
 
 To regenerate and compare the scientific evidence without running the
 independent tests:

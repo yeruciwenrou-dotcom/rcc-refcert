@@ -220,7 +220,8 @@ match the model identity, dimension, and uniform reference. Preserve the
 physical and transcription arguments alongside the task; a model audit alone
 does not supply them. Freeze a counts protocol only after this task is settled.
 The [terminal-state guide](TERMINAL_BOUNDS.md#connect-an-h3-or-h4-proof-object)
-describes the adapter, its numerical evidence, and the required inputs.
+includes a runnable certificate-to-bound example and explains the adapter's
+numerical evidence and required inputs.
 
 ## Turning a model into a reference case
 

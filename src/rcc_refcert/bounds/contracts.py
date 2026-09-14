@@ -121,7 +121,7 @@ class Task:
         t = keys(m["transcription"], {"mode", "a", "gamma_bits"}, "transcription")
         if t["mode"] != "exact":
             raise UnsupportedContract(
-                "approximate TC is not implemented; C.5 is a deferred branch"
+                "approximate TC is not implemented; see Appendix C.5"
             )
         a = rational(t["a"], "transcription.a")
         gamma = rational(t["gamma_bits"], "transcription.gamma_bits")

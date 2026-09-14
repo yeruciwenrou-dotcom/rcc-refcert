@@ -223,7 +223,7 @@ class ContractTests(unittest.TestCase):
         self.s = json.loads((ROOT / "data/spectrum.json").read_text())
         self.c = json.loads((ROOT / "data/projection_counts.json").read_text())
 
-    def test_d47_record_and_evidence_separation(self):
+    def test_audit_record_and_evidence_separation(self):
         a = bound_from_spectrum(self.s)
         b = bound_from_counts(self.c)
         self.assertIsNone(a["confidence"])

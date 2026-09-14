@@ -175,8 +175,8 @@ The kernel also supports research on finite-control processes. A researcher can
 compute a terminating program semidensity, compare independent realizations,
 test supplied proof objects, and locate operations whose description cost is
 too small for their reference gain. These tasks make the repository a testbed
-for model design, cost assignment, negative witnesses, and rigorous certificate
-verification.
+for model design, cost assignment, negative witnesses, and numerical
+verification of supplied certificates.
 
 The terminal-state interfaces also let researchers study how target spectra,
 preparation tolerance, sampling budgets, and model overhead change a conditional

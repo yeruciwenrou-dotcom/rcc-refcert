@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Align the guides and paired-reset result with Eq. (III.1) and the audit-record
+  requirements in Appendix D.6. Calculated bounds and record schemas are unchanged.
+- Add a runnable H.3 certificate-to-bound example to the terminal-state guide
+  and notebook, showing the propagated upper constant and numerical evidence.
+
 ## 0.1.2 (2026-09-12)
 
 - Add conditional terminal-state cost bounds from complete exact spectra and

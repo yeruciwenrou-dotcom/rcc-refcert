@@ -23,7 +23,11 @@ def _python_blocks(path: Path) -> str:
 def test_reader_facing_python_examples_execute() -> None:
     environment = dict(os.environ)
     environment["PYTHONPATH"] = str(ROOT / "src")
-    for relative in ("README.md", "docs/MODEL_GUIDE.md"):
+    for relative in (
+        "README.md",
+        "docs/MODEL_GUIDE.md",
+        "docs/TERMINAL_BOUNDS.md",
+    ):
         path = ROOT / relative
         completed = subprocess.run(
             [sys.executable, "-c", _python_blocks(path)],
