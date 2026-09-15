@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.3 (Unreleased)
+## 0.1.3 (2026-09-15)
 
 - Align the guides and paired-reset result with RCC manuscript version 4,
   including Eq. (III.1) and the audit-record requirements in Appendix D.6.
