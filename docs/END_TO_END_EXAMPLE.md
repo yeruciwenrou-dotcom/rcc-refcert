@@ -113,7 +113,7 @@ same atomic control bandwidth; the process-side cost remains expressed in
 resource slots.
 
 With $\beta_U=\gamma+\chi_U=0$, the main lower-bound theorem in Section III,
-Theorem 3.1 and Eq. (3.1), together with the canonical inversion in Appendix A,
+Theorem 3.1 and Eq. (III.1), together with the canonical inversion in Appendix A,
 Eqs. (A.45)–(A.46), gives
 
 $$
@@ -165,5 +165,5 @@ establish the reference condition for this model despite the H.70 failure.
 | local gain, H.70 diagnostic, H.76 re-encoding, and H.77 aggregate balance | Appendix H, Eqs. (H.67)–(H.77) |
 | max-relative entropy input | Appendix A, Eqs. (A.6)–(A.7) |
 | R-structon reporting unit | Section II, Definition 2.6 |
-| main universal-optimum lower bound | Section III, Theorem 3.1 and Eq. (3.1) |
+| main universal-optimum lower bound | Section III, Theorem 3.1 and Eq. (III.1) |
 | generalized inverse and canonical slot inversion | Appendix A, Eqs. (A.45)–(A.46) |

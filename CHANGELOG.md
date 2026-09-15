@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.3 (2026-09-15)
+
+- Align the guides and paired-reset result with RCC manuscript version 4,
+  including Eq. (III.1) and the audit-record requirements in Appendix D.6.
+- Add a runnable H.3 certificate-to-bound example to the terminal-state guide
+  and notebook, showing the propagated upper constant and numerical evidence.
+- Clarify reference-dependent resource accounting, model-qualification scope
+  and expected reference-check outcomes.
+
+Numerical algorithms, calculated bounds and record schemas are unchanged.
+Records retain same-version scalar replay; use 0.1.2 to replay records saved
+with that release.
+
 ## 0.1.2 (2026-09-12)
 
 - Add conditional terminal-state cost bounds from complete exact spectra and

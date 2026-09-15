@@ -1,4 +1,4 @@
-"""Reference end-to-end records following C.1/C.2 and D.47.
+"""Conditional bounds following Appendices C.1/C.2 and D.6 audit-record requirements.
 
 All process conclusions remain conditional on the supplied model premises.
 The scalar calculations share a single implementation across API and CLI.

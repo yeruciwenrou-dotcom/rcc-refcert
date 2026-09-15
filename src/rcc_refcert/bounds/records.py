@@ -29,7 +29,7 @@ def _interval(raw: dict, name: str) -> tuple[Fraction, Fraction]:
 
 
 def validate_record(record: dict) -> None:
-    """Check D.47 relationships without certifying the supplied physics."""
+    """Check Appendix D.6 audit-record fields and their software-level consistency."""
     try:
         if (
             canonical_hash(record["provenance"]["input_snapshot"])

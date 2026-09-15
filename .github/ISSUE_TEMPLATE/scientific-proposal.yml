@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use this form for a concrete extension to the finite-control RCC research kernel. Proposals may introduce a model, certificate method, cost assignment, negative witness, or verification technique. The form keeps the scientific question distinct from the claims the current package can already verify.
+        Use this form for a concrete extension to the RCC research toolkit. Proposals may introduce a model, certificate method, cost assignment, terminal-state bound, sampling protocol, negative witness, or verification technique. The form keeps the scientific question distinct from the claims the current package can already verify.
   - type: textarea
     id: question
     attributes:
@@ -23,6 +23,7 @@ body:
         - Bellman–Choi certificate
         - Reference-potential certificate
         - Reference gain–cost encoding
+        - Terminal-state bounds and sampling
         - Family-uniform or scaling analysis
         - Numerical verification
         - Interface or simulation backend

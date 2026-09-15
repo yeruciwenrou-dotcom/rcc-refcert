@@ -5,10 +5,8 @@ This map locates the repository inside the argument of
 mathematical objects to executable checks.
 
 > **Manuscript alignment.** This source tree is aligned with version 4 of the
-> RCC manuscript, currently being prepared as the next arXiv revision. The
-> publicly available paper is presently
-> [arXiv:2509.18205v3](https://arxiv.org/abs/2509.18205v3); appendix labels and
-> equation numbers in this repository therefore refer to manuscript version 4.
+> [RCC manuscript](https://arxiv.org/abs/2509.18205). Appendix labels and
+> equation numbers refer to manuscript version 4.
 
 ## Theory-to-software chain
 
@@ -79,7 +77,7 @@ calculations in one declared model:
 | fixed-model qualification | $C^\star=1$; supplied H.3/H.4 candidates pass; H.77 residual $0$ | Appendix H, H.3–H.4 and Eqs. (H.67)–(H.77) |
 | endpoint gap | $D_{\max}^{0}(\lvert0\rangle\langle0\rvert\Vert I/2)=1$ bit | Appendix A, Eqs. (A.6)–(A.7) |
 | RCC reporting unit | $1\thinspace{\rm st}_R=g_R=1$ bit | Section II, Definition 2.6 |
-| main lower bound and cost inversion | $g_R=1$, $a=\gamma=\chi_U=0$, hence $C_{\rm opt}^{(0)}\ge1$ slot | Section III, Theorem 3.1 and Eq. (3.1); Appendix A, Eqs. (A.45)–(A.46) |
+| main lower bound and cost inversion | $g_R=1$, $a=\gamma=\chi_U=0$, hence $C_{\rm opt}^{(0)}\ge1$ slot | Section III, Theorem 3.1 and Eq. (III.1); Appendix A, Eqs. (A.45)–(A.46) |
 | matching upper-bound witness | program `0` prepares the target exactly in one slot, hence $C_{\rm opt}^{(0)}\le1$ and the fixed-model value is $1$ | declared paired-reset model and executable program semantics |
 
 The software computes the finite matrices and checks supplied proof objects.
@@ -106,7 +104,7 @@ Complexity Window Thermodynamics (CWT) interfaces.
 | Appendix A.7 and Appendices C.1–C.2 | canonical inversion with conservative scalar endpoints and declared cost units | `bounds/scalar.py`, `bounds/api.py` |
 | Eq. (C.18) and Appendix D.3 | convert a fixed-projector probability lower endpoint to a one-shot information lower bound | `bounds/information.py` |
 | Appendix D.1, Eq. (D.5) | one-sided Hoeffding endpoint for a predeclared projector and fixed-N iid sampling | `bounds/contracts.py`, `bounds/information.py` |
-| Appendix D.6, Eq. (D.47) | model, path, calibration, reference, and evidence fields for the implemented scalar routes | `bounds/records.py` |
+| Appendix D.6, audit-record requirements (pp. 62–63) | model, path, calibration, reference, and evidence fields for the implemented scalar routes | `bounds/records.py` |
 | Appendices H.3–H.4 | verify a supplied proof object and transfer its usable upper constant into the task | `bounds/certificates.py` |
 
 Eq. (D.5) is the Hoeffding formula in Appendix D.1; Appendix D.5 is the

@@ -351,7 +351,7 @@ def run_paired_reset_example(
             ),
             "information_gap": "Appendix A, Eqs. (A.6)-(A.7)",
             "reporting_unit": "Section II, Definition 2.6",
-            "main_lower_bound": "Section III, Theorem 3.1 and Eq. (3.1)",
+            "main_lower_bound": "Section III, Theorem 3.1 and Eq. (III.1)",
             "cost_inversion": (
                 "Section III, Theorem 3.1; Appendix A, Eqs. (A.45)-(A.46)"
             ),

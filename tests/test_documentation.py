@@ -23,7 +23,11 @@ def _python_blocks(path: Path) -> str:
 def test_reader_facing_python_examples_execute() -> None:
     environment = dict(os.environ)
     environment["PYTHONPATH"] = str(ROOT / "src")
-    for relative in ("README.md", "docs/MODEL_GUIDE.md"):
+    for relative in (
+        "README.md",
+        "docs/MODEL_GUIDE.md",
+        "docs/TERMINAL_BOUNDS.md",
+    ):
         path = ROOT / relative
         completed = subprocess.run(
             [sys.executable, "-c", _python_blocks(path)],
@@ -249,7 +253,7 @@ def test_manuscript_alignment_is_explicit_and_scoped() -> None:
         prose = " ".join(re.sub(r"(?m)^>\s*", "", alignment.group()).split())
         assert "aligned with version 4" in prose
         assert "manuscript version 4" in prose
-        assert "[arXiv:2509.18205v3](https://arxiv.org/abs/2509.18205v3)" in prose
+        assert "[RCC manuscript](https://arxiv.org/abs/2509.18205)" in prose
 
 
 def test_github_markdown_avoids_known_unsupported_math_syntax() -> None:

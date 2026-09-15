@@ -8,7 +8,7 @@ admissibility (`RA`) remain separately supplied model arguments.
 
 ## First calculation
 
-Install with `python -m pip install "rcc-refcert==0.1.2"`, then run:
+Install with `python -m pip install "rcc-refcert==0.1.3"`, then run:
 
 ```bash
 rcc-refcert bound template spectrum > spectrum.json
@@ -29,7 +29,8 @@ print(render_record(result))
 ```
 
 [RCC_Bounds_Quickstart.ipynb](../RCC_Bounds_Quickstart.ipynb) walks through
-tolerance changes, a pure target, protocol declaration, counts and replay.
+tolerance changes, a pure target, certificate binding, protocol declaration,
+counts and replay.
 Follow the [Jupyter setup](../README.md#jupyter-notebook) to install the
 optional dependencies and register **Python (rcc-refcert)** with the same
 interpreter that runs the package.
@@ -173,6 +174,47 @@ that actual finite-control model. The task model ID must match the model name,
 the dimensions must match, and the reference matrix must be the nominal uniform
 state. The returned task records hashes of the actual binary model and proof
 object, the numerical evidence level, tolerance, method and source.
+
+The fixed eight-output model supplies a small runnable example. Build an H.3
+candidate from its linear value map, then let the adapter verify it and bind
+the resulting upper constant to a new spectrum task:
+
+```python
+from rcc_refcert import BellmanChoiCertificate, linear_value_choi_envelopes
+from rcc_refcert.bounds import (
+    bound_from_spectrum,
+    load_template,
+    replay_record,
+    with_reference_certificate,
+)
+from rcc_refcert.bounds.terminal_model import build_terminal_model
+
+model = build_terminal_model()
+certificate = BellmanChoiCertificate(linear_value_choi_envelopes(model), 1.0)
+certified_request = load_template("spectrum")
+analytic_result = bound_from_spectrum(certified_request)
+certified_request["task"] = with_reference_certificate(
+    certified_request["task"],
+    model,
+    certificate,
+    source="H.3 value-map candidate for the fixed eight-output model",
+)
+reference = certified_request["task"]["model"]["reference_domination"]
+certified_result = bound_from_spectrum(certified_request)
+print("Reference evidence:", reference["evidence"]["level"])
+print("Propagated C upper bound:", reference["upper_constant"])
+print("Analytic-model lower bound:", analytic_result["cost"]["lower_bound_slots"])
+print("Certificate-based lower bound:", certified_result["cost"]["lower_bound_slots"])
+print("Integer lower bound:", certified_result["cost"]["integer_lower_bound_slots"])
+print("Scalar replay matches:", replay_record(certified_result)["matches"])
+```
+
+The template's analytic declaration uses $C_U=1$. The adapter includes the
+matrix verifier's correction budget in its upper constant, so the continuous
+lower bound is slightly smaller: about $0.28266563547$ slots instead of
+$0.28266563552$. Both calculations give integer lower bound one, and the
+certificate evidence remains `numerical`. An H.4 reference-potential candidate
+uses the same adapter entry point.
 
 New bindings identify their `input_hash_format` as
 `rcc-refcert.matrix-bytes.v1`. Arrays are hashed in bounded C-order chunks,

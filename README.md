@@ -1,7 +1,7 @@
 # rcc-refcert
 
 [![PyPI](https://img.shields.io/pypi/v/rcc-refcert.svg?label=PyPI)](https://pypi.org/project/rcc-refcert/)
-[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22712591-blue)](https://doi.org/10.5281/zenodo.22712591)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22544967-blue)](https://doi.org/10.5281/zenodo.22544967)
 
 `rcc-refcert` is a Python research toolkit for
 **structure-fair quantum circuit complexity**: how much must be spent to
@@ -39,10 +39,8 @@ and provides the notebooks and worked examples.
 | Construct or audit a new finite-control model | [Model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/MODEL_GUIDE.md) |
 
 > **Manuscript alignment.** This source tree is aligned with version 4 of the
-> RCC manuscript, currently being prepared as the next arXiv revision. The
-> publicly available paper is presently
-> [arXiv:2509.18205v3](https://arxiv.org/abs/2509.18205v3); appendix labels and
-> equation numbers in this repository therefore refer to manuscript version 4.
+> [RCC manuscript](https://arxiv.org/abs/2509.18205). Appendix labels and
+> equation numbers refer to manuscript version 4.
 
 ## Why reference-contingent complexity
 
@@ -150,7 +148,7 @@ python3 -m rcc_refcert reproduce --check
 Use `python` instead of `python3` when that is the interpreter name in your
 environment. The command-line tool and Python API work outside a source
 checkout; the frozen reference data are included in the installed package.
-For an exact version, install `rcc-refcert==0.1.2`.
+For an exact version, install `rcc-refcert==0.1.3`.
 
 The source quickstart below installs the code and runs the independent test
 suite. The checkout also provides both notebooks, worked examples, and the full
@@ -186,8 +184,9 @@ verification dependencies, runs the independent test suite, checks both frozen
 reference files, and writes fresh evidence to `generated_results/`. Later runs
 reuse the installation, refreshing it when the package metadata, dependency
 lock, or package version changes.
-The three reference cases should all report `MATCH`; the designed route failure
-and nonhalting boundary are described in the reference-case table below.
+The reference checks should report `MATCH`. The three cases retain their
+expected outcomes: `PASS`, `EXPECTED ROUTE FAILURE`, and `EXPECTED BOUNDARY`,
+as described in the reference-case table below.
 
 To regenerate and compare the scientific evidence without running the
 independent tests:
@@ -462,8 +461,8 @@ python -m rcc_refcert reproduce --check
 python -m build
 ```
 
-Version 0.1.2 is archived on
-[Zenodo](https://doi.org/10.5281/zenodo.22712591).
+Software releases are archived on
+[Zenodo](https://doi.org/10.5281/zenodo.22544967).
 For reproducible citations, use the version DOI of the release you ran. The
 [all-versions DOI](https://doi.org/10.5281/zenodo.22544967) represents the project
 across releases.
