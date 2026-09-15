@@ -1,7 +1,7 @@
 # rcc-refcert
 
 [![PyPI](https://img.shields.io/pypi/v/rcc-refcert.svg?label=PyPI)](https://pypi.org/project/rcc-refcert/)
-[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22544967-blue)](https://doi.org/10.5281/zenodo.22544967)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22768920-blue)](https://doi.org/10.5281/zenodo.22768920)
 
 `rcc-refcert` is a Python research toolkit for
 **structure-fair quantum circuit complexity**: how much must be spent to
@@ -461,8 +461,8 @@ python -m rcc_refcert reproduce --check
 python -m build
 ```
 
-Software releases are archived on
-[Zenodo](https://doi.org/10.5281/zenodo.22544967).
+Version 0.1.3 is archived on
+[Zenodo](https://doi.org/10.5281/zenodo.22768920).
 For reproducible citations, use the version DOI of the release you ran. The
 [all-versions DOI](https://doi.org/10.5281/zenodo.22544967) represents the project
 across releases.
