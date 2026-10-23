@@ -83,10 +83,10 @@ C_{\rm opt}^{(\epsilon)}(\rho;\mathfrak M_R)
 $$
 
 $D_{\max}^{\epsilon}$ uses normalized states within
-$T(\tau,\rho)=\tfrac12\|\tau-\rho\|_1\le\epsilon$ of the target, with
+$T(\tau,\rho)=\frac{1}{2}\Vert\tau-\rho\Vert_1\le\epsilon$ of the target, with
 $0\le\epsilon\le1$. The reference constant satisfies $C_U\ge1$.
 $F_{g_R,a}$ inverts
-$g_R L+a\log_2\max\{1,L\}$ and returns zero for nonpositive inputs.
+$g_R L+a\log_2\max\lbrace1,L\rbrace$ and returns zero for nonpositive inputs.
 The full information input decomposes as
 
 $$
@@ -94,7 +94,7 @@ D_{\max}^{\epsilon}(\rho\Vert\sigma_R)
 =g_R C_R(\rho)+\Delta_{\rm spec}(\rho)-\delta_{\rm sm}(\rho,\epsilon),
 $$
 
-where $H_{\min}(\rho)=-\log_2\|\rho\|_\infty$,
+where $H_{\min}(\rho)=-\log_2\Vert\rho\Vert_\infty$,
 $\Delta_{\rm spec}=S(\rho)-H_{\min}(\rho)$ is the spectral correction,
 and $\delta_{\rm sm}=D_{\max}-D_{\max}^{\epsilon}$ is the smoothing loss.
 $C_R$ is the linear leading term; the stated smoothing regularity and uniform
@@ -153,7 +153,7 @@ For one declared reference state $\sigma_R$, Eq. (H.34) gives the minimum
 domination constant
 
 $$
-C^\star=\left\|\sigma_R^{-1/2}M\sigma_R^{-1/2}\right\|_\infty
+C^\star=\left\Vert\sigma_R^{-1/2}M\sigma_R^{-1/2}\right\Vert_\infty
 $$
 
 on compatible support. Positive mass in the kernel of the reference makes the
