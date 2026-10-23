@@ -19,7 +19,9 @@
   and notebook steps for complete evidence transfer.
 - Organize the README around reference reproduction, custom-model analysis,
   and recipient revalidation. Clarify installation by version, adapting the
-  examples, and interpreting shared evidence.
+  examples, and interpreting shared evidence. Introduce certificate names
+  before appendix labels, use one quickstart interpreter throughout the
+  tutorials, and separate input-budget details from the calculation path.
 - Align the scientific explanations with the V4 theorem: distinguish the
   state-side RCC leading term, full one-shot lower bound and process optimum;
   clarify H.3/H.70 logic, prefix-code mass, and the external measurement

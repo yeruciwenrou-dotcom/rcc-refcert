@@ -1,30 +1,32 @@
 # Terminal-state cost bounds
 
-The `bound` command and `rcc_refcert.bounds` API turn a declared target and
-model into a conditional lower bound on preparation cost in atomic slots.
-They accept a complete exact spectrum or counts from one fixed projector.
-Reference consistency (`RCon`), faithful transcription (`TC`), and reference
-admissibility (`RA`) remain separately supplied model arguments.
+The `bound` command and `rcc_refcert.bounds` API calculate a lower bound on
+state-preparation cost in atomic slots. Supply a complete exact spectrum or
+counts from one projector selected before measurement, together with the
+model's reference and cost assumptions. The
+[scientific scope](SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
+explains how reference consistency, faithful transcription and reference
+admissibility qualify the resulting cost bound.
 
 ## First calculation
 
-From the [source checkout](../README.md#quick-start) for this version, install
-with `python -m pip install .`. The current source includes candidate
-preparation and complete analysis bundles. The published `rcc-refcert==0.1.3`
-package also supports the basic spectrum, counts and scalar-replay commands
-below.
-
-After installation, run:
+Follow the [source quickstart](../README.md#quick-start), then run these
+commands from the checkout root. On Windows, substitute
+`.venv\Scripts\python.exe`. If you installed into your own active environment,
+use its interpreter instead. The published 0.1.3 package also supports these
+basic spectrum, counts and scalar-replay commands.
 
 ```bash
-rcc-refcert bound template spectrum > spectrum.json
-rcc-refcert bound spectrum spectrum.json
-rcc-refcert bound spectrum spectrum.json --format json > bound.json
-rcc-refcert bound replay bound.json
+.venv/bin/python -m rcc_refcert bound template spectrum > spectrum.json
+.venv/bin/python -m rcc_refcert bound spectrum spectrum.json
+.venv/bin/python -m rcc_refcert bound spectrum spectrum.json --format json > bound.json
+.venv/bin/python -m rcc_refcert bound replay bound.json
 ```
 
-Templates are installed package resources, so these commands also work outside
-the checkout. The equivalent Python interface is:
+The template gives an integer-slot lower bound of **one**. The JSON file
+preserves the inputs and result for the final replay command. Templates are
+installed package resources; to work outside the checkout, use the full path
+to the installed interpreter. The equivalent Python interface is:
 
 ```python
 from rcc_refcert.bounds import load_template, bound_from_spectrum, render_record
@@ -98,33 +100,16 @@ of `calculator_enclosure_slots` encloses the calculation and is **not** a
 physical upper bound on the optimum cost. Partial inversion results retain a
 conservative endpoint and report their numerical status.
 
-The input budgets include 4096 eigenvalues, a 65536-bit aggregate denominator
-estimate before spectrum arithmetic, 8192-bit rational inputs, bounded exact
-decimal exponents, 32 levels of JSON nesting, and a 2 MB CLI input. Counts
-are limited to $10^{12}$ samples. Scalar strings allow 512 characters for decimal notation and 5000
-for integer or fraction notation; all forms share the rational bit budget.
-User decimals have an absolute exponent limit of 2048. Serialized result
-decimals have a separate 512-character and absolute exponent limit of 8192,
-allowing outward-rounded endpoints to represent accepted exact inputs.
-Inputs and records beyond their respective budgets fail explicitly.
-
-Before reference allocation, hashing or verification, the H.3/H.4 adapter
-checks an output-dimension limit of 1024 and a matrix-element estimate. The
-estimate sums numeric input entries, one family of Choi blocks (H.3) or control
-matrices (H.4), the output matrix, and the block-level correction system.
-Its default limit is 1048576 elements; pass `limits=ComputationLimits(...)`
-from `rcc_refcert` to adjust `max_matrix_elements`. This is an algorithm
-preflight estimate, not a peak-memory or execution-time bound. Direct H.3/H.4
-verification, task binding, and bundle verification share the certificate
-matrix preflight. The 1024 output-dimension cap is specific to task binding.
+See [Numerical and input limits](#numerical-and-input-limits) for accepted
+input sizes and certificate budgets.
 
 ## Fixed-projector counts
 
 Before collecting data, prepare and preserve an acquisition protocol:
 
 ```bash
-rcc-refcert bound template protocol > protocol-input.json
-rcc-refcert bound prepare-protocol protocol-input.json > frozen-protocol.json
+.venv/bin/python -m rcc_refcert bound template protocol > protocol-input.json
+.venv/bin/python -m rcc_refcert bound prepare-protocol protocol-input.json > frozen-protocol.json
 ```
 
 The protocol binds the task, witness ID, projector rank, fixed sample size and
@@ -264,6 +249,28 @@ one. A passing matrix result with a larger constant produces a fresh bound and
 does not by itself support the historical bound. For counts, any changed bound
 is reported as a separate derivation from the original acquisition event;
 the protocol and dataset remain unchanged.
+
+## Numerical and input limits
+
+The input budgets include 4096 eigenvalues, a 65536-bit aggregate denominator
+estimate before spectrum arithmetic, 8192-bit rational inputs, bounded exact
+decimal exponents, 32 levels of JSON nesting, and a 2 MB CLI input. Counts
+are limited to $10^{12}$ samples. Scalar strings allow 512 characters for decimal notation and 5000
+for integer or fraction notation; all forms share the rational bit budget.
+User decimals have an absolute exponent limit of 2048. Serialized result
+decimals have a separate 512-character and absolute exponent limit of 8192,
+allowing outward-rounded endpoints to represent accepted exact inputs.
+Inputs and records beyond their respective budgets fail explicitly.
+
+Before reference allocation, hashing or verification, the H.3/H.4 adapter
+checks an output-dimension limit of 1024 and a matrix-element estimate. The
+estimate sums numeric input entries, one family of Choi blocks (H.3) or control
+matrices (H.4), the output matrix, and the block-level correction system.
+Its default limit is 1048576 elements; pass `limits=ComputationLimits(...)`
+from `rcc_refcert` to adjust `max_matrix_elements`. This is an algorithm
+preflight estimate, not a peak-memory or execution-time bound. Direct H.3/H.4
+verification, task binding, and bundle verification share the certificate
+matrix preflight. The 1024 output-dimension cap is specific to task binding.
 
 ## Records, zero results and replay
 

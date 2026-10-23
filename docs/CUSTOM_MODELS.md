@@ -12,26 +12,27 @@ reverification. Both use ordinary NumPy arrays and the public Python API.
 
 ## Run the first example
 
-Get the **0.2.0rc1 source checkout** using the
-[source installation instructions](../README.md#quick-start). From its root,
-use your active Python 3.10 or newer environment:
+Follow the [0.2.0rc1 source quickstart](../README.md#quick-start), then run
+these commands from the checkout root:
 
 ```bash
-python -m pip install .
-python examples/custom_model_workflow.py --bundle alternating.rccbundle
-python -m rcc_refcert bundle verify alternating.rccbundle
+.venv/bin/python examples/custom_model_workflow.py --bundle alternating.rccbundle
+.venv/bin/python -m rcc_refcert bundle verify alternating.rccbundle
 ```
 
-If you used the quickstart environment, replace `python` in this guide with
-`.venv/bin/python` on macOS/Linux or `.venv\Scripts\python.exe` on Windows;
-the package is already installed there. The published 0.1.3 package provides
-the earlier certificate and scalar-bound interfaces. These candidate and
-complete-bundle commands require the current source.
+All commands in this guide use that environment. On Windows, substitute
+`.venv\Scripts\python.exe`. If you installed the checkout into your own active
+environment, use its interpreter instead. These candidate and bundle
+interfaces require 0.2.0rc1; the published 0.1.3 package provides the earlier
+certificate and scalar-bound interfaces.
 
-The alternating example reports `candidate_ready` and an H.3 `pass`, alongside
-the deliberately failed local H.70 route. The final
-command performs fresh verification of the saved inputs. Choose an unused
-output filename for each saved analysis; existing bundles are preserved.
+The example builds a **Bellman–Choi certificate (H.3)**, a set of matrices
+used to bound the code-weighted sum of terminating outputs relative to the
+reference.
+Expect `candidate_ready` and an H.3 `pass`. The local gain–cost test (H.70)
+deliberately fails; the model can still be certified by H.3.
+The second command verifies the saved inputs afresh. Choose an unused
+output filename for each analysis; existing bundles are preserved.
 
 ## Declare the model
 
@@ -55,10 +56,11 @@ useful way to distinguish a failed sufficient test from a failed model.
 
 ## Prepare and verify a candidate
 
-`prepare_bellman_choi(model, tol=..., limits=...)` wraps the existing stable
-full-space linear construction. It returns a `CandidatePreparation` with a
-certificate, diagnostics, and a resource estimate. Its statuses describe what
-happened during construction:
+Call `prepare_bellman_choi(model, tol=..., limits=...)` to construct a
+Bellman–Choi candidate. The helper solves a linear system when the model's
+full transient evolution is stable. It returns a `CandidatePreparation` with
+the candidate, diagnostics and a resource estimate. Read its status before
+passing the candidate to the verifier:
 
 | Status | Meaning | Next step |
 |---|---|---|
@@ -67,12 +69,6 @@ happened during construction:
 | `not_applicable` | The full-space stable inverse does not apply | Supply a separately derived candidate or choose an applicable route |
 | `inconclusive` | Numerical work did not resolve a usable candidate | Inspect the diagnostics and numerical conditioning |
 | `resource_limit` | The request exceeds its declared computation budget | Reduce the problem or explicitly change the budget |
-
-`resource_estimate` is diagnostic: counts through 256 bits remain integers;
-larger counts are strings reporting their bit length and explicitly omitting
-the decimal expansion. Admission checks still compare exact integers. Direct
-verifiers raise `ResourceLimitError`, whose `estimate` and `limit` attributes
-retain those exact integers, while its message uses the same bounded summary.
 
 The central sequence in the example is:
 
@@ -89,9 +85,8 @@ report = verify_bellman_choi(model, prepared.certificate)
 print(report.outcome.value, report.constant)
 ```
 
-Construction does not establish a certificate. `report.constant` becomes a
-usable numerical upper constant only when the verifier passes. For this model,
-the passing upper constant is approximately `1.26086956534`; the analytic
+After verification passes, `report.constant` gives the usable numerical
+upper constant. Here it is approximately `1.26086956534`; the analytic
 $29/23$ is a separate comparison. The saved bundle contains the actual candidate
 and numerical inputs.
 
@@ -105,8 +100,8 @@ outside this helper's scope.
 Run the second example from the checkout:
 
 ```bash
-python examples/cyclic_reset_workflow.py --bundle cyclic-reset.rccbundle
-python -m rcc_refcert bundle verify cyclic-reset.rccbundle --output cyclic-reset-verification.json
+.venv/bin/python examples/cyclic_reset_workflow.py --bundle cyclic-reset.rccbundle
+.venv/bin/python -m rcc_refcert bundle verify cyclic-reset.rccbundle --output cyclic-reset-verification.json
 ```
 
 [`cyclic_reset_workflow.py`](../examples/cyclic_reset_workflow.py) declares four
@@ -120,8 +115,8 @@ model; a hardware gate decomposition would define a different cost problem.
 The reference and initial state are $I/16$. The complementary resets have a
 reference-preserving average. The weighted halting image is $\sigma/4$ and the
 weighted continuation image is $3\sigma/4$. These relations supply the explicit
-H.4 candidate used in the script. Its numerical verifier returns a conservative
-upper constant close to `1.00000000010`.
+reference-potential candidate (H.4) used in the script. Its verifier returns
+a conservative upper constant close to `1.00000000010`.
 
 The fixed model supplies the external premises recorded in the task:
 
@@ -184,8 +179,8 @@ The register's H.4 candidate passes with the default tolerance. Its full-space
 H.3 candidate illustrates a different numerical behavior:
 
 ```bash
-python examples/cyclic_reset_workflow.py --diagnose-h3
-python examples/cyclic_reset_workflow.py --h3-tolerance 1e-8
+.venv/bin/python examples/cyclic_reset_workflow.py --diagnose-h3
+.venv/bin/python examples/cyclic_reset_workflow.py --h3-tolerance 1e-8
 ```
 
 The first command preserves the default H.3 `inconclusive` result. Local
@@ -211,6 +206,12 @@ This distinction matters even for small registers: the default full-space
 construction exceeds its budget at five qubits, while a compact H.4 candidate
 can remain within its certificate budget. A resource refusal identifies the
 requested calculation, not the validity of the model.
+
+`resource_estimate` is diagnostic: counts through 256 bits remain integers;
+larger counts are strings reporting their bit length and explicitly omitting
+the decimal expansion. Admission checks still compare exact integers. Direct
+verifiers raise `ResourceLimitError`, whose `estimate` and `limit` attributes
+retain those exact integers, while its message uses the same bounded summary.
 
 ## Share the analysis
 

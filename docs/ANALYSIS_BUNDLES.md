@@ -1,10 +1,11 @@
 # Share and reverify an analysis
 
-An analysis bundle preserves the complete finite input needed to check an
-H.3 or H.4 certificate: the model, raw numerical arrays, candidate proof,
-numerical controls, and any supported terminal-state requests. It also keeps
-the historical verification and bound records. A recipient can revalidate the
-matrices and recompute the consequences without the author's model script.
+An analysis bundle lets a recipient check a calculation from its saved
+numerical inputs. It contains the finite model, a Bellman–Choi (H.3) or
+reference-potential (H.4) proof object, raw arrays, numerical controls, and any
+supported terminal-state requests. It also keeps the original verification
+and bound records for comparison. The recipient can check the matrices and
+recompute the results without the author's model script.
 
 Use a bundle when handing results to a collaborator, preserving a calculation
 for review, or comparing numerical environments. The existing bound record
@@ -13,18 +14,17 @@ the complete model and proof arrays.
 
 ## Reverify a bundle you received
 
-You need the installed package and the `.rccbundle` file. For the interfaces
-described here, follow the [0.2.0rc1 source installation](../README.md#quick-start);
-the published 0.1.3 package does not provide the `bundle` commands.
-Use the installed environment's Python interpreter below. After the source
-quickstart, that is `.venv/bin/python` on macOS/Linux or
-`.venv\Scripts\python.exe` on Windows.
+You need the installed package and the `.rccbundle` file. Follow the
+[0.2.0rc1 source quickstart](../README.md#quick-start) and run the commands
+below from the checkout root. On Windows, substitute
+`.venv\Scripts\python.exe`. For your own active installation, use its
+interpreter instead. The `bundle` interfaces require 0.2.0rc1.
 
 Replace `received.rccbundle` with the path to your file:
 
 ```bash
-python -m rcc_refcert bundle inspect received.rccbundle
-python -m rcc_refcert bundle verify received.rccbundle --output received-verification.json
+.venv/bin/python -m rcc_refcert bundle inspect received.rccbundle
+.venv/bin/python -m rcc_refcert bundle verify received.rccbundle --output received-verification.json
 ```
 
 Inspection reports the original producer version and checks stored consistency.
@@ -34,20 +34,19 @@ the historical results. Read **Fresh matrix verification** and
 comparison from same-version replay. A different producer version can leave
 exact replay unavailable while fresh matrix verification remains possible.
 
-The source checkout is needed for installation; the verification itself can
-run outside it, without any example or model-building script. Choose an unused
-report filename. The original bundle remains unchanged, and `--output` saves
-the full comparison report as JSON.
+Verification can also run from another directory: use the full path to the
+installed environment's Python and to the bundle. Choose an unused report
+filename. The original bundle remains unchanged, and `--output` saves the
+full comparison report as JSON.
 
 ## Export and check
 
-To create a bundle of your own, run a complete example from the source checkout
-in an active Python 3.10 or newer environment:
+To create a bundle of your own, use the same quickstart environment and run
+the complete example from the checkout:
 
 ```bash
-python -m pip install .
-python examples/cyclic_reset_workflow.py --bundle cyclic-reset.rccbundle
-python -m rcc_refcert bundle verify cyclic-reset.rccbundle --output cyclic-reset-verification.json
+.venv/bin/python examples/cyclic_reset_workflow.py --bundle cyclic-reset.rccbundle
+.venv/bin/python -m rcc_refcert bundle verify cyclic-reset.rccbundle --output cyclic-reset-verification.json
 ```
 
 Use a new filename for each exported bundle and verification report. The
@@ -177,14 +176,14 @@ The shared computation budget applies before certificate verification. A
 different budget can be chosen explicitly:
 
 ```bash
-python -m rcc_refcert bundle verify cyclic-reset.rccbundle --max-matrix-elements 2097152
+.venv/bin/python -m rcc_refcert bundle verify cyclic-reset.rccbundle --max-matrix-elements 2097152
 ```
 
 Raising the budget permits more work; it does not alter scientific validity or
 improve numerical conditioning. A tolerance change is a separate choice:
 
 ```bash
-python -m rcc_refcert bundle verify cyclic-reset.rccbundle --tolerance 1e-8 --output cyclic-reset-tol-1e-8.json
+.venv/bin/python -m rcc_refcert bundle verify cyclic-reset.rccbundle --tolerance 1e-8 --output cyclic-reset-tol-1e-8.json
 ```
 
 For this example, the larger tolerance yields a larger conservative constant.
