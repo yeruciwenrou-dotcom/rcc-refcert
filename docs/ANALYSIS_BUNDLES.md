@@ -28,6 +28,13 @@ Replace `received.rccbundle` with the path to your file:
 ```
 
 Inspection reports the original producer version and checks stored consistency.
+This includes agreement between the historical outcome and its individual
+checks. A saved `pass` requires every reported check to pass and finite,
+nonnegative constant diagnostics. Contradictory history is invalid input, even
+when the container digests match; both commands reject it before fresh matrix
+verification. Consistent failed or inconclusive certificate-only analyses
+remain readable for diagnosis.
+
 Verification performs fresh matrix checks and compares their consequences with
 the historical results. Read **Fresh matrix verification** and
 **Historical results supported** together; the report also separates scalar
@@ -71,6 +78,30 @@ target.
 verification through Python. Omitting `tol` uses the recorded tolerance. An
 explicit tolerance produces a new report; it never changes the saved controls
 or historical result.
+
+## Record the software revision
+
+For an analysis made from a Git checkout, record the full commit alongside
+the package version. After installing that checkout in the environment used
+for the calculation, check that it has no uncommitted changes:
+
+```bash
+git status --short
+git rev-parse HEAD
+export RCC_REFCERT_SOURCE_REVISION="$(git rev-parse HEAD)"
+```
+
+Run the export or verification commands in that shell. In PowerShell, use
+`$env:RCC_REFCERT_SOURCE_REVISION = git rev-parse HEAD`. If the working tree
+has changes, commit the intended source and reinstall it before assigning
+that revision; a commit ID alone cannot describe uncommitted edits.
+
+The bundle's `producer.source_revision` records the author's supplied commit.
+`inspect` preserves that identity, while the fresh verification report's
+`producer.source_revision` records the recipient's supplied commit. Keep the
+original bundle and fresh report together. Without the environment variable,
+the field is `null`. The software validates the full 40-character Git ID but
+does not infer it from the current directory or authenticate the declaration.
 
 ## Three questions, three answers
 

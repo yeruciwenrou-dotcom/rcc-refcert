@@ -35,6 +35,13 @@ that variable to the exact tree tested by the workflow. Local runs without a
 verified source revision omit `provenance` rather than guessing from the
 current directory.
 
+Complete analysis bundles and fresh bundle-verification reports record the
+same explicitly supplied revision as `producer.source_revision`, or `null`
+when it is unavailable. Inspection reports the original bundle producer;
+verification reports the current recipient environment. This is declared
+source provenance, not a check that the installed code matches the commit.
+See [recording the revision](ANALYSIS_BUNDLES.md#record-the-software-revision).
+
 Canonical frozen evidence retains the stable `producer` identity but omits a
 commit field. Its containing repository commit or release tag supplies that
 version anchor without introducing a self-referential commit claim into the
@@ -206,6 +213,15 @@ JSON reports use `rcc-refcert.bundle-inspection` and
 `rcc-refcert.bundle-verification`, each with `schema_version: 1`. These report
 schemas are separate from the analysis-bundle container and bound-record
 schemas.
+
+Stored-history validation requires a nonempty check list. A passing report
+must contain only passing checks, a finite nonnegative usable constant, and
+finite nonnegative candidate and error diagnostics; its usable constant cannot
+be below its candidate. A non-passing report has no usable constant and must
+include a check with its reported outcome. Contradictions are `invalid_input`
+(exit `2`) before any fresh matrix verification. Consistent failed and
+inconclusive reports remain valid diagnostic records. Container digests alone
+do not establish these relationships.
 
 The bundle commands have their own exit-code contract: `0` indicates successful
 inspection or supported verification, `1` an unsupported or unresolved

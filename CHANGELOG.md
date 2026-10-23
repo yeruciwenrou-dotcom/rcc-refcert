@@ -15,6 +15,13 @@
 - Compare freshly verified constants with historical results. Recomputed
   bounds use the original counts protocol and statistical event, retaining
   historical records alongside the new numerical evidence.
+- Reject contradictory historical verification summaries before inspecting or
+  reverifying a bundle, while retaining consistent failed and inconclusive
+  analyses for diagnosis. Record an explicitly supplied source revision in
+  fresh bundle-verification reports as well as exported bundles.
+- Exercise the bounds notebook's final terminal command without shell
+  activation, and check local links and section anchors across the guides
+  and notebooks.
 - Add alternating damping/pumping and cyclic noisy-reset workflows, guides,
   and notebook steps for complete evidence transfer.
 - Organize the README around reference reproduction, terminal-state bounds,

@@ -167,6 +167,27 @@ def _validate_report(report: dict) -> None:
                 if value not in {"inf", "-inf", "nan"}:
                     rational(value, field)
 
+    check_outcomes = {check["outcome"] for check in checks}
+    outcome = report["outcome"]
+    if not checks:
+        raise InputError("historical verification requires at least one check")
+    if outcome == "pass":
+        if check_outcomes != {"pass"}:
+            raise InputError("passing history requires every reported check to pass")
+        diagnostics = []
+        for field in ("candidate_constant_exact", "constant_error_bound_exact"):
+            value = report[field]
+            if value is None or value in {"inf", "-inf", "nan"}:
+                raise InputError("passing history requires finite constant diagnostics")
+            diagnostic = rational(value, field)
+            if diagnostic < 0:
+                raise InputError("passing history requires nonnegative diagnostics")
+            diagnostics.append(diagnostic)
+        if rational(constant, "verified constant") < diagnostics[0]:
+            raise InputError("verified constant cannot be below its candidate")
+    elif outcome not in check_outcomes:
+        raise InputError("historical outcome requires a matching reported check")
+
 
 def _bindings(model, certificate) -> dict:
     return {
@@ -527,6 +548,7 @@ def verify_analysis_bundle(
             "version": __version__,
             "python": platform.python_version(),
             "numpy": np.__version__,
+            "source_revision": source_revision_from_environment(),
         },
         "model": payload.model.name,
         "record_consistency": "pass",

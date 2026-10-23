@@ -8,6 +8,11 @@
 with tools for auditing structure-fair models, verifying reference
 certificates, and computing **complexity lower bounds**.
 
+> **Version.** This checkout is the **0.2.0rc1 development version**. Use the
+> [source installation](#quick-start) for candidate preparation and complete
+> analysis bundles. The published PyPI package and linked archive are **0.1.3**,
+> with model audits, supplied-certificate verification, and scalar bounds.
+
 The toolkit implements selected parts of **Reference-Contingent Complexity
 (RCC)**, introduced in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
@@ -29,11 +34,6 @@ researcher can reverify the calculation without the original modeling script.
 The [conceptual introduction](#why-reference-contingent-complexity) explains
 the research question; the [scientific scope](docs/SCIENTIFIC_SCOPE.md)
 connects the implemented checks to the RCC framework.
-
-> **Version.** This checkout is the **0.2.0rc1 development version**. Use the
-> [source installation](#quick-start) for candidate preparation and complete
-> analysis bundles. The published PyPI package and linked archive are **0.1.3**,
-> with model audits, supplied-certificate verification, and scalar bounds.
 
 ## Start here
 
@@ -409,6 +409,20 @@ Version 0.1.3 is archived on
 release you ran; the [all-versions DOI](https://doi.org/10.5281/zenodo.22544967)
 identifies the project across releases. [`CITATION.cff`](CITATION.cff) provides
 software and RCC-paper citation metadata.
+
+For a calculation made with the released software, a copyable citation is:
+
+> Liu, HongZheng; Tian, YiNuo; and Wu, Zhiyue. *rcc-refcert: a Python research
+> toolkit for structure-fair quantum circuit complexity*. Version 0.1.3,
+> 2026. https://doi.org/10.5281/zenodo.22768920
+
+For this unreleased candidate, cite **rcc-refcert 0.2.0rc1**, the repository
+URL and the full commit used (`git rev-parse HEAD` in a clean source checkout).
+It has no release DOI. The GitHub **Cite this repository** button follows the
+paper preference in `CITATION.cff`; include the software version citation as
+well when reporting a calculation. Complete bundles can
+[record the source revision](docs/ANALYSIS_BUNDLES.md#record-the-software-revision)
+for both the author and the recipient.
 
 See the [Changelog](CHANGELOG.md) for this version's changes. The source code
 is available under the [MIT License](LICENSE).
