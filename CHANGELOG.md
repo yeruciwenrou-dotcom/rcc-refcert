@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.2.0rc1 (unreleased)
+
+- Prepare linear H.3 candidates for custom finite models, with explicit
+  diagnostics for unsupported, unresolved and resource-limited calculations.
+  Candidates still require independent certificate verification.
+- Apply one resource preflight to direct H.3/H.4 verification, task binding
+  and complete-evidence import.
+- Save original model matrices, proof objects, numerical controls and bound
+  requests in a versioned analysis bundle. Inspect or revalidate it through
+  the Python API and `rcc-refcert bundle` commands.
+- Compare freshly verified constants with historical results. Recomputed
+  bounds use the original counts protocol and statistical event, retaining
+  historical records alongside the new numerical evidence.
+- Add alternating damping/pumping and cyclic noisy-reset workflows, guides,
+  and notebook steps for complete evidence transfer.
+
+The frozen reference calculations and bound-record v2 contract retain their
+numerical meaning. Same-version scalar replay remains exact; use the original
+package version to replay older records. Complete bundles additionally support
+fresh model/certificate revalidation and a separately labeled scalar comparison.
+This candidate has no release DOI.
+
 ## 0.1.3 (2026-09-15)
 
 - Align the guides and paired-reset result with RCC manuscript version 4,

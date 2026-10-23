@@ -8,7 +8,13 @@ admissibility (`RA`) remain separately supplied model arguments.
 
 ## First calculation
 
-Install with `python -m pip install "rcc-refcert==0.1.3"`, then run:
+From the [source checkout](../README.md#quick-start) for this version, install
+with `python -m pip install .`. The current source includes candidate
+preparation and complete analysis bundles. The published `rcc-refcert==0.1.3`
+package also supports the basic spectrum, counts and scalar-replay commands
+below.
+
+After installation, run:
 
 ```bash
 rcc-refcert bound template spectrum > spectrum.json
@@ -234,8 +240,18 @@ the matrix verifier into a rigorous interval-matrix backend, and the adapter
 leaves the external RCon, TC and RA declarations intact.
 
 Use the returned task before freezing a measurement protocol. Saved evidence
-hashes can identify the proof inputs but do not contain or reverify those inputs;
-preserve the proof objects separately with their source.
+hashes in a bound record identify the proof inputs; the record does not contain
+the original matrices. An [analysis bundle](ANALYSIS_BUNDLES.md) preserves the
+complete model, proof object, numerical controls, bound requests, and historical
+results for independent revalidation. The
+[cyclic-register example](CUSTOM_MODELS.md#cyclic-noisy-reset-register) shows
+this workflow for both exact spectra and synthetic counts.
+
+The bundle verifier compares the fresh conservative constant with the saved
+one. A passing matrix result with a larger constant produces a fresh bound and
+does not by itself support the historical bound. For counts, any changed bound
+is reported as a separate derivation from the original acquisition event;
+the protocol and dataset remain unchanged.
 
 ## Records, zero results and replay
 

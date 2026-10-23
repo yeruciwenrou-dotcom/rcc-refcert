@@ -13,6 +13,7 @@ from .certificate_error import (
     residual_correction,
     roundoff_allowance,
 )
+from .limits import DEFAULT_LIMITS, ComputationLimits, check_certificate_budget
 from .model import BlockKey, FiniteControlModel, require_valid_model
 from .quantum import (
     Array,
@@ -135,12 +136,17 @@ def verify_bellman_choi(
     model: FiniteControlModel,
     certificate: BellmanChoiCertificate,
     tol: float = 1e-10,
+    *,
+    limits: ComputationLimits = DEFAULT_LIMITS,
 ) -> BellmanChoiReport:
     """Numerically verify the supplied fixed-model conditions H.31--H.33.
 
     A passing report carries the candidate constant plus its propagated
     numerical correction. Unresolved error budgets return ``inconclusive``.
+    The shared certificate resource estimate is checked before validation or
+    matrix allocation; an excess raises ``ResourceLimitError``.
     """
+    check_certificate_budget(model, certificate, limits)
     require_valid_model(model, tol=tol)
     keys = model.transient_keys()
     key_set = set(keys)

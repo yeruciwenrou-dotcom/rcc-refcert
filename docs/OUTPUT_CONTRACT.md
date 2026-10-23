@@ -196,3 +196,19 @@ state the one-sided coverage under the declared sampling model. All process
 bounds remain conditional on declared model premises. See
 [Terminal-state bounds](TERMINAL_BOUNDS.md) for the complete input, arithmetic,
 statistical, and replay contract.
+
+## Complete analysis bundles
+
+`bundle inspect` checks stored input and result consistency without matrix
+revalidation. `bundle verify` independently checks the saved model and proof,
+then reports fresh numerical evidence and support for historical results. Their
+JSON reports use `rcc-refcert.bundle-inspection` and
+`rcc-refcert.bundle-verification`, each with `schema_version: 1`. These report
+schemas are separate from the analysis-bundle container and bound-record
+schemas.
+
+The bundle commands have their own exit-code contract: `0` indicates successful
+inspection or supported verification, `1` an unsupported or unresolved
+verification result, `2` an input or output-file error, and `3` a computation
+budget refusal. See [Analysis bundles](ANALYSIS_BUNDLES.md) for the complete
+contract, historical-constant comparison and counts-event handling.

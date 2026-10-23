@@ -194,6 +194,15 @@ capped count. Reduce the requested depth or explicitly raise the relevant
 budget. The low-level enumeration, matrix, and linear fixed-point functions
 also accept `limits`.
 
+Direct H.3 and H.4 verification accept the same `limits` argument as
+`with_reference_certificate`. They share a certificate preflight that counts
+the supplied arrays, route-specific operator blocks, output, and correction
+system before expensive verification. The binding adapter retains its existing
+`BudgetError` exception for budget refusals. The
+[custom-model workflow](CUSTOM_MODELS.md#choose-a-computation-budget) explains
+why a compact certificate can remain affordable when full-space construction
+exceeds its budget.
+
 ## Supplying proof objects
 
 The verifier functions accept explicit mathematical candidates:
@@ -222,6 +231,16 @@ does not supply them. Freeze a counts protocol only after this task is settled.
 The [terminal-state guide](TERMINAL_BOUNDS.md#connect-an-h3-or-h4-proof-object)
 includes a runnable certificate-to-bound example and explains the adapter's
 numerical evidence and required inputs.
+
+For stable full-space models, `prepare_bellman_choi` prepares a candidate and
+reports construction diagnostics. Verification remains an explicit subsequent
+step. The [custom-model workflow](CUSTOM_MODELS.md) demonstrates a model whose
+local H.70 test fails while a global H.3 certificate succeeds.
+
+To share a complete numerical analysis, use an
+[analysis bundle](ANALYSIS_BUNDLES.md). It retains the original model and proof
+arrays, numerical controls, and any supported terminal-state requests so a
+recipient can reverify them independently of the model-building script.
 
 ## Turning a model into a reference case
 

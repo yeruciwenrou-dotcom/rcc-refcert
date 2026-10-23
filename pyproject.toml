@@ -64,7 +64,7 @@ where = ["src"]
 version = {attr = "rcc_refcert._version.__version__"}
 
 [tool.setuptools.package-data]
-rcc_refcert = ["reference_data/*.json", "reference_data/*.md", "bounds/data/*.json"]
+rcc_refcert = ["reference_data/*.json", "reference_data/*.md", "bounds/data/*.json", "bundle_data/*.json"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

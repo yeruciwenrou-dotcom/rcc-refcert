@@ -1,0 +1,298 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:rcc-refcert:analysis-bundle:1",
+  "title": "RCC analysis-bundle v1 manifest",
+  "description": "Data-only model/proof container. Runtime checks additionally enforce object fields, bounded ZIP members, matrix byte counts, hashes, finite entries and the shared certificate resource budget. Scientific validation is a separate step.",
+  "type": "object",
+  "properties": {
+    "format": {
+      "const": "rcc-refcert.analysis-bundle"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "producer": {
+      "type": "object",
+      "properties": {
+        "package": {
+          "const": "rcc-refcert"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "numpy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "python": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "package",
+        "version",
+        "numpy",
+        "python"
+      ],
+      "additionalProperties": false
+    },
+    "model": {
+      "$ref": "#/$defs/node"
+    },
+    "certificate": {
+      "$ref": "#/$defs/node"
+    },
+    "arrays": {
+      "type": "object",
+      "maxProperties": 4095,
+      "propertyNames": {
+        "pattern": "^a[0-9]{6}$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^arrays/a[0-9]{6}\\.bin$"
+          },
+          "shape": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          },
+          "dtype": {
+            "type": "string",
+            "pattern": "^[<>|][biufc][1248]$|^[<>]c16$"
+          },
+          "storage_dtype": {
+            "enum": [
+              "|b1",
+              "|i1",
+              "|u1",
+              "<i2",
+              "<i4",
+              "<i8",
+              "<u2",
+              "<u4",
+              "<u8",
+              "<f2",
+              "<f4",
+              "<f8",
+              "<c8",
+              "<c16"
+            ]
+          },
+          "nbytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 134217728
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "path",
+          "shape",
+          "dtype",
+          "storage_dtype",
+          "nbytes",
+          "sha256"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "description": "Generic storage metadata. Complete numerical analyses additionally conform to the adjacent analysis.schema.json and are checked by the high-level runtime."
+    },
+    "component_hashes": {
+      "type": "object",
+      "properties": {
+        "model_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "certificate_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "model_sha256",
+        "certificate_sha256"
+      ],
+      "additionalProperties": false
+    },
+    "manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "format",
+    "schema_version",
+    "producer",
+    "model",
+    "certificate",
+    "arrays",
+    "analysis",
+    "component_hashes",
+    "manifest_sha256"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "node": {
+      "oneOf": [
+        {
+          "type": [
+            "null",
+            "boolean",
+            "string",
+            "integer"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "float"
+            },
+            "hex": {
+              "type": "string",
+              "maxLength": 40
+            }
+          },
+          "required": [
+            "kind",
+            "hex"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "complex"
+            },
+            "real": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "imag": {
+              "type": "string",
+              "maxLength": 40
+            }
+          },
+          "required": [
+            "kind",
+            "real",
+            "imag"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "array"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^a[0-9]{6}$"
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "tuple",
+                "list"
+              ]
+            },
+            "items": {
+              "type": "array",
+              "maxItems": 100000,
+              "items": {
+                "$ref": "#/$defs/node"
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "items"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "map"
+            },
+            "items": {
+              "type": "array",
+              "maxItems": 100000,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "$ref": "#/$defs/node"
+                }
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "items"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "object"
+            },
+            "type": {
+              "enum": [
+                "Action",
+                "FiniteControlModel",
+                "BellmanChoiCertificate",
+                "ReferencePotentialCertificate"
+              ]
+            },
+            "fields": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/node"
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "type",
+            "fields"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

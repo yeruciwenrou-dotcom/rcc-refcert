@@ -1,0 +1,161 @@
+# Share and reverify an analysis
+
+An analysis bundle preserves the complete finite input needed to check an
+H.3 or H.4 certificate: the model, raw numerical arrays, candidate proof,
+numerical controls, and any supported terminal-state requests. It also keeps
+the historical verification and bound records. A recipient can revalidate the
+matrices and recompute the consequences without the author's model script.
+
+Use a bundle when handing results to a collaborator, preserving a calculation
+for review, or comparing numerical environments. The existing bound record
+remains useful for exact scalar replay; it contains input hashes rather than
+the complete model and proof arrays.
+
+## Export and check
+
+Install this source version, then run a complete example:
+
+```bash
+python -m pip install .
+python examples/cyclic_reset_workflow.py --bundle cyclic-reset.rccbundle
+python -m rcc_refcert bundle verify cyclic-reset.rccbundle --output cyclic-reset-verification.json
+```
+
+Use a new filename for each exported bundle and verification report. The
+verification command preserves the original bundle and writes fresh evidence
+separately. On another machine, install the matching source distribution or
+release candidate and pass only the bundle to the same command. The example
+scripts are needed to create these models, not to read their saved bundles.
+
+For a Python workflow, `save_analysis_bundle(path, model, certificate,
+requests=[...], tol=..., source=...)` saves one proof object and zero or more
+bound requests. Each request has a `kind` of `spectrum` or `counts` and a
+`request` containing the ordinary bound API input. Bind every task with
+`with_reference_certificate` before creating the bundle. Freeze counts
+protocols only after that task has been fixed.
+
+For a certificate-only analysis, pass `requests=[]`. The bundle still contains
+the full model, candidate, and numerical verification. This is useful when the
+research question concerns reference domination without a terminal-state
+target.
+
+`verify_analysis_bundle(path, tol=None, limits=...)` exposes the same fresh
+verification through Python. Omitting `tol` uses the recorded tolerance. An
+explicit tolerance produces a new report; it never changes the saved controls
+or historical result.
+
+## Three questions, three answers
+
+The verification report separates these questions:
+
+| Question | Evidence |
+|---|---|
+| Are the stored inputs and results internally consistent? | Format, component digests, model/proof binding, and request/history checks |
+| Does the old scalar calculation replay? | Same-producer-version replay from the original exact request |
+| Does current numerical verification support the historical constant? | Fresh matrix verification and comparison with the saved constant |
+
+These checks have different meanings. A digest establishes input identity. A
+scalar replay recomputes the recorded arithmetic. Fresh certificate
+verification checks the supplied matrices and error budget in the current
+environment. The external model qualifications and sampling premises remain
+visible alongside these results.
+
+## Compare historical and fresh constants
+
+Floating-point results can vary across environments. Historical support is
+therefore assessed using the actual conservative constants, rather than
+requiring byte-for-byte equality of matrix reports.
+
+- If the fresh verification passes and its usable constant is no larger than
+  the saved constant, the fresh numerical evidence supports the historical
+  constant for the same input and declarations.
+- If the fresh usable constant is larger, the fresh result supplies a new
+  conservative bound. Its passing status alone does not support the stronger
+  historical constant.
+- A failed or inconclusive verifier, or a resource refusal, is reported with
+  its own diagnostics. It does not become a successful historical check.
+
+For terminal-state tasks, comparison uses the same $C\ge1$ convention as the
+certificate-binding adapter. A finite certificate may report a smaller
+constant, but the bound task normalizes its usable constant to at least one.
+The original candidate, report, and task remain in the bundle.
+
+The bound record's producer-version restriction is retained. A version mismatch
+can make historical scalar replay unavailable while the complete model and
+proof still support a fresh analysis under the current software. The report
+keeps those outcomes separate.
+
+The `bundle verify` command uses these exit codes:
+
+| Exit code | Result |
+|---|---|
+| `0` | Fresh matrix verification passes and the historical results are supported |
+| `1` | Verification completed; a historical result is unsupported or unresolved, or matrix verification did not pass |
+| `2` | Invalid input or an output-file error |
+| `3` | The requested work exceeds the computation budget |
+
+Exit `1` still produces a comparison report. Inspect its separate matrix,
+historical-support, and scalar fields to understand the result. `bundle inspect`
+checks stored consistency without matrix revalidation and exits `0` when that
+inspection succeeds.
+
+## Preserve the original counts event
+
+A counts request binds a declared target, projector, fixed sample size,
+statistical failure budget, and dataset to its original protocol. Revalidation
+preserves that request and its protocol digest. It never relabels a changed
+task as the original pre-acquisition declaration.
+
+When a new numerical certificate constant changes the bound, the verifier
+reports a separate derived result linked to the original acquisition event.
+The same supported probability statement is used for deterministic
+post-processing with the fresh constant. The original protocol, data, and
+historical record remain unchanged. This mechanism does not authorize choosing
+a new witness after viewing data, changing the sample rule, or substituting
+different measurements.
+
+The example counts are synthetic. For experimental results, acquisition
+chronology, fixed-N iid sampling, ideal readout, support assumptions, and the
+physical meaning of the witness remain external obligations. Storing their
+declarations does not establish them.
+
+## Format and numerical identity
+
+The `rcc-refcert.analysis-bundle` format has its own schema version, independent
+of the bound-record schema. A bundle is a ZIP container with a JSON manifest
+and numerical array payloads. It carries data rather than executable Python.
+The loader reconstructs only the supported finite model and H.3/H.4 types.
+
+Array metadata retains shape, supported numeric dtype, and logical C-order
+entries using a canonical little-endian representation. This preserves the
+binary numerical inputs used by the existing certificate hashes. It does not
+turn floating-point matrices into exact symbolic channels. Exact scalar
+requests retain their rational values separately.
+
+Import checks include container and element budgets, allowed members and
+paths, array sizes and digests, model/proof type, and schema version. Unsupported
+or incomplete data are rejected. Stored summaries cannot substitute for
+missing matrix inputs.
+
+The shared computation budget applies before certificate verification. A
+different budget can be chosen explicitly:
+
+```bash
+python -m rcc_refcert bundle verify cyclic-reset.rccbundle --max-matrix-elements 2097152
+```
+
+Raising the budget permits more work; it does not alter scientific validity or
+improve numerical conditioning. A tolerance change is a separate choice:
+
+```bash
+python -m rcc_refcert bundle verify cyclic-reset.rccbundle --tolerance 1e-8 --output cyclic-reset-tol-1e-8.json
+```
+
+For this example, the larger tolerance yields a larger conservative constant.
+The command can therefore exit `1` with a valid fresh verification and a saved
+comparison report: the new evidence does not support the smaller historical
+constant, even though the fresh integer lower bound remains two.
+
+Keep the original bundle and fresh report together when sharing that
+comparison. The [custom-model guide](CUSTOM_MODELS.md) explains the two example
+models, candidate preparation, and unresolved numerical states.
