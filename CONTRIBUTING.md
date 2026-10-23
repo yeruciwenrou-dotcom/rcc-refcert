@@ -22,8 +22,8 @@ Contributions can address one layer at a time:
   inversion, and connections to finite-control reference certificates;
 - **numerical reliability:** interval bounds, exact arithmetic, conditioning
   diagnostics, solver integrations, or independent realizations;
-- **interfaces:** model serialization, larger simulation backends, and stable
-  machine-readable outputs;
+- **interfaces:** analysis-bundle formats, additional model adapters, larger
+  simulation backends, and stable machine-readable outputs;
 - **explanation and reproduction:** clearer derivations, examples, notebooks,
   tests, and RCC paper-to-code maps.
 
@@ -106,6 +106,16 @@ If inputs or outputs change, update the templates, record validation, replay,
 and schema documentation together. Keep the guide and bounds notebook runnable;
 describe any compatibility effect in the changelog. A saved record identifies
 its package version, so replay behavior must be assessed for that version.
+
+## Changing analysis bundles
+
+Read [Analysis bundles](docs/ANALYSIS_BUNDLES.md) before changing saved evidence
+or revalidation. Preserve raw numerical inputs, stored controls, component
+digests, and historical records. Fresh verification and changed-constant bounds
+produce separately identified results; the original acquisition protocol and
+counts event retain their identity. Exercise both H.3 and H.4 transfer paths
+from a normally installed package outside the checkout, together with invalid
+inputs and budget refusals.
 
 ## Local verification
 

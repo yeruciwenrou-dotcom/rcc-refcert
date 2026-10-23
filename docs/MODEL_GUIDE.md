@@ -25,6 +25,10 @@ Born weight. The package keeps those two sources of weight separate.
 
 ## Research workflow
 
+For a runnable path through candidate preparation, verification, target-state
+bounds, and evidence sharing, follow the [custom-model guide](CUSTOM_MODELS.md).
+The sections below define the model objects and their audit semantics.
+
 1. Choose the reference state and transient control spaces.
 2. Declare the available actions, physical channels, and prefix codewords.
 3. Run the model audit to obtain the terminating output and fixed-model checks.

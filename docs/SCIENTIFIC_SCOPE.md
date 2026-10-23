@@ -185,12 +185,15 @@ comparisons inspectable independently of the bundled models.
 
 ## Extension points
 
-The current kernel accepts Python-declared finite synchronous models and
-supplied certificate candidates. Its public model, verifier, and JSON result
-interfaces provide natural extension points for model serialization, automated
-certificate search, interval PSD verification, broader control semantics,
-family-uniform diagnostics, and larger simulation backends. These interfaces
-define the package's current extension directions.
+The current kernel accepts Python-declared finite synchronous models, prepares
+candidates through the stable full-space linear route, and verifies supplied
+H.3/H.4 proof objects. Analysis bundles serialize the supported model and proof
+inputs for independent revalidation. The public model, verifier, bundle, and
+JSON interfaces support further work on broader certificate search, additional
+input formats, interval PSD verification, broader control semantics,
+family-uniform diagnostics, and larger simulation backends. The
+[custom-model guide](CUSTOM_MODELS.md) and
+[bundle guide](ANALYSIS_BUNDLES.md) describe the implemented workflows.
 
 ## Conditional target-state bounds
 

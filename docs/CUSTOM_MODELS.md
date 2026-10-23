@@ -10,7 +10,11 @@ constant when a local sufficient condition fails. The second carries a model
 through numerical certification, a conditional cost bound, and independent
 reverification. Both use ordinary NumPy arrays and the public Python API.
 
-Install this source tree into your active Python 3.10 or newer environment:
+## Run the first example
+
+Get the **0.2.0rc1 source checkout** using the
+[source installation instructions](../README.md#quick-start). From its root,
+use your active Python 3.10 or newer environment:
 
 ```bash
 python -m pip install .
@@ -18,10 +22,16 @@ python examples/custom_model_workflow.py --bundle alternating.rccbundle
 python -m rcc_refcert bundle verify alternating.rccbundle
 ```
 
-The new candidate and bundle interfaces belong to this source version. The
-published 0.1.3 release provides the underlying certificates and scalar bounds;
-install the current source or the corresponding release candidate to use this
-workflow. Choose a new output filename for each saved analysis.
+If you used the quickstart environment, replace `python` in this guide with
+`.venv/bin/python` on macOS/Linux or `.venv\Scripts\python.exe` on Windows;
+the package is already installed there. The published 0.1.3 package provides
+the earlier certificate and scalar-bound interfaces. These candidate and
+complete-bundle commands require the current source.
+
+The alternating example reports `candidate_ready` and an H.3 `pass`, alongside
+the deliberately failed local H.70 route. The final
+command performs fresh verification of the saved inputs. Choose an unused
+output filename for each saved analysis; existing bundles are preserved.
 
 ## Declare the model
 
@@ -138,6 +148,30 @@ are necessary: fewer than four resets leave a uniform qubit marginal whose
 trace distance from the target marginal is $0.45$. The example demonstrates the
 certificate-to-bound workflow; its general RCC bound is weaker than that
 specialized structural argument.
+
+## Adapt the examples to your inputs
+
+1. Start from `build_model()` and replace the channels, control spaces,
+   codewords, initial state, and reference state together. The
+   [model guide](MODEL_GUIDE.md#construction-rules) defines their consistency
+   requirements. Run `require_valid_model` on the resulting declaration.
+2. Prepare a supported H.3 candidate or supply your own H.3/H.4 proof object.
+   Use the matching verifier and inspect its outcome and usable upper constant.
+3. For a target-state bound, supply your own target, cost convention, and
+   physical/transcription arguments. The cyclic example's `task_declaration`
+   and `build_requests` show how these inputs connect through
+   `with_reference_certificate`. Replace the example's exact spectrum or
+   synthetic dataset with inputs satisfying the
+   [terminal-state contract](TERMINAL_BOUNDS.md). A counts protocol must be
+   fixed before acquiring the associated data.
+4. Save a new bundle and follow the
+   [recipient workflow](ANALYSIS_BUNDLES.md#reverify-a-bundle-you-received).
+   Check the fresh result and its historical-support status together.
+
+The two examples supply model-specific certificates and physical arguments.
+Changing their channels or cost rules requires corresponding new arguments.
+For a study of reference domination alone, omit terminal-state requests and
+share a certificate-only bundle.
 
 ## Read unresolved numerical results
 

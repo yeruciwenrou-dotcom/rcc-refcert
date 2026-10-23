@@ -11,9 +11,38 @@ for review, or comparing numerical environments. The existing bound record
 remains useful for exact scalar replay; it contains input hashes rather than
 the complete model and proof arrays.
 
+## Reverify a bundle you received
+
+You need the installed package and the `.rccbundle` file. For the interfaces
+described here, follow the [0.2.0rc1 source installation](../README.md#quick-start);
+the published 0.1.3 package does not provide the `bundle` commands.
+Use the installed environment's Python interpreter below. After the source
+quickstart, that is `.venv/bin/python` on macOS/Linux or
+`.venv\Scripts\python.exe` on Windows.
+
+Replace `received.rccbundle` with the path to your file:
+
+```bash
+python -m rcc_refcert bundle inspect received.rccbundle
+python -m rcc_refcert bundle verify received.rccbundle --output received-verification.json
+```
+
+Inspection reports the original producer version and checks stored consistency.
+Verification performs fresh matrix checks and compares their consequences with
+the historical results. Read **Fresh matrix verification** and
+**Historical results supported** together; the report also separates scalar
+comparison from same-version replay. A different producer version can leave
+exact replay unavailable while fresh matrix verification remains possible.
+
+The source checkout is needed for installation; the verification itself can
+run outside it, without any example or model-building script. Choose an unused
+report filename. The original bundle remains unchanged, and `--output` saves
+the full comparison report as JSON.
+
 ## Export and check
 
-Install this source version, then run a complete example:
+To create a bundle of your own, run a complete example from the source checkout
+in an active Python 3.10 or newer environment:
 
 ```bash
 python -m pip install .
@@ -23,9 +52,9 @@ python -m rcc_refcert bundle verify cyclic-reset.rccbundle --output cyclic-reset
 
 Use a new filename for each exported bundle and verification report. The
 verification command preserves the original bundle and writes fresh evidence
-separately. On another machine, install the matching source distribution or
-release candidate and pass only the bundle to the same command. The example
-scripts are needed to create these models, not to read their saved bundles.
+separately. Send the bundle and its producer version to the recipient; pin the
+same package version for exact historical scalar replay. The
+[recipient workflow](#reverify-a-bundle-you-received) needs no example scripts.
 
 For a Python workflow, `save_analysis_bundle(path, model, certificate,
 requests=[...], tol=..., source=...)` saves one proof object and zero or more
@@ -98,6 +127,10 @@ Exit `1` still produces a comparison report. Inspect its separate matrix,
 historical-support, and scalar fields to understand the result. `bundle inspect`
 checks stored consistency without matrix revalidation and exits `0` when that
 inspection succeeds.
+
+For exit `2`, read the input or output-path diagnostic; if the destination
+already exists, keep it and choose a fresh filename. For exit `3`, review the
+reported budget and the model size before explicitly changing the limit.
 
 ## Preserve the original counts event
 

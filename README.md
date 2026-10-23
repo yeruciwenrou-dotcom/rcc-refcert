@@ -4,261 +4,153 @@
 [![PyPI](https://img.shields.io/pypi/v/rcc-refcert.svg?label=PyPI)](https://pypi.org/project/rcc-refcert/)
 [![Archived 0.1.3 DOI](https://img.shields.io/badge/0.1.3_DOI-10.5281%2Fzenodo.22768920-blue)](https://doi.org/10.5281/zenodo.22768920)
 
-This source tree contains the **0.2.0rc1 development candidate**. Install this
-checkout to use the new candidate-preparation and complete-evidence workflows.
-The published PyPI release and linked archive remain version 0.1.3.
-
 `rcc-refcert` is a Python research toolkit for
 **structure-fair quantum circuit complexity**: how much must be spent to
 prepare a quantum state once the physical background, available operations,
 and cost rules have been fixed?
 
-The package helps researchers build and audit quantum generation models,
-verify reference certificates, and compute conditional lower bounds on
-preparation cost from exact target spectra or predeclared measurement counts.
-Bundled examples connect a declared model to a reproducible lower-bound
-calculation. The same interfaces support new finite-control models and
-certificate constructions.
+Use it to build and audit small finite-control quantum models, verify
+reference certificates, and compute conditional preparation-cost lower bounds
+from exact target spectra or predeclared measurement counts. You supply the
+model's channels, reference state, control language, and cost assumptions; the
+package returns explicit numerical checks and reproducible bound records.
+A complete analysis bundle also carries the model and proof arrays so another
+researcher can reverify the calculation without the original modeling script.
 
-These tools implement selected parts of **Reference-Contingent Complexity
+The package implements selected parts of **Reference-Contingent Complexity
 (RCC)**, introduced in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
+The [conceptual introduction](#why-reference-contingent-complexity) explains
+the research question; the [scientific scope](docs/SCIENTIFIC_SCOPE.md)
+connects the implemented checks to the RCC framework.
 
-Install from [PyPI](#install-from-pypi) to use the model audits and terminal-state
-bounds. The [source quickstart](#quick-start) also runs the verification suite
-and provides the notebooks and worked examples.
+> **Version.** This checkout is the **0.2.0rc1 development version**. Use the
+> [source installation](#quick-start) for candidate preparation and complete
+> analysis bundles. The published PyPI package and linked archive are **0.1.3**,
+> with model audits, supplied-certificate verification, and scalar bounds.
 
 ## Start here
 
-| Goal | Entry point |
-|---|---|
-| Understand why the reference and resource accounting matter | [Conceptual introduction](#why-reference-contingent-complexity) |
-| Inspect the recorded evidence without running code | [Reference results](results/reference_report.md) |
-| Install the package and reproduce the reference results | [Install from PyPI](#install-from-pypi) |
-| Compute a bound from a target spectrum or fixed-projector counts | [Terminal-state bounds](docs/TERMINAL_BOUNDS.md) |
-| Install the current source and run its tests | [Quick start](#quick-start) |
-| Follow model audits or target-state calculations in Jupyter | [Notebook setup and selection](#jupyter-notebook) |
-| Follow a model from qualification to a lower bound | [Worked example](docs/END_TO_END_EXAMPLE.md) |
-| Understand what the numerical results establish | [Scientific scope](docs/SCIENTIFIC_SCOPE.md) |
-| Trace RCC paper formulas to implementation | [Paper-to-code map](docs/PAPER_MAP.md) |
-| Construct or audit a new finite-control model | [Model guide](docs/MODEL_GUIDE.md) |
-| Prepare a certificate for your own model and understand unresolved results | [Custom-model workflow](docs/CUSTOM_MODELS.md) |
-| Share complete inputs and independently reverify a calculation | [Analysis bundles](docs/ANALYSIS_BUNDLES.md) |
+| Your task | What you obtain | Entry point |
+|---|---|---|
+| Reproduce the reference results | Model audits checked against frozen numerical evidence | [Published package](#install-from-pypi) or [current source](#quick-start) |
+| Analyze your own finite-control model | Numerical certificate checks, conditional bounds, and shareable inputs | [Custom-model workflow](#work-with-your-own-model) |
+| Reverify a shared analysis | Fresh matrix checks and a comparison with historical results | [Recipient workflow](#reverify-a-shared-analysis) |
 
-> **Manuscript alignment.** This source tree is aligned with version 4 of the
-> [RCC manuscript](https://arxiv.org/abs/2509.18205). Appendix labels and
-> equation numbers refer to manuscript version 4.
-
-## Why reference-contingent complexity
-
-Preparing a pure qubit illustrates why the resource accounting matters.
-A reset operation can produce $\lvert0\rangle$ in a single step, but the
-physical process that removes entropy may be absent from a gate count.
-Likewise, a supplied pure ancilla already contains structure that a
-preparation procedure can use. The same target can therefore have different
-costs depending on what the background supplies and which operations are
-charged.
-
-RCC's **principle of structural fairness** makes that dependence explicit.
-Structure supplied as a fixed background is represented in the reference;
-additional structure directed toward the target must be generated and counted.
-The reference, allowed dynamics, control language and program prior, success
-criterion, and atomic cost unit are fixed together before target selection.
-This complete specification defines the physical generation model. Complexity
-is therefore a relational physical quantity, measured relative to what the
-model supplies and charges.
-
-### What RCC measures
-
-RCC is a structure-fair, model-relative framework for defining and
-lower-bounding quantum circuit complexity.
-
-For a fixed model, target, and accuracy $\epsilon$,
-$C_{\rm opt}^{(\epsilon)}$ is the infimum of the declared cost over all
-admissible successful preparation histories. It asks for the least cost
-compatible with that model.
-
-The paper constructs an admissible model family fixed before target selection,
-whose size-indexed members can approximate arbitrary finite-dimensional pure
-and mixed states to any positive tolerance. This is the universality claim.
-The optimization is over preparation histories within a fixed member; the
-reference and cost rules remain part of the declared problem.
-
-### How the final state gives a lower bound
-
-Every successful history must leave the required structure in its final state.
-RCC quantifies the target's one-shot information gap relative to the reference
-and converts it into a cost lower bound using the model's atomic control
-bandwidth and transcription rules. Under the theorem's reference-consistency,
-faithful-transcription, and reference-admissibility hypotheses, this bound
-applies to every admissible preparation history and hence to their optimum.
-An endpoint measurement can thus certify a minimum cost without reconstructing
-the preparation history.
-
-The [paired-reset example](docs/END_TO_END_EXAMPLE.md)
-makes the chain concrete. A qubit starts at the maximally mixed reference
-$I/2$. Two reset directions, to $\lvert0\rangle$ and $\lvert1\rangle$, are
-available before the target is chosen; their uniform average preserves the
-reference. For the target $\lvert0\rangle$, the one-shot gap is one bit.
-With the example's declared model constants and cost unit, the theorem gives
-a lower bound of one atomic reset slot. A permitted one-slot preparation
-supplies the matching upper bound, so the optimum is exactly one in this
-fixed model.
-
-The package exposes the model inputs, numerical certificate checks, and
-scalar cost inversion that make such examples reproducible. The
-[scientific scope](docs/SCIENTIFIC_SCOPE.md)
-explains the evidence each calculation supplies; the
-[paper-to-code map](docs/PAPER_MAP.md)
-connects the implementation to the full model construction and lower-bound
-theorem.
-
-## What this repository implements
-
-The bundled cases reproduce selected finite constructions from the RCC paper,
-while the package also accepts new finite-control models and supplied proof
-objects. It can:
-
-- construct a prefix-controlled quantum-process model and compute its
-  terminating program semidensity;
-- audit independent trajectory and block-superoperator realizations while
-  preserving least-fixed-point semantics in nonhalting sectors;
-- verify Bellman–Choi and reference-potential certificates, and evaluate
-  fixed-model domination constants;
-- identify operations whose code length understates their reference gain and
-  obtain a sufficient prefix-code completion;
-- compute conditional preparation-cost lower bounds from complete exact
-  spectra or predeclared fixed-projector counts, with explicit tolerance,
-  sampling coverage, and atomic-slot units;
-- connect freshly verified H.3 or H.4 proof objects to a declared target-state
-  task while retaining their numerical evidence level;
-- prepare H.3 candidates for stable finite models, with separate construction
-  diagnostics and independent verification;
-- save calculation inputs and results in a versioned record and replay the
-  scalar calculation with the same package version;
-- export complete model and proof inputs in an analysis bundle, reverify them
-  in another environment, and compare fresh evidence with historical constants;
-- reproduce the Appendix F/H reference cases and follow a worked fixed-model
-  chain from a physical declaration to a one-shot RCC lower bound.
-
-This makes `rcc-refcert` a compact research testbed for a foundational task:
-turning quantum-complexity models into explicit objects whose supplied
-structure and generation costs can be examined.
+For a target spectrum or predeclared counts alone, start with
+[terminal-state bounds](#target-spectra-and-measured-counts).
+You can also [read the reference results](results/reference_report.md)
+without running code, or follow either [Jupyter notebook](#jupyter-notebook).
 
 ## Install from PyPI
 
-In a Python 3.10 or newer environment, install the package and check the
-bundled reference results:
+For the published **0.1.3** capabilities, use a Python 3.10 or newer environment:
 
 ```bash
-python3 -m pip install --upgrade rcc-refcert
+python3 -m pip install "rcc-refcert==0.1.3"
 python3 -m rcc_refcert examples
 python3 -m rcc_refcert reproduce --check
 ```
 
-Use `python` instead of `python3` when that is the interpreter name in your
-environment. The command-line tool and Python API work outside a source
-checkout; the frozen reference data are included in the installed package.
-For an exact version, install `rcc-refcert==0.1.3`.
+Use `python` instead of `python3` when that is your interpreter's name.
+The API, CLI, and frozen reference data work outside a source checkout.
+The check should report `MATCH` for the reference expectations, data, and report.
+The [reference cases](#reference-cases) explain the deliberately failed
+sufficient route and the nonhalting boundary among those expected results.
 
-The source quickstart below installs the code and runs the independent test
-suite. The checkout also provides both notebooks, worked examples, and the full
-documentation.
+For the new candidate-preparation and complete-bundle workflows, install the
+current source below.
 
 ## Quick start
 
-For the **0.2.0rc1 candidate**, clone the development branch:
+For the **0.2.0rc1 development version**, clone this branch:
 
 ```bash
 git clone --branch upgrade/complete-evidence-0.2.0rc1 https://github.com/yeruciwenrou-dotcom/rcc-refcert.git
 cd rcc-refcert
 ```
 
-Alternatively, select `upgrade/complete-evidence-0.2.0rc1` on GitHub before
-choosing **Code → Download ZIP**. To reproduce a specific build, select the
-full commit recorded in its delivery notes. Extract the archive if needed,
-then open a terminal in the directory containing `quickstart.py`.
-
-The commands below run the version in your selected checkout. The published
-0.1.3 source is available under tag `v0.1.3`, and its package can be installed
-from [PyPI](#install-from-pypi). Candidate preparation and complete-evidence
-bundles are available in the 0.2.0rc1 branch.
-
-Python 3.10 or newer is required. On macOS and most Linux systems, use:
+Alternatively, select `upgrade/complete-evidence-0.2.0rc1` on GitHub and choose
+**Code → Download ZIP**, then extract the archive. Run the following commands
+from the directory containing `quickstart.py`. Python 3.10 or newer is required;
+on macOS and most Linux systems:
 
 ```bash
 python3 --version
-python3 quickstart.py
-```
-
-If your environment exposes Python 3.10 or newer as `python`, the equivalent is:
-
-```bash
-python quickstart.py
-```
-
-On its first run, the script creates a local `.venv`, installs the locked
-verification dependencies, runs the independent test suite, checks both frozen
-reference files, and writes fresh evidence to `generated_results/`. Later runs
-reuse the installation, refreshing it when the package metadata, dependency
-lock, or package version changes.
-The reference checks should report `MATCH`. The three cases retain their
-expected outcomes: `PASS`, `EXPECTED ROUTE FAILURE`, and `EXPECTED BOUNDARY`,
-as described in the reference-case table below.
-
-To regenerate and compare the scientific evidence without running the
-independent tests:
-
-```bash
 python3 quickstart.py --reproduce-only
 ```
 
-To run individual commands in the environment created by the quickstart, use
-its Python interpreter. On macOS and Linux:
+On Windows, or where your interpreter is named `python`, use
+`python quickstart.py --reproduce-only`.
+The script creates `.venv`, installs the locked verification dependencies,
+checks the frozen reference evidence, and writes fresh results to
+`generated_results/`. Expect three `MATCH` checks. To include the independent
+test suite, run `python3 quickstart.py` (or `python quickstart.py`). Later runs
+reuse the installation and refresh it when package metadata, the dependency
+lock, or the package version changes.
+
+The commands below use `.venv/bin/python`, the quickstart interpreter on macOS
+and Linux. On Windows, substitute `.venv\Scripts\python.exe`. To use an
+existing active environment, install this checkout with
+`python -m pip install .` and use that environment's interpreter throughout.
+The module entry point accepts the same arguments as `rcc-refcert`.
+
+To reproduce a specific source version, check out its full commit or release
+tag before installation. The published 0.1.3 source is tagged `v0.1.3`.
+
+## Work with your own model
+
+After the [source installation](#quick-start), run these two examples from the
+checkout. They use ordinary NumPy arrays and the public model and certificate
+APIs:
 
 ```bash
-.venv/bin/python -m rcc_refcert examples
+.venv/bin/python examples/custom_model_workflow.py --bundle alternating.rccbundle
+.venv/bin/python examples/cyclic_reset_workflow.py --bundle cyclic-reset.rccbundle
 ```
 
-On Windows:
+The alternating qubit example prepares and independently verifies an H.3
+certificate even though a local sufficient condition fails. The cyclic-reset
+example verifies a supplied H.4 certificate and computes bounds from an exact
+spectrum and synthetic counts. Both bound paths return **two primitive slots**
+for its declared task; the guide distinguishes this general lower bound from
+the example's separately established five-slot optimum.
 
-```powershell
-.venv\Scripts\python.exe -m rcc_refcert examples
-```
+Each command saves an analysis bundle. Choose an unused output filename;
+existing evidence is preserved. To adapt the workflow, follow the
+[custom-model guide](docs/CUSTOM_MODELS.md): declare your channels, initial and
+reference states, control language, and cost premises; prepare or supply a
+certificate; verify it; then add a supported target-state task.
+The [model guide](docs/MODEL_GUIDE.md) gives the construction rules, and
+[terminal-state bounds](docs/TERMINAL_BOUNDS.md) specifies spectrum and counts
+inputs. Candidate preparation covers the stable full-space linear route;
+other models can use separately supplied H.3/H.4 proof objects.
 
-Use the same interpreter for Python scripts and API examples. The module entry
-point accepts the same arguments as the `rcc-refcert` command.
+## Reverify a shared analysis
 
-If you prefer an environment you already manage, install the package there:
+Install the current source as above, then run the following commands on the
+bundle produced by the cyclic-reset example, or replace the filename with a
+bundle you received:
 
 ```bash
-python3 -m pip install .
-python3 -m rcc_refcert examples
-python3 -m rcc_refcert example dephase-or-halt
-python3 -m rcc_refcert reproduce --check
+.venv/bin/python -m rcc_refcert bundle inspect cyclic-reset.rccbundle
+.venv/bin/python -m rcc_refcert bundle verify cyclic-reset.rccbundle --output cyclic-reset-verification.json
 ```
 
-The default check uses the frozen Markdown and normalized JSON installed with
-the package, so it also works from outside a repository checkout. Pass an
-explicit report path to compare another evidence pair.
+`inspect` checks stored consistency. `verify` checks the model and certificate
+matrices afresh, recomputes supported bounds, and compares the fresh evidence
+with the historical results. The installed package and bundle are sufficient;
+the sender's model script is unnecessary. The original bundle is preserved,
+and `--output` saves a separate report under an unused filename.
 
-The following commands use the quickstart interpreter on macOS and Linux.
-On Windows, substitute `.venv\Scripts\python.exe`; for another environment,
-use its Python interpreter. Add `--details` for residuals, margins, and proposed
-codewords, or `--format json` for the versioned machine-readable result:
+A successful fresh matrix check can still leave a historical result
+unsupported if the new conservative constant is larger. The
+[analysis-bundle guide](docs/ANALYSIS_BUNDLES.md) explains that comparison,
+the separate scalar-replay result, exit codes, and preservation of the original
+counts protocol. For exact historical scalar replay, use the bundle producer's
+package version.
 
-```bash
-.venv/bin/python -m rcc_refcert example multiblock-rectangular --details
-.venv/bin/python -m rcc_refcert reproduce --format json
-```
-
-To write a new report, choose the destination explicitly:
-
-```bash
-.venv/bin/python -m rcc_refcert reproduce --output reference_report.md
-```
-
-### Jupyter notebook
+## Jupyter notebook
 
 The notebook dependencies are optional and do not enter the runtime package.
 After the quickstart has created `.venv`, macOS and Linux users can run:
@@ -359,31 +251,6 @@ The [worked explanation](docs/END_TO_END_EXAMPLE.md) separates software
 checks, analytic model obligations, and the theorem-level consequence. The
 example states all model inputs explicitly.
 
-## Work with your own model
-
-The [custom-model guide](docs/CUSTOM_MODELS.md) connects candidate preparation,
-verification, and evidence sharing in two runnable examples. Install this
-source tree, then run:
-
-```bash
-python -m pip install .
-python examples/custom_model_workflow.py --bundle alternating.rccbundle
-python examples/cyclic_reset_workflow.py --bundle cyclic-reset.rccbundle
-python -m rcc_refcert bundle verify cyclic-reset.rccbundle --output cyclic-reset-verification.json
-```
-
-The first example verifies a global certificate when a local sufficient
-condition fails. The second binds a numerical certificate to exact-spectrum
-and synthetic-counts calculations. The recipient needs the installed package
-and saved bundle to reverify the matrices; the original example script is
-unnecessary. Choose new output filenames for each run.
-
-These candidate and complete-bundle interfaces are included in this source
-version. PyPI version 0.1.3 provides the earlier certificate and scalar-record
-interfaces. See [Analysis bundles](docs/ANALYSIS_BUNDLES.md) for complete-input
-verification, historical-constant comparison, and unchanged acquisition
-protocols.
-
 ## Reference cases
 
 | Case | Scientific role | Intended result |
@@ -454,6 +321,116 @@ estimate; passing H.3 and H.4 reports provide numerical upper constants with
 error budgets. See the [model guide](docs/MODEL_GUIDE.md#numerical-and-resource-limits)
 for input limits and budget settings.
 
+## Why reference-contingent complexity
+
+Preparing a pure qubit illustrates why the resource accounting matters.
+A reset operation can produce $\lvert0\rangle$ in a single step, but the
+physical process that removes entropy may be absent from a gate count.
+Likewise, a supplied pure ancilla already contains structure that a
+preparation procedure can use. The same target can therefore have different
+costs depending on what the background supplies and which operations are
+charged.
+
+RCC's **principle of structural fairness** makes that dependence explicit.
+Structure supplied as a fixed background is represented in the reference;
+additional structure directed toward the target must be generated and counted.
+The reference, allowed dynamics, control language and program prior, success
+criterion, and atomic cost unit are fixed together before target selection.
+This complete specification defines the physical generation model. Complexity
+is therefore a relational physical quantity, measured relative to what the
+model supplies and charges.
+
+### What RCC measures
+
+RCC is a structure-fair, model-relative framework for defining and
+lower-bounding quantum circuit complexity.
+
+For a fixed model, target, and accuracy $\epsilon$,
+$C_{\rm opt}^{(\epsilon)}$ is the infimum of the declared cost over all
+admissible successful preparation histories. It asks for the least cost
+compatible with that model.
+
+The paper constructs an admissible model family fixed before target selection,
+whose size-indexed members can approximate arbitrary finite-dimensional pure
+and mixed states to any positive tolerance. This is the universality claim.
+The optimization is over preparation histories within a fixed member; the
+reference and cost rules remain part of the declared problem.
+
+### How the final state gives a lower bound
+
+Every successful history must leave the required structure in its final state.
+RCC quantifies the target's one-shot information gap relative to the reference
+and converts it into a cost lower bound using the model's atomic control
+bandwidth and transcription rules. Under the theorem's reference-consistency,
+faithful-transcription, and reference-admissibility hypotheses, this bound
+applies to every admissible preparation history and hence to their optimum.
+An endpoint measurement can thus certify a minimum cost without reconstructing
+the preparation history.
+
+The [paired-reset example](docs/END_TO_END_EXAMPLE.md)
+makes the chain concrete. A qubit starts at the maximally mixed reference
+$I/2$. Two reset directions, to $\lvert0\rangle$ and $\lvert1\rangle$, are
+available before the target is chosen; their uniform average preserves the
+reference. For the target $\lvert0\rangle$, the one-shot gap is one bit.
+With the example's declared model constants and cost unit, the theorem gives
+a lower bound of one atomic reset slot. A permitted one-slot preparation
+supplies the matching upper bound, so the optimum is exactly one in this
+fixed model.
+
+The package exposes the model inputs, numerical certificate checks, and
+scalar cost inversion that make such examples reproducible. The
+[scientific scope](docs/SCIENTIFIC_SCOPE.md)
+explains the evidence each calculation supplies; the
+[paper-to-code map](docs/PAPER_MAP.md)
+connects the implementation to the full model construction and lower-bound
+theorem.
+
+> **Manuscript alignment.** This source tree is aligned with version 4 of the
+> [RCC manuscript](https://arxiv.org/abs/2509.18205). Appendix labels and
+> equation numbers refer to manuscript version 4.
+
+## What this repository implements
+
+The bundled cases reproduce selected finite constructions from the RCC paper,
+while the package also accepts new finite-control models and supplied proof
+objects. It can:
+
+- construct a prefix-controlled quantum-process model and compute its
+  terminating program semidensity;
+- audit independent trajectory and block-superoperator realizations while
+  preserving least-fixed-point semantics in nonhalting sectors;
+- verify Bellman–Choi and reference-potential certificates, and evaluate
+  fixed-model domination constants;
+- identify operations whose code length understates their reference gain and
+  obtain a sufficient prefix-code completion;
+- compute conditional preparation-cost lower bounds from complete exact
+  spectra or predeclared fixed-projector counts, with explicit tolerance,
+  sampling coverage, and atomic-slot units;
+- connect freshly verified H.3 or H.4 proof objects to a declared target-state
+  task while retaining their numerical evidence level;
+- prepare H.3 candidates for stable finite models, with separate construction
+  diagnostics and independent verification;
+- save calculation inputs and results in a versioned record and replay the
+  scalar calculation with the same package version;
+- export complete model and proof inputs in an analysis bundle, reverify them
+  in another environment, and compare fresh evidence with historical constants;
+- reproduce the Appendix F/H reference cases and follow a worked fixed-model
+  chain from a physical declaration to a one-shot RCC lower bound.
+
+This makes `rcc-refcert` a compact research testbed for a foundational task:
+turning quantum-complexity models into explicit objects whose supplied
+structure and generation costs can be examined.
+
+## Further reading
+
+| Question | Guide |
+|---|---|
+| What do the checks establish? | [Scientific scope](docs/SCIENTIFIC_SCOPE.md) |
+| How do paper formulas map to code? | [Paper-to-code map](docs/PAPER_MAP.md) |
+| How are numerical and tensor conventions fixed? | [Conventions](docs/CONVENTIONS.md) |
+| How should I interpret result fields and exit codes? | [Output contract](docs/OUTPUT_CONTRACT.md) |
+| How can I extend or contribute to the toolkit? | [Contributing](CONTRIBUTING.md) |
+
 ## Extending the research kernel
 
 The public model and certificate interfaces support research beyond the
@@ -462,13 +439,13 @@ auditable structure-fair models, strengthen the certificate layer, or make its
 evidence more rigorous. Examples include:
 
 - finite-control models with new physical resources or boundary behavior;
-- automated Bellman–Choi or reference-potential certificate search;
+- Bellman–Choi or reference-potential search beyond the stable linear route;
 - rigorous matrix-interval or exact-matrix certificate verification;
 - family-uniform certificate constructions and scaling diagnostics;
 - alternative reference gain–cost encodings and negative witnesses;
 - terminal-state bound methods with explicit reference, transcription, and
   sampling assumptions;
-- serialization, solver, and larger-state-space backends.
+- additional input formats, solvers, and larger-state-space backends.
 
 Contributions are welcome across scientific models, algorithms, numerical
 reliability, documentation, and examples. See

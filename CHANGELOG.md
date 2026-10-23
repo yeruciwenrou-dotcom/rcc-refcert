@@ -17,6 +17,9 @@
   historical records alongside the new numerical evidence.
 - Add alternating damping/pumping and cyclic noisy-reset workflows, guides,
   and notebook steps for complete evidence transfer.
+- Organize the README around reference reproduction, custom-model analysis,
+  and recipient revalidation. Clarify installation by version, adapting the
+  examples, and interpreting shared evidence.
 
 The frozen reference calculations and bound-record v2 contract retain their
 numerical meaning. Same-version scalar replay remains exact; use the original
