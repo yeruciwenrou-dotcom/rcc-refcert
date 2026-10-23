@@ -3,8 +3,8 @@
 ## What a model lets you study
 
 Use a `FiniteControlModel` to ask how a prefix-coded quantum process evolves,
-what unconditional output its terminating programs produce, and whether the
-description length of each action accounts for its reference gain. This makes
+what unconditional output its terminating programs produce, and how its
+code lengths compare with local reference gain–cost conditions. This makes
 it possible to study state preparation, reset, feedback, and looping control
 under one explicit cost convention.
 
@@ -37,6 +37,11 @@ The sections below define the model objects and their audit semantics.
 6. Test a supplied certificate or the suggested sufficient re-encoding.
 7. For a supported terminal-state task, combine the model declaration with an
    exact target spectrum or a predeclared fixed-projector acquisition protocol.
+
+H.70 is sufficient for the chosen envelope construction. Its failure can
+coexist with a passing global H.3 or H.4 certificate for the original model.
+If you adopt H.76 codewords, recheck the resulting model and its transcription
+calibration: the new code weights change the program prior.
 
 ## A complete two-action model
 
@@ -122,6 +127,7 @@ model validation.
 reference state is a full-rank density matrix on the declared output support.
 If the mathematical reference is rank-deficient in a larger ambient space,
 reduce the model to its support before construction.
+Terminal-state tasks additionally require the uniform reference on that support.
 
 ## Audit workflow
 

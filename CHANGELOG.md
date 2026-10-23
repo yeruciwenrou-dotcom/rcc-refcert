@@ -20,6 +20,11 @@
 - Organize the README around reference reproduction, custom-model analysis,
   and recipient revalidation. Clarify installation by version, adapting the
   examples, and interpreting shared evidence.
+- Align the scientific explanations with the V4 theorem: distinguish the
+  state-side RCC leading term, full one-shot lower bound and process optimum;
+  clarify H.3/H.70 logic, prefix-code mass, and the external measurement
+  definition required by counts records. Complete the paper map and candidate
+  capability metadata.
 
 The frozen reference calculations and bound-record v2 contract retain their
 numerical meaning. Same-version scalar replay remains exact; use the original

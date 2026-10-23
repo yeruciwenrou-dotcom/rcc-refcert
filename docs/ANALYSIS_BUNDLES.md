@@ -151,6 +151,9 @@ The example counts are synthetic. For experimental results, acquisition
 chronology, fixed-N iid sampling, ideal readout, support assumptions, and the
 physical meaning of the witness remain external obligations. Storing their
 declarations does not establish them.
+The embedded protocol carries a witness ID and rank. Preserve the actual
+projector definition and acquisition records alongside the bundle; its model
+and proof arrays do not include the experimental measurement operator.
 
 ## Format and numerical identity
 

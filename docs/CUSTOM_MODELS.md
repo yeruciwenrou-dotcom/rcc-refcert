@@ -125,10 +125,15 @@ upper constant close to `1.00000000010`.
 
 The fixed model supplies the external premises recorded in the task:
 
-- **RCon:** the reference and complete four-channel action set are fixed before
-  the target. Their average preserves the reference.
+- **RCon:** the initial state and reference are $I/16$; the effective output is
+  the same register, with unconditional readout. The complete four-channel
+  action set and one-slot resource rule are fixed before the target. The
+  channel average also preserves the reference.
 - **TC:** every admitted instruction, including halt, is charged one slot and
   receives exactly two transcript bits; hence the program length is $2L$.
+  The complete history domain consists of finite sequences of the three
+  continuing actions followed by halt. The final halt codeword delimits the
+  program, so no separate length header is needed in this declared syntax.
 - **RA:** the explicit reference relations give terminal reference semidensity
   $\sigma$ for this finite model. The numerical task uses the independently
   verified upper constant. Any claim for a wider model family requires its own

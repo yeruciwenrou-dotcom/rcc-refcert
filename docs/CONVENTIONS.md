@@ -32,9 +32,18 @@ syntax-level choice.
 
 ## Halting and subnormalization
 
-The terminating output is a positive semidefinite semidensity with trace at most
-one. Missing trace is nonhalting code mass. The semidensity remains
-unnormalized, preserving both that mass and its Appendix H domination constant.
+Every accepted program has a normalized unconditional output $\rho_p$.
+Their code-weighted sum $M=\sum_p2^{-|p|}\rho_p$ is a positive semidefinite
+semidensity with $\mathrm{Tr}M=\sum_p2^{-|p|}\le1$.
+The missing weight includes infinite code-reading paths and unused branches of
+incomplete prefix codes. For example, one terminal identity action encoded
+as `00` gives $M=\sigma_R/4$ and a deficit of $3/4$, although every accepted
+program terminates. A finite truncation additionally omits later halting
+programs.
+
+Keep this semidensity unnormalized: dividing by its trace changes the program
+prior and its Appendix H domination constant. The normalized target states
+used for terminal-state smoothing are separate objects.
 
 ## Vectorization
 

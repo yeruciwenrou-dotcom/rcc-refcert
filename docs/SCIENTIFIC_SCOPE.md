@@ -55,6 +55,69 @@ canonical cost inverse, and saves the calculation for replay. Support
 uncertainty, readout/leakage corrections, and multi-path synthesis require the
 broader contracts developed in the paper.
 
+## From state information to process cost
+
+The paper distinguishes the state-side RCC value from the optimum over
+preparation histories. On the unbiased reference support,
+
+$$
+\sigma_R=\Pi_R/d_R,\qquad g_R=\log_2\Gamma_R,\qquad
+C_R(\rho)=\frac{D(\rho\Vert\sigma_R)}{g_R}
+=\frac{\log_2 d_R-S(\rho)}{g_R}.
+$$
+
+Here $\Gamma_R$ counts operationally distinct physical actions in one declared
+atomic slot, including the applicable addressing and resource semantics.
+It is determined by the control interface. A count of syntax labels or the
+Hilbert-space dimension alone does not determine it. One R-structon
+($\mathrm{st}_R$) represents $g_R$ bits of state-side information; preparation
+cost is counted in atomic resource slots.
+
+Under the exact-transcription hypotheses of Theorem 3.1, the common lower
+bound for every admissible successful history is
+
+$$
+C_{\rm opt}^{(\epsilon)}(\rho;\mathfrak M_R)
+\ge F_{g_R,a}\left[D_{\max}^{\epsilon}(\rho\Vert\sigma_R)
+-\beta_U\right],\qquad \beta_U=\gamma+\log_2 C_U.
+$$
+
+$D_{\max}^{\epsilon}$ uses normalized states within
+$T(\tau,\rho)=\tfrac12\|\tau-\rho\|_1\le\epsilon$ of the target, with
+$0\le\epsilon\le1$. The reference constant satisfies $C_U\ge1$.
+$F_{g_R,a}$ inverts
+$g_R L+a\log_2\max\{1,L\}$ and returns zero for nonpositive inputs.
+The full information input decomposes as
+
+$$
+D_{\max}^{\epsilon}(\rho\Vert\sigma_R)
+=g_R C_R(\rho)+\Delta_{\rm spec}(\rho)-\delta_{\rm sm}(\rho,\epsilon),
+$$
+
+where $H_{\min}(\rho)=-\log_2\|\rho\|_\infty$,
+$\Delta_{\rm spec}=S(\rho)-H_{\min}(\rho)$ is the spectral correction,
+and $\delta_{\rm sm}=D_{\max}-D_{\max}^{\epsilon}$ is the smoothing loss.
+$C_R$ is the linear leading term; the stated smoothing regularity and uniform
+constants give the compact form of Corollary 3.1. The calculator uses the full
+nonrecursive inversion, so it retains these corrections and model overheads.
+
+The all-path guarantee comes from the model qualifications. `RCon` places the
+reference, outputs and costs in the same physical problem. `TC` covers every
+admissible history with a program whose length is controlled by its cost.
+`RA` bounds the semidensity of the full program domain by $C_U\sigma_R$.
+Each successful program contributes a positive term to that semidensity;
+the resulting bound on its output gap holds for every successful history
+and survives taking the infimum of their costs.
+
+At a fixed uniform reference and tolerance, identical target spectra yield
+the same global information bound. In particular, all pure targets share
+this state-side value, while their optimal preparation costs can differ.
+The paper's reference-compatible windows resolve task-relevant internal
+structure (Section V and Appendix E). Window calculations are part of the
+broader framework; the implemented scalar routes use the declared global
+support or one predeclared projector. An exact optimum additionally needs a
+matching feasible preparation, as in the paired-reset example.
+
 ## From programs to the terminating output
 
 For a fixed finite model, let $\Omega_0$ be the transient block state,
@@ -75,7 +138,11 @@ $$
 M=\sum_{m\ge 1}\mathbb H\mathbb T^{m-1}(\Omega_0).
 $$
 
-It is subnormalized, and its trace deficit records nonhalting program mass. If
+Its trace is the total Kraft weight of accepted terminating programs. The
+deficit $1-\mathrm{Tr}M$ also includes unused code space when a local
+prefix code is incomplete; it cannot in general be attributed entirely to
+infinite execution. For a finite partial sum, the deficit additionally
+includes programs that halt beyond the truncation. If
 the spectral radius of the full transient superoperator is strictly below one
 at the stated tolerance, the package also evaluates the linear form
 $\mathbb H(I-\mathbb T)^{-1}(\Omega_0)$. At spectral radius one, the least
@@ -118,9 +185,17 @@ $\mathbb H(I-\mathbb T)^{-1}$ and pass it through the independent verifier.
 Candidates obtained by other analytic or numerical methods can be supplied to
 the same verifier.
 
-A failed H.70 result rejects that supplied sufficient route. H.76 then gives a
-deterministic local prefix-code witness at sufficient lengths. The corresponding
-RCC analysis supplies its target-independent transcription calibration.
+In exact mathematics, Theorem H.3 is a necessary and sufficient
+CP-supersolution characterization of $M\preceq C\sigma_R$ for a fixed finite
+model and a given $C$. The software checks a supplied candidate numerically;
+a failed candidate does not establish infeasibility of all such certificates.
+
+A failed H.70 result rejects that supplied sufficient route. Paired actions
+can satisfy aggregate reference balance even when their separate worst-case
+gain sums fail H.70. H.76 supplies a deterministic prefix code meeting the
+local criterion, with new weights and a new program semidensity. Applying a
+cost bound to that re-encoded model also requires its own target-independent
+transcription calibration.
 
 ## Outcome and evidence
 
@@ -173,9 +248,10 @@ finite-model quantities and checks the explicit preparation.
 
 The kernel also supports research on finite-control processes. A researcher can
 compute a terminating program semidensity, compare independent realizations,
-test supplied proof objects, and locate operations whose description cost is
-too small for their reference gain. These tasks make the repository a testbed
-for model design, cost assignment, negative witnesses, and numerical
+test supplied proof objects, and compare local reference gains with the
+code-length allocation required by a chosen sufficient route. These tasks
+make the repository a testbed for model design, cost assignment, negative
+witnesses, and numerical
 verification of supplied certificates.
 
 The terminal-state interfaces also let researchers study how target spectra,

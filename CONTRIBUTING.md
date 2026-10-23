@@ -72,8 +72,9 @@ convention risk, or mathematical boundary. Document:
 - the expected outcomes, including designed route failures or boundaries;
 - the test that would fail under the most plausible incorrect implementation.
 
-An expected H.70 failure records a code-length shortfall along that sufficient
-route. An `inconclusive` result records an unresolved numerical condition. Check
+An expected H.70 failure rejects the chosen local sufficient criterion; it
+does not refute reference admissibility of the original model.
+An `inconclusive` result records an unresolved numerical condition. Check
 the other certificate routes for the original model; adopting suggested
 codewords changes its program weights and defines a re-encoded model.
 Family-uniform reference admissibility needs the corresponding uniform analytic

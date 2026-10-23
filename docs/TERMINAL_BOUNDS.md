@@ -72,6 +72,12 @@ The implementation solves this scalar problem with exact rational arithmetic.
 It also returns an active prefix rank and mass, the relative entropy,
 the skew and smoothing loss. The direct information value drives the bound;
 subtracting nearly equal displayed diagnostics does not drive the calculation.
+This is Theorem A.1 of the
+[V4 paper](https://arxiv.org/abs/2509.18205v4), with normalized-state
+trace-distance smoothing. The
+[state-to-cost explanation](SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
+relates this one-shot value to the state-side RCC leading term and the
+all-path preparation-cost guarantee.
 
 Let $g=\log_2\Gamma$, $\beta=\gamma+\log_2 C_U$ with $C_U\ge1$, and
 
@@ -108,8 +114,9 @@ estimate sums numeric input entries, one family of Choi blocks (H.3) or control
 matrices (H.4), the output matrix, and the block-level correction system.
 Its default limit is 1048576 elements; pass `limits=ComputationLimits(...)`
 from `rcc_refcert` to adjust `max_matrix_elements`. This is an algorithm
-preflight estimate, not a peak-memory or execution-time bound. Direct calls
-to the H.3/H.4 verifiers do not use the adapter's preflight.
+preflight estimate, not a peak-memory or execution-time bound. Direct H.3/H.4
+verification, task binding, and bundle verification share the certificate
+matrix preflight. The 1024 output-dimension cap is specific to task binding.
 
 ## Fixed-projector counts
 
@@ -126,6 +133,11 @@ calculator supports a predeclared projector, fixed-N iid sampling, ideal
 readout and no leakage. It does not support choosing the projector on the same
 data, optional stopping, correlated samples or post hoc changes to the failure
 budget. Hashes check identity, not the chronology or truth of those premises.
+
+Keep the actual projector definition and its acquisition/calibration records
+with the study. The protocol stores its witness ID and rank; it does not
+serialize the measurement operator or establish that the counts came from
+that measurement. The rank fixes the ideal uniform-reference baseline $k/d_R$.
 
 For $h$ hits in $N$ trials, the one-sided Hoeffding endpoint is
 

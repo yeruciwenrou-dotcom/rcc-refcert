@@ -20,6 +20,10 @@ researcher can reverify the calculation without the original modeling script.
 The package implements selected parts of **Reference-Contingent Complexity
 (RCC)**, introduced in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
+Within an RCC-admissible model, the theorem turns final-state information into
+a cost floor shared by every successful preparation history. The toolkit makes
+selected model checks and that cost inversion executable for declared finite
+inputs.
 The [conceptual introduction](#why-reference-contingent-complexity) explains
 the research question; the [scientific scope](docs/SCIENTIFIC_SCOPE.md)
 connects the implemented checks to the RCC framework.
@@ -259,8 +263,9 @@ example states all model inputs explicitly.
 | `multiblock-rectangular` | Direct-sum, rectangular-Kraus, and certificate diagnostic | H.1–H.4 pass; the original codewords fail H.70 as designed; H.76 supplies a passing re-encoding |
 | `dark-nonhalting` | Least-fixed-point boundary with a recurrent nonhalting sector | The process remains valid; the linear inverse is unavailable and H.34 remains unevaluated |
 
-The designed H.70 failure is a successful diagnostic: it identifies codewords
-whose description cost falls short of their reference gain.
+The designed H.70 failure identifies codewords that do not meet that local
+sufficient criterion. The same model passes the supplied H.3 and H.4 checks;
+its original program prior can qualify through those routes.
 
 ## Python API
 
@@ -359,13 +364,25 @@ reference and cost rules remain part of the declared problem.
 ### How the final state gives a lower bound
 
 Every successful history must leave the required structure in its final state.
-RCC quantifies the target's one-shot information gap relative to the reference
-and converts it into a cost lower bound using the model's atomic control
-bandwidth and transcription rules. Under the theorem's reference-consistency,
-faithful-transcription, and reference-admissibility hypotheses, this bound
-applies to every admissible preparation history and hence to their optimum.
-An endpoint measurement can thus certify a minimum cost without reconstructing
-the preparation history.
+Faithful transcription bounds that history's program length by its physical
+cost. Reference admissibility bounds the program's output gap relative to the
+structured vacuum by the same description length plus a fixed calibration
+constant. The gap that remains throughout the target's error neighborhood
+therefore imposes a common cost floor. Taking the infimum over successful
+histories carries this bound to $C_{\rm opt}^{(\epsilon)}$.
+
+For the unbiased reference $\sigma_R=\Pi_R/d_R$, the state-side RCC value is
+$C_R(\rho)=[\log_2 d_R-S(\rho)]/\log_2\Gamma_R$, where $\Gamma_R$ counts
+distinct physical action classes per atomic slot. It gives the bandwidth-scaled
+entropy deficit and the linear leading term of the lower bound under the
+paper's regularity conditions. The full one-shot bound also retains spectral
+skew, smoothing loss, and transcription and reference overheads. The
+[scientific scope](docs/SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
+gives their precise relation and units.
+
+With the model qualifications established and the measurement protocol fixed
+in advance, endpoint statistics can thus certify a minimum cost without
+reconstructing the preparation history.
 
 The [paired-reset example](docs/END_TO_END_EXAMPLE.md)
 makes the chain concrete. A qubit starts at the maximally mixed reference
@@ -386,7 +403,8 @@ connects the implementation to the full model construction and lower-bound
 theorem.
 
 > **Manuscript alignment.** This source tree is aligned with version 4 of the
-> [RCC manuscript](https://arxiv.org/abs/2509.18205). Appendix labels and
+> [RCC manuscript](https://arxiv.org/abs/2509.18205)
+> ([fixed V4](https://arxiv.org/abs/2509.18205v4)). Appendix labels and
 > equation numbers refer to manuscript version 4.
 
 ## What this repository implements
@@ -401,8 +419,8 @@ objects. It can:
   preserving least-fixed-point semantics in nonhalting sectors;
 - verify Bellman–Choi and reference-potential certificates, and evaluate
   fixed-model domination constants;
-- identify operations whose code length understates their reference gain and
-  obtain a sufficient prefix-code completion;
+- evaluate local reference gain–cost conditions and obtain a sufficient
+  prefix-code completion for a separately re-encoded model;
 - compute conditional preparation-cost lower bounds from complete exact
   spectra or predeclared fixed-projector counts, with explicit tolerance,
   sampling coverage, and atomic-slot units;

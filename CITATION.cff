@@ -18,11 +18,14 @@ abstract: >-
   bounds on preparation cost in atomic slots. Freshly verified H.3/H.4 proof
   objects can supply the reference-domination constant; versioned records
   preserve calculation inputs, evidence levels and same-version scalar replay.
+  Stable finite models support linear H.3 candidate preparation followed by
+  independent verification. Complete analysis bundles retain model and proof
+  arrays for fresh numerical checks and comparison with historical results.
   Three bundled reference cases cover closed-form, multiblock, and nonhalting
   behavior. A worked paired-reset model connects the physical declaration to a
-  numerical RCC lower
-  bound of one slot, attained by an explicit one-slot preparation. The package
-  provides a Python API, command-line tools, two Jupyter tutorials, and versioned
+  numerical RCC lower bound of one slot, attained by an explicit one-slot
+  preparation. The package provides a Python API, command-line tools, two
+  Jupyter tutorials, and versioned
   reports. Matrix checks provide reproducible numerical evidence for declared
   finite models, with explicit pass, fail, inconclusive, and not-applicable
   outcomes. Terminal-state records distinguish scalar enclosures, numerical
