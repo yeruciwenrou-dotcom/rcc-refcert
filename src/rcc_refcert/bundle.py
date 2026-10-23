@@ -37,7 +37,7 @@ from .bounds.scalar import (
     rational,
 )
 from .bundle_storage import load_bundle_payload, save_bundle_payload
-from .limits import DEFAULT_LIMITS, ComputationLimits
+from .limits import DEFAULT_LIMITS, ComputationLimits, _resource_diagnostic
 from .metadata import source_revision_from_environment, validate_source_revision
 from .reference_potential import (
     ReferencePotentialCertificate,
@@ -449,6 +449,7 @@ def verify_analysis_bundle(
 
     The caller's resource limits remain authoritative. Stored limits describe
     history; they cannot enlarge the receiving environment's budget.
+    In the returned report, limits above 256 bits use bounded diagnostic strings.
     """
     payload = load_bundle_payload(path, limits=limits)
     analysis, original_tol = _history(payload)
@@ -533,7 +534,10 @@ def verify_analysis_bundle(
             "tolerance_exact": str(Fraction.from_float(effective_tol)),
             "original_tolerance_exact": str(Fraction.from_float(original_tol)),
             "tolerance_overridden": tol is not None,
-            "limits": asdict(limits),
+            "limits": {
+                name: _resource_diagnostic(value)
+                for name, value in asdict(limits).items()
+            },
         },
         "input_bindings": analysis["input_bindings"],
         "historical_verification": analysis["verification"],

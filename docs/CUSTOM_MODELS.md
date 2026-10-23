@@ -58,6 +58,12 @@ happened during construction:
 | `inconclusive` | Numerical work did not resolve a usable candidate | Inspect the diagnostics and numerical conditioning |
 | `resource_limit` | The request exceeds its declared computation budget | Reduce the problem or explicitly change the budget |
 
+`resource_estimate` is diagnostic: counts through 256 bits remain integers;
+larger counts are strings reporting their bit length and explicitly omitting
+the decimal expansion. Admission checks still compare exact integers. Direct
+verifiers raise `ResourceLimitError`, whose `estimate` and `limit` attributes
+retain those exact integers, while its message uses the same bounded summary.
+
 The central sequence in the example is:
 
 ```python

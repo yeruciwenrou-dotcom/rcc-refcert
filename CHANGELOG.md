@@ -7,6 +7,8 @@
   Candidates still require independent certificate verification.
 - Apply one resource preflight to direct H.3/H.4 verification, task binding
   and complete-evidence import.
+- Keep extreme resource refusals and diagnostic JSON serializable with bounded
+  integer summaries, preserving exact budget comparisons and exception values.
 - Save original model matrices, proof objects, numerical controls and bound
   requests in a versioned analysis bundle. Inspect or revalidate it through
   the Python API and `rcc-refcert bundle` commands.

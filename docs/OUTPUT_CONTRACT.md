@@ -212,3 +212,11 @@ inspection or supported verification, `1` an unsupported or unresolved
 verification result, `2` an input or output-file error, and `3` a computation
 budget refusal. See [Analysis bundles](ANALYSIS_BUNDLES.md) for the complete
 contract, historical-constant comparison and counts-event handling.
+
+Resource-error JSON fields `estimate` and `limit`, and the fresh verification
+report's `controls.limits`, retain integers through 256 bits. Larger values use
+strings with the integer's bit length and an explicit `decimal expansion
+omitted` marker. These are diagnostic summaries; resource comparisons continue
+to use exact integers. A summary cannot be reused as a computation budget.
+Stored analysis controls and scientific records keep
+their exact representations and existing storage limits.

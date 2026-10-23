@@ -28,6 +28,15 @@ class ComputationLimits:
 DEFAULT_LIMITS = ComputationLimits()
 
 
+def _resource_diagnostic(value: int) -> int | str:
+    """Bound diagnostic output without expanding an oversized decimal integer."""
+    bits = value.bit_length()
+    if bits <= 256:
+        return value
+    sign = "negative " if value < 0 else ""
+    return f"<{sign}integer with {bits} bits; decimal expansion omitted>"
+
+
 class ResourceLimitError(ValueError):
     """An analysis was refused before an estimated resource budget was exceeded."""
 
@@ -38,7 +47,8 @@ class ResourceLimitError(ValueError):
         self.estimate = estimate
         self.limit = limit
         super().__init__(
-            f"{resource} preflight estimate {estimate} exceeds budget {limit}; "
+            f"{resource} preflight estimate {_resource_diagnostic(estimate)} "
+            f"exceeds budget {_resource_diagnostic(limit)}; "
             "reduce the requested work or supply larger ComputationLimits"
         )
 

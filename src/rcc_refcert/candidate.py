@@ -13,6 +13,7 @@ from .limits import (
     DEFAULT_LIMITS,
     ComputationLimits,
     ResourceLimitError,
+    _resource_diagnostic,
     check_certificate_budget,
     check_matrix_budget,
     estimate_certificate_resources,
@@ -30,12 +31,14 @@ class CandidatePreparation:
     ``not_applicable``, ``inconclusive``, or ``resource_limit``. A ready
     certificate still requires ``verify_bellman_choi``. In particular its
     constant is a proposed value, not a verified numerical upper constant.
+    Resource diagnostics above 256 bits use explicitly omitted decimal
+    expansions; all admission comparisons still use the exact integers.
     """
 
     certificate: BellmanChoiCertificate | None
     status: str
     diagnostics: tuple[str, ...]
-    resource_estimate: dict[str, int] = field(default_factory=dict)
+    resource_estimate: dict[str, int | str] = field(default_factory=dict)
 
 
 def prepare_bellman_choi(
@@ -54,7 +57,7 @@ def prepare_bellman_choi(
     """
     if not np.isfinite(tol) or tol <= 0:
         raise ValueError("tol must be finite and positive")
-    estimate: dict[str, int] = {}
+    estimate: dict[str, int | str] = {}
     try:
         empty = BellmanChoiCertificate({}, 0.0)
         planned = estimate_certificate_resources(model, empty)
@@ -67,9 +70,9 @@ def prepare_bellman_choi(
             planned["estimated_elements"] + planned["block_operator_elements"]
         )
         estimate = {
-            "dense_matrix_elements": dense_elements,
-            "certificate_matrix_elements": certificate_elements,
-            "limit": limits.max_matrix_elements,
+            "dense_matrix_elements": _resource_diagnostic(dense_elements),
+            "certificate_matrix_elements": _resource_diagnostic(certificate_elements),
+            "limit": _resource_diagnostic(limits.max_matrix_elements),
         }
         check_matrix_budget(model, limits)
         if certificate_elements > limits.max_matrix_elements:
@@ -108,7 +111,9 @@ def prepare_bellman_choi(
             name=f"{model.name}: linear H.3 candidate",
         )
         checked = check_certificate_budget(model, certificate, limits)
-        estimate["certificate_matrix_elements"] = checked["estimated_elements"]
+        estimate["certificate_matrix_elements"] = _resource_diagnostic(
+            checked["estimated_elements"]
+        )
     except ResourceLimitError as exc:
         return CandidatePreparation(None, "resource_limit", (str(exc),), estimate)
     except (np.linalg.LinAlgError, FloatingPointError, OverflowError) as exc:

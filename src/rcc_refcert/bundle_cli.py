@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .bounds.scalar import decimal_endpoint, decimal_string, rational
 from .bundle import inspect_analysis_bundle, verify_analysis_bundle
-from .limits import ComputationLimits, ResourceLimitError
+from .limits import ComputationLimits, ResourceLimitError, _resource_diagnostic
 from .numeric import format_certificate_constant
 
 
@@ -122,8 +122,8 @@ def run(arguments) -> int:
             "state": "resource_limit",
             "message": str(exc),
             "resource": exc.resource,
-            "estimate": exc.estimate,
-            "limit": exc.limit,
+            "estimate": _resource_diagnostic(exc.estimate),
+            "limit": _resource_diagnostic(exc.limit),
         }
         status = 3
     except (ValueError, TypeError, KeyError, OSError, OverflowError) as exc:
