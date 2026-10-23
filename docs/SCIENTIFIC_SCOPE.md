@@ -2,25 +2,39 @@
 
 ## Repository identity
 
-RCC is a structure-fair, model-relative framework for defining and
-lower-bounding quantum circuit complexity. For a target state $\rho$ within a
-declared physical generation model, its process-side object
-$C_{\rm opt}^{(\epsilon)}$ is the infimum of the declared cost over every
-admissible history that prepares the target within accuracy $\epsilon$. The
-main RCC theorem converts the target's one-shot structural gap relative to the
-reference into a rigorous lower bound on this global process optimum. The
-resulting complexity is a relational physical quantity fixed jointly by the
-target, reference background, admissible processes, error semantics, and cost
-scale.
+RCC makes the reference dependence of quantum circuit complexity explicit.
+Its principle of structural fairness guides the construction of physical
+generation models: structure already supplied by the background enters the
+reference, and additional target-directed structure is generated and charged
+in the same resource coordinates. The reference background, allowed dynamics,
+control interface, program semantics, output convention, and cost unit must
+form a consistent physical and resource description.
 
-The target specifies the structure that every successful preparation must
-realize; the model fixes the reference background, available operations,
-control interface, program semantics, and resource unit that determine what is
-already supplied and how the remaining generation responsibility is measured.
-Structural fairness requires target-shortening resources to be represented in
-those same coordinates. `rcc-refcert` implements the finite-control
-qualification machinery for this model class. Given prefix-coded quantum
-operations and a reference state, it constructs the terminating program
+The reference has an independent physical origin, identified before target
+selection. Together, the reference and generation model determine the
+structural zero point and resource scale. A change of reference requires a
+corresponding model specification; cross-model cost comparisons also account
+for the resources needed to translate between the models (Appendix A.10).
+
+Appendix F constructs an admissible qubit model family with universal
+pure- and mixed-state generation to arbitrary positive tolerance. At each
+size, the same member serves every target of that size. Appendix H supplies
+finite-control realizations and certificate methods. These constructions give
+the Section II framework explicit models and operational content.
+
+For a target state $\rho$ in a specified admissible model, the process-side object
+$C_{\rm opt}^{(\epsilon)}$ is the infimum of the declared cost over every
+admissible history that prepares the target within accuracy $\epsilon$.
+The reference and resource rules are held fixed across those histories.
+This optimization defines a relational physical quantity, specified jointly
+by the target, reference background, admissible processes, error semantics,
+and cost scale. The main RCC theorem converts the target's one-shot structural
+gap relative to the reference into a rigorous lower bound on this global
+process optimum.
+
+`rcc-refcert` implements finite-control qualification machinery for this model
+class. Given prefix-coded quantum operations and a reference state, it
+constructs the terminating program
 semidensity, verifies reference certificates, evaluates the reference gain of
 individual actions, and tests the corresponding code-length allocation.
 Its terminal-state calculator then accepts declared model inputs and a target's
@@ -31,13 +45,6 @@ The implementation fixes program-semidensity and certificate conventions and
 reproduces selected constructions from Appendices F and H of RCC manuscript
 version 4. The [paper map](PAPER_MAP.md) locates the implemented objects and
 checks in the RCC manuscript.
-
-Appendix F proves that the model class is nonempty and constructs an admissible
-qubit model family with approximately universal pure- and mixed-state
-generation. Appendix H supplies finite-control realization and certificate
-machinery. Together they make the Section II model an explicit, auditable
-construction. Section III uses the qualified model hypotheses in the RCC lower
-bound.
 
 `rcc-refcert` connects finite-control qualification to selected terminal-state
 lower-bound calculations. The RCC paper develops the complete framework,

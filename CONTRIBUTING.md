@@ -1,9 +1,9 @@
 # Contributing
 
-RCC studies quantum circuit complexity under an explicit physical generation
-model. Its principle of structural fairness accounts for the structure supplied by
-the reference background, available dynamics, and program description, together
-with the resources spent on generation.
+RCC studies quantum circuit complexity as a reference-dependent physical
+quantity. Its principle of structural fairness guides the construction of
+models that account consistently for the structure supplied by the reference
+background and the resources spent on generation.
 
 `rcc-refcert` makes finite models and certificate methods available for
 researchers to test and extend. Contributions can bring new physical models

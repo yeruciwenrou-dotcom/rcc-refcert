@@ -7,10 +7,12 @@ license: MIT
 repository-code: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 abstract: >-
   rcc-refcert is a Python research toolkit for structure-fair quantum circuit
-  complexity. It implements finite-control models, reference certificates and
-  conditional terminal-state bounds from Reference-Contingent Complexity (RCC),
-  making supplied resources, allowed quantum processes, and description and
-  generation costs explicit.
+  complexity. Reference-Contingent Complexity (RCC) makes the physical reference
+  dependence of complexity explicit and uses structural fairness to organize
+  background resources, allowed quantum processes, and generation costs into
+  coherent physical models. The toolkit implements finite-control models,
+  reference certificates and conditional terminal-state bounds from this
+  framework.
   Researchers can construct prefix-controlled quantum-process models, compute
   terminating program semidensities, and check Bellman-Choi, reference-potential,
   fixed-model domination, and reference gain-cost conditions. Complete exact

@@ -1,9 +1,12 @@
 # Analyze your own finite-control model
 
-Start with the physical model: its reference state, allowed channels, control
-language, initial state, and charged primitive. Once these choices are fixed,
-`rcc-refcert` can prepare a candidate certificate, check it independently, and
-preserve the complete finite input for another researcher to inspect.
+Start with the physical process and identify what structure its reference
+background already supplies. Represent the initial resources, allowed channels,
+control language, and charged primitive consistently with that background.
+The [model guide](MODEL_GUIDE.md) explains the finite-control representation
+and its connection to RCC's physical qualifications. With those inputs,
+`rcc-refcert` can prepare a candidate certificate, check it independently,
+and preserve the complete finite input for another researcher to inspect.
 
 This guide follows two executable examples. The first studies a reference
 constant when a local sufficient condition fails. The second carries a model

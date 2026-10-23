@@ -2,7 +2,10 @@
 
 This map locates the repository inside the argument of
 [the RCC paper](https://arxiv.org/abs/2509.18205) and connects the implemented
-mathematical objects to executable checks.
+mathematical objects to executable checks. The argument starts from structural
+fairness and reference-dependent physical modeling, constructs admissible
+models with universal state-generation capabilities, and derives a lower bound
+on the optimum over admissible preparation histories in a chosen model.
 
 > **Manuscript alignment.** This source tree is aligned with version 4 of the
 > [RCC manuscript](https://arxiv.org/abs/2509.18205)
@@ -13,7 +16,7 @@ mathematical objects to executable checks.
 
 | paper layer | role in RCC | repository responsibility |
 |---|---|---|
-| Section II | declares the reference-contingent, structure-fair physical generation model and its qualification conditions | represents a finite-control instance with explicit references, controls, channels, codewords, and halting semantics |
+| Section II | formulates structural fairness and defines reference-contingent physical generation models and their qualification conditions | represents a finite-control instance with explicit references, controls, channels, codewords, and halting semantics |
 | Appendix F | constructs admissible native models, including an approximately universal qubit state-generation family, and proves the class is nonempty and nontrivial | reproduces rank coding, reference balance, selected nontrivial-generation constructions, and global-reset witnesses |
 | Appendix H | identifies finite-control semidensities, characterizes fixed-size domination by H.3, and supplies H.4/H.6 sufficient constructions | implements H.1–H.6 realization, fixed-point, domination, certificate, and gain–cost checks |
 | Section III and Appendix A | derive the RCC lower bound from the complete model hypotheses | evaluates uniform-reference exact-spectrum smoothing and canonical cost inversion under declared model inputs; the paired-reset example also verifies a matching one-slot preparation |
@@ -62,7 +65,7 @@ established in the RCC paper.
 
 | RCC element | connection to the package |
 |---|---|
-| reference consistency `RCon` | Section II fixes the required common physical reference; each application supplies the interpretation of its initial resources, outputs, controls and costs |
+| reference consistency `RCon` | the reference background, processes and resource coordinates describe one coherent physical generation model; each application supplies the interpretation of its initial resources, outputs, controls and costs |
 | faithful transcription `TC` | every admissible physical history must be covered by the declared interpreter with the specified output error and length bound; this requires the application's compilation argument |
 | semantic reference admissibility `RA` | the full program semidensity must be dominated by a target-independent constant uniform over the declared family; H.3/H.4/H.6 provide certificate routes within their respective scopes |
 | $\sup_n C_n^\star<\infty$ | fixed-size calculations become a family result through a uniform bound in the scale parameter |

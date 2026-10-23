@@ -18,8 +18,9 @@
 - Add alternating damping/pumping and cyclic noisy-reset workflows, guides,
   and notebook steps for complete evidence transfer.
 - Organize the README around reference reproduction, terminal-state bounds,
-  custom-model analysis, and recipient revalidation. Present model auditing
-  and preparation-cost lower bounds together in the introduction.
+  custom-model analysis, and recipient revalidation. Introduce the toolkit
+  through quantum circuit complexity, reference dependence, and structure-fair
+  physical modeling, then explain its state-preparation calculations.
   Clarify installation by version, adapting the
   examples, and interpreting shared evidence. Introduce certificate names
   before appendix labels, use one quickstart interpreter throughout the

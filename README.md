@@ -4,11 +4,19 @@
 [![PyPI](https://img.shields.io/pypi/v/rcc-refcert.svg?label=PyPI)](https://pypi.org/project/rcc-refcert/)
 [![Archived 0.1.3 DOI](https://img.shields.io/badge/0.1.3_DOI-10.5281%2Fzenodo.22768920-blue)](https://doi.org/10.5281/zenodo.22768920)
 
-`rcc-refcert` is a Python research toolkit for auditing **structure-fair
-quantum circuit models** and computing **lower bounds on quantum
-state-preparation cost**. How much must be spent to prepare a quantum state
-once the physical background, available operations, and cost rules have been
-fixed?
+`rcc-refcert` is a Python research toolkit for **quantum circuit complexity**,
+with tools for auditing structure-fair models, verifying reference
+certificates, and computing **complexity lower bounds**.
+
+The toolkit implements selected parts of **Reference-Contingent Complexity
+(RCC)**, introduced in
+[*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
+RCC makes the dependence of complexity on its physical reference explicit:
+what structure does the background already supply, and what must a process
+generate? Its principle of structural fairness brings the reference, allowed
+processes, and resource costs into a coherent physical generation model.
+Within an admissible model, final-state information gives a cost floor shared
+by every successful preparation history.
 
 Use it to build and audit small finite-control quantum models, verify
 reference certificates, and compute conditional preparation-cost lower bounds
@@ -18,13 +26,6 @@ package returns explicit numerical checks and reproducible bound records.
 A complete analysis bundle also carries the model and proof arrays so another
 researcher can reverify the calculation without the original modeling script.
 
-The package implements selected parts of **Reference-Contingent Complexity
-(RCC)**, introduced in
-[*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
-Within an RCC-admissible model, the theorem turns final-state information into
-a cost floor shared by every successful preparation history. The toolkit makes
-selected model checks and that cost inversion executable for declared finite
-inputs.
 The [conceptual introduction](#why-reference-contingent-complexity) explains
 the research question; the [scientific scope](docs/SCIENTIFIC_SCOPE.md)
 connects the implemented checks to the RCC framework.
@@ -281,30 +282,35 @@ preparation procedure can use. The same target can therefore have different
 costs depending on what the background supplies and which operations are
 charged.
 
-RCC's **principle of structural fairness** makes that dependence explicit.
-Structure supplied as a fixed background is represented in the reference;
-additional structure directed toward the target must be generated and counted.
-The reference, allowed dynamics, control language and program prior, success
-criterion, and atomic cost unit are fixed together before target selection.
-This complete specification defines the physical generation model. Complexity
-is therefore a relational physical quantity, measured relative to what the
-model supplies and charges.
+RCC treats quantum circuit complexity as a **reference-dependent physical
+quantity**. Its **principle of structural fairness** requires the structure
+supplied by the background to be represented in the reference, and additional
+target-directed structure to be generated and counted. This principle guides
+the construction of a complete physical generation model: the reference,
+allowed dynamics, control language and program prior, success criterion, and
+atomic cost unit must account consistently for the resources supplied and used.
+
+The reference has an independent physical origin, such as a conservation law,
+an encoding structure, or a control architecture. The reference and generation
+model jointly set the structural zero point and resource scale of this
+relational physical quantity. Changing the reference calls for a corresponding
+update of the physical model.
 
 ### What RCC measures
 
 RCC is a structure-fair, model-relative framework for defining and
 lower-bounding quantum circuit complexity.
 
-For a fixed model, target, and accuracy $\epsilon$,
+Within this framework, the paper constructs an admissible qubit model family
+whose members, at each size, can approximate every pure and mixed state of
+that size to any positive tolerance. The family is specified before target
+selection, so the same physical rules apply across target choices.
+
+For a specified admissible model, target, and accuracy $\epsilon$,
 $C_{\rm opt}^{(\epsilon)}$ is the infimum of the declared cost over all
 admissible successful preparation histories. It asks for the least cost
-compatible with that model.
-
-The paper constructs an admissible model family fixed before target selection,
-whose size-indexed members can approximate arbitrary finite-dimensional pure
-and mixed states to any positive tolerance. This is the universality claim.
-The optimization is over preparation histories within a fixed member; the
-reference and cost rules remain part of the declared problem.
+compatible with that model. The reference, allowed processes, and cost rules
+remain the same across all histories in this optimization.
 
 ### How the final state gives a lower bound
 

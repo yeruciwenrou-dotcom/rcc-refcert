@@ -2,9 +2,11 @@
 
 ## What a model lets you study
 
-Use a `FiniteControlModel` to ask how a prefix-coded quantum process evolves,
-what unconditional output its terminating programs produce, and how its
-code lengths compare with local reference gain–cost conditions. This makes
+A `FiniteControlModel` makes the processes and resource assignments in a
+quantum circuit complexity calculation explicit. Use it to ask how a
+prefix-coded quantum process evolves, what unconditional output its terminating
+programs produce, and how its code lengths compare with local reference
+gain–cost conditions. This makes
 it possible to study state preparation, reset, feedback, and looping control
 under one explicit cost convention.
 
@@ -29,7 +31,8 @@ For a runnable path through candidate preparation, verification, target-state
 bounds, and evidence sharing, follow the [custom-model guide](CUSTOM_MODELS.md).
 The sections below define the model objects and their audit semantics.
 
-1. Choose the reference state and transient control spaces.
+1. Identify the physical origin of the reference and the resources it supplies;
+   declare the reference state and transient control spaces.
 2. Declare the available actions, physical channels, and prefix codewords.
 3. Run the model audit to obtain the terminating output and fixed-model checks.
 4. Inspect which actions produce large reference gains.

@@ -1,8 +1,9 @@
 # Terminal-state cost bounds
 
-The `bound` command and `rcc_refcert.bounds` API calculate a lower bound on
-state-preparation cost in atomic slots. Supply a complete exact spectrum or
-counts from one projector selected before measurement, together with the
+The `bound` command and `rcc_refcert.bounds` API calculate a quantum circuit
+complexity lower bound for state preparation, measured in atomic resource
+slots. Supply a complete exact spectrum or counts from one projector selected
+before measurement, together with the
 model's reference and cost assumptions. The
 [scientific scope](SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
 explains how reference consistency, faithful transcription and reference
