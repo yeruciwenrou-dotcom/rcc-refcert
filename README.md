@@ -4,7 +4,8 @@
 [![PyPI](https://img.shields.io/pypi/v/rcc-refcert.svg?label=PyPI)](https://pypi.org/project/rcc-refcert/)
 [![Archived 0.1.3 DOI](https://img.shields.io/badge/0.1.3_DOI-10.5281%2Fzenodo.22768920-darkgreen)](https://doi.org/10.5281/zenodo.22768920)
 
-`rcc-refcert` is a Python research toolkit for **quantum circuit complexity**.
+`rcc-refcert` is a Python research toolkit for **structure-fair quantum circuit
+complexity**.
 It audits small finite-control quantum models, verifies reference certificates,
 and computes **conditional lower bounds on state-preparation cost** from exact
 target spectra or predeclared measurement counts.
