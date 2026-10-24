@@ -23,11 +23,15 @@ additional target-directed structure are counted. Within an admissible model,
 cost of every successful preparation process, without reconstructing how the
 state was produced.
 
-For example, the [paired-reset model](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/END_TO_END_EXAMPLE.md) has an
-integer lower bound of **one primitive slot**, attained by an explicit
-one-slot preparation. The [four-qubit workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/CUSTOM_MODELS.md#cyclic-noisy-reset-register)
-gives a lower bound of **two slots**, while its separately established optimum
-is five. A lower bound need not equal the cost of the best process.
+For example, in the [paired-reset model](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/END_TO_END_EXAMPLE.md),
+preparing a pure qubit from the maximally mixed state requires at least
+**one primitive slot**, and a single reset attains this bound.
+The [four-qubit workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/CUSTOM_MODELS.md#cyclic-noisy-reset-register)
+uses noisy resets to prepare a polarized product state from a maximally mixed
+register. Its lower bound is **two slots**; a separate model-specific argument
+establishes the optimum at five, including halt.
+Matching a lower bound to the cost of an explicit preparation establishes
+optimality within the model; a gap leaves room for a sharper bound.
 
 You supply the model's channels, reference state, control language, and cost
 assumptions, together with the target-state inputs for a bound calculation.
