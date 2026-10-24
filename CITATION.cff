@@ -26,9 +26,9 @@ abstract: >-
   independent verification. Complete analysis bundles retain model and proof
   arrays for fresh numerical checks and comparison with historical results.
   Three bundled reference cases cover closed-form, multiblock, and nonhalting
-  behavior. A worked paired-reset model connects the physical declaration to a
-  numerical RCC lower bound of one slot, attained by an explicit one-slot
-  preparation. The package provides a Python API, command-line tools, two
+  behavior. A worked paired-reset model prepares a pure qubit from the maximally mixed
+  state: its numerical RCC lower bound is one primitive slot, attained by a
+  single reset. The package provides a Python API, command-line tools, two
   Jupyter tutorials, and versioned
   reports. Matrix checks provide reproducible numerical evidence for declared
   finite models, with explicit pass, fail, inconclusive, and not-applicable
@@ -40,6 +40,8 @@ keywords:
   - structure-fairness
   - reference-contingent complexity
   - quantum information
+  - quantum computing
+  - quantum state preparation
   - finite-control quantum processes
   - reference certificates
   - reproducible research
