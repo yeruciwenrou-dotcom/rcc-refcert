@@ -48,20 +48,26 @@ keywords:
 authors:
   - family-names: Liu
     given-names: HongZheng
+    orcid: "https://orcid.org/0009-0002-2238-9187"
   - family-names: Tian
     given-names: YiNuo
+    orcid: "https://orcid.org/0009-0005-8088-9894"
   - family-names: Wu
     given-names: Zhiyue
+    orcid: "https://orcid.org/0009-0003-4765-2049"
 preferred-citation:
   type: article
   title: "Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound"
   authors:
     - family-names: Liu
       given-names: HongZheng
+      orcid: "https://orcid.org/0009-0002-2238-9187"
     - family-names: Tian
       given-names: YiNuo
+      orcid: "https://orcid.org/0009-0005-8088-9894"
     - family-names: Wu
       given-names: Zhiyue
+      orcid: "https://orcid.org/0009-0003-4765-2049"
   year: 2025
   journal: "arXiv preprint arXiv:2509.18205"
   doi: "10.48550/arXiv.2509.18205"
