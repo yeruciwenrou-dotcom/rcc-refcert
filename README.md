@@ -12,24 +12,27 @@ target spectra or predeclared measurement counts.
 The toolkit implements selected parts of **Reference-Contingent Complexity
 (RCC)**, introduced in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
-RCC makes the dependence of complexity on its physical reference explicit:
-what structure does the background already supply, and what must a process
-generate? Its principle of structural fairness brings the reference, allowed
-processes, and resource costs into a coherent physical generation model.
-Within an admissible model, final-state information gives a cost floor shared
-by every successful preparation history.
 
-You supply the model's channels, reference state, control language, and cost
-assumptions, together with the target-state inputs for a bound calculation.
-The package returns numerical checks and a reproducible record of the bound.
-A complete analysis bundle also carries the model and proof arrays so another
-researcher can reverify the calculation without the original modeling script.
+The same quantum state may be supplied by one physical background and require
+entropy removal and control in another. **Structural fairness** makes this
+distinction explicit: structure stably supplied by the background sets the
+reference zero point, while the operations and resources that generate
+additional target-directed structure are counted. Within an admissible model,
+**RCC** uses final-state information relative to that reference to bound the
+cost of every successful preparation process, without reconstructing how the
+state was produced.
 
 For example, the [paired-reset model](docs/END_TO_END_EXAMPLE.md) has an
 integer lower bound of **one primitive slot**, attained by an explicit
 one-slot preparation. The [four-qubit workflow](docs/CUSTOM_MODELS.md#cyclic-noisy-reset-register)
 gives a lower bound of **two slots**, while its separately established optimum
 is five. A lower bound need not equal the cost of the best process.
+
+You supply the model's channels, reference state, control language, and cost
+assumptions, together with the target-state inputs for a bound calculation.
+The package returns numerical checks and a reproducible record of the bound.
+A complete analysis bundle also carries the model and proof arrays so another
+researcher can reverify the calculation without the original modeling script.
 
 The [conceptual introduction](#why-reference-contingent-complexity) explains
 the research question; the [scientific scope](docs/SCIENTIFIC_SCOPE.md)
