@@ -84,6 +84,7 @@ jobs:
         run: |
           distribution_directory="$PWD/dist"
           smoke_script="$PWD/tests/distribution_smoke.py"
+          bundle_smoke_script="$PWD/tests/bundle_smoke.py"
           for artifact in "$distribution_directory"/*.whl "$distribution_directory"/*.tar.gz; do
             installation_root="$(mktemp -d)"
             environment="$installation_root/environment"
@@ -92,6 +93,7 @@ jobs:
             mkdir "$installation_root/run"
             cd "$installation_root/run"
             "$environment/bin/python" "$smoke_script"
+            "$environment/bin/python" "$bundle_smoke_script"
             "$environment/bin/rcc-refcert" reproduce --check
             "$environment/bin/rcc-refcert" example dephase-or-halt --format json
             "$environment/bin/python" -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert')"
@@ -118,6 +120,10 @@ jobs:
       - name: Run the reproduction entry point on macOS
         if: runner.os == 'macOS'
         run: python quickstart.py --reproduce-only
+      - name: Install candidate for complete-evidence checks
+        run: python -m pip install .
+      - name: Revalidate transferred H.3/H.4 bundles
+        run: python tests/bundle_smoke.py
 
   notebook:
     needs: source-tree

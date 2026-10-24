@@ -23,14 +23,8 @@ from .scalar import (
 )
 
 
-def _record(
-    task: Task,
-    information: Interval,
-    details: dict,
-    path: str,
-    inputs: dict,
-    statistics: dict | None = None,
-) -> dict:
+def _cost_terms(task: Task, information: Interval, details: dict, path: str):
+    """Shared conservative cost inversion for original and derived records."""
     g = log2_interval(Fraction(task.gamma_classes))
     beta = Interval.point(task.gamma_bits) + log2_interval(task.reference_constant)
     y = information - beta
@@ -47,6 +41,20 @@ def _record(
         zero_reason = "model_overhead_exhausted"
     else:
         zero_reason = "numerical_resolution_limited"
+    return g, beta, inverse, numerical_status, zero_reason
+
+
+def _record(
+    task: Task,
+    information: Interval,
+    details: dict,
+    path: str,
+    inputs: dict,
+    statistics: dict | None = None,
+) -> dict:
+    g, beta, inverse, numerical_status, zero_reason = _cost_terms(
+        task, information, details, path
+    )
     details = {**details, "one_shot_readout_st_R": (information / g).strings()}
     decl = task.declaration
     record = {

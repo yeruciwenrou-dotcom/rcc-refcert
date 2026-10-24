@@ -12,6 +12,7 @@ from .certificate_error import (
     residual_correction,
     roundoff_allowance,
 )
+from .limits import DEFAULT_LIMITS, ComputationLimits, check_certificate_budget
 from .model import BlockKey, FiniteControlModel, require_valid_model
 from .quantum import Array, apply_kraus, is_density_matrix, min_hermitian_eigenvalue
 from .status import CheckOutcome, CheckResult, EvidenceLevel
@@ -87,9 +88,16 @@ def verify_reference_potential(
     model: FiniteControlModel,
     certificate: ReferencePotentialCertificate,
     tol: float = 1e-10,
+    *,
+    limits: ComputationLimits = DEFAULT_LIMITS,
 ) -> CertificateReport:
-    """Numerically check a supplied fixed-model H.4 certificate."""
+    """Numerically check H.4 after the shared certificate resource preflight.
 
+    A resource excess raises ``ResourceLimitError`` before model validation or
+    matrix allocation. It does not establish failure of the supplied proof.
+    """
+
+    check_certificate_budget(model, certificate, limits)
     require_valid_model(model, tol=tol)
     keys = model.transient_keys()
     key_set = set(keys)

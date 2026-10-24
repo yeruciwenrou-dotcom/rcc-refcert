@@ -10,7 +10,12 @@ from fractions import Fraction
 import numpy as np
 
 from ..bellman_choi import BellmanChoiCertificate, verify_bellman_choi
-from ..limits import DEFAULT_LIMITS, ComputationLimits, ResourceLimitError
+from ..limits import (
+    DEFAULT_LIMITS,
+    ComputationLimits,
+    ResourceLimitError,
+    check_certificate_budget,
+)
 from ..model import FiniteControlModel
 from ..reference_potential import (
     ReferencePotentialCertificate,
@@ -45,43 +50,13 @@ def _array_snapshot(value: np.ndarray) -> dict:
     }
 
 
-def _input_elements(value) -> int:
-    if isinstance(value, np.ndarray):
-        return value.size
-    if is_dataclass(value):
-        return sum(_input_elements(getattr(value, f.name)) for f in fields(value))
-    if isinstance(value, dict):
-        return sum(_input_elements(v) for v in value.values())
-    if isinstance(value, (tuple, list)):
-        return sum(_input_elements(v) for v in value)
-    return int(isinstance(value, (int, float, complex, np.number)))
-
-
 def _check_binding_budget(model, certificate, limits: ComputationLimits) -> None:
-    dims = tuple(model.control_dims.values())
-    if any(type(d) is not int or d < 1 for d in dims):
-        raise InputError("control dimensions must be positive integers")
-    blocks = len(model.syntax_states) * len(dims)
-    block_elements = len(model.syntax_states) * sum(d * d for d in dims)
-    if isinstance(certificate, BellmanChoiCertificate):
-        block_elements *= model.output_dim**2
-    # Input entries, one block-operator family, the output, and the correction
-    # system form a preflight estimate, not a peak-memory or execution-time bound.
-    estimate = (
-        _input_elements(model)
-        + _input_elements(certificate)
-        + block_elements
-        + model.output_dim**2
-        + blocks**2
-    )
-    if estimate > limits.max_matrix_elements:
-        raise BudgetError(
-            str(
-                ResourceLimitError(
-                    "certificate_matrix_elements", estimate, limits.max_matrix_elements
-                )
-            )
-        )
+    try:
+        check_certificate_budget(model, certificate, limits)
+    except ResourceLimitError as exc:
+        raise BudgetError(str(exc)) from exc
+    except (TypeError, ValueError) as exc:
+        raise InputError(str(exc)) from exc
 
 
 def _snapshot(value):
@@ -155,7 +130,7 @@ def with_reference_certificate(
         )
     model_hash = canonical_hash(_snapshot(model))
     certificate_hash = canonical_hash(_snapshot(certificate))
-    report = verifier(model, certificate, tol=tol)
+    report = verifier(model, certificate, tol=tol, limits=limits)
     if report.outcome is not CheckOutcome.PASS or report.constant is None:
         raise InputError(
             f"{method} verification is {report.outcome.value}; no usable upper constant"

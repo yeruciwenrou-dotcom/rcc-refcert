@@ -2,9 +2,11 @@
 
 ## What a model lets you study
 
-Use a `FiniteControlModel` to ask how a prefix-coded quantum process evolves,
-what unconditional output its terminating programs produce, and whether the
-description length of each action accounts for its reference gain. This makes
+A `FiniteControlModel` makes the processes and resource assignments in a
+quantum circuit complexity calculation explicit. Use it to ask how a
+prefix-coded quantum process evolves, what unconditional output its terminating
+programs produce, and how its code lengths compare with local reference
+gain–cost conditions. This makes
 it possible to study state preparation, reset, feedback, and looping control
 under one explicit cost convention.
 
@@ -25,7 +27,12 @@ Born weight. The package keeps those two sources of weight separate.
 
 ## Research workflow
 
-1. Choose the reference state and transient control spaces.
+For a runnable path through candidate preparation, verification, target-state
+bounds, and evidence sharing, follow the [custom-model guide](CUSTOM_MODELS.md).
+The sections below define the model objects and their audit semantics.
+
+1. Identify the physical origin of the reference and the resources it supplies;
+   declare the reference state and transient control spaces.
 2. Declare the available actions, physical channels, and prefix codewords.
 3. Run the model audit to obtain the terminating output and fixed-model checks.
 4. Inspect which actions produce large reference gains.
@@ -33,6 +40,11 @@ Born weight. The package keeps those two sources of weight separate.
 6. Test a supplied certificate or the suggested sufficient re-encoding.
 7. For a supported terminal-state task, combine the model declaration with an
    exact target spectrum or a predeclared fixed-projector acquisition protocol.
+
+H.70 is sufficient for the chosen envelope construction. Its failure can
+coexist with a passing global H.3 or H.4 certificate for the original model.
+If you adopt H.76 codewords, recheck the resulting model and its transcription
+calibration: the new code weights change the program prior.
 
 ## A complete two-action model
 
@@ -118,6 +130,7 @@ model validation.
 reference state is a full-rank density matrix on the declared output support.
 If the mathematical reference is rank-deficient in a larger ambient space,
 reduce the model to its support before construction.
+Terminal-state tasks additionally require the uniform reference on that support.
 
 ## Audit workflow
 
@@ -194,6 +207,15 @@ capped count. Reduce the requested depth or explicitly raise the relevant
 budget. The low-level enumeration, matrix, and linear fixed-point functions
 also accept `limits`.
 
+Direct H.3 and H.4 verification accept the same `limits` argument as
+`with_reference_certificate`. They share a certificate preflight that counts
+the supplied arrays, route-specific operator blocks, output, and correction
+system before expensive verification. The binding adapter retains its existing
+`BudgetError` exception for budget refusals. The
+[custom-model workflow](CUSTOM_MODELS.md#choose-a-computation-budget) explains
+why a compact certificate can remain affordable when full-space construction
+exceeds its budget.
+
 ## Supplying proof objects
 
 The verifier functions accept explicit mathematical candidates:
@@ -222,6 +244,16 @@ does not supply them. Freeze a counts protocol only after this task is settled.
 The [terminal-state guide](TERMINAL_BOUNDS.md#connect-an-h3-or-h4-proof-object)
 includes a runnable certificate-to-bound example and explains the adapter's
 numerical evidence and required inputs.
+
+For stable full-space models, `prepare_bellman_choi` prepares a candidate and
+reports construction diagnostics. Verification remains an explicit subsequent
+step. The [custom-model workflow](CUSTOM_MODELS.md) demonstrates a model whose
+local H.70 test fails while a global H.3 certificate succeeds.
+
+To share a complete numerical analysis, use an
+[analysis bundle](ANALYSIS_BUNDLES.md). It retains the original model and proof
+arrays, numerical controls, and any supported terminal-state requests so a
+recipient can reverify them independently of the model-building script.
 
 ## Turning a model into a reference case
 

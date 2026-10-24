@@ -1,8 +1,8 @@
 # From model qualification to an RCC lower bound
 
-The paired-reset example gives one minimal, reproducible path from a declared
-physical model to a numerical lower bound on
-$C_{\rm opt}^{(\epsilon)}$. Every state, channel, codeword, cost constant,
+The paired-reset example gives one minimal, reproducible path from a
+structure-fair physical model to a numerical lower bound on the state-preparation
+complexity $C_{\rm opt}^{(\epsilon)}$. Every state, channel, codeword, cost constant,
 and theorem input is visible in one small construction. Section and equation
 references follow manuscript version 4; see the [paper map](PAPER_MAP.md) for
 version alignment.

@@ -2,19 +2,23 @@
 
 This map locates the repository inside the argument of
 [the RCC paper](https://arxiv.org/abs/2509.18205) and connects the implemented
-mathematical objects to executable checks.
+mathematical objects to executable checks. The argument starts from structural
+fairness and reference-dependent physical modeling, constructs admissible
+models with universal state-generation capabilities, and derives a lower bound
+on the optimum over admissible preparation histories in a chosen model.
 
 > **Manuscript alignment.** This source tree is aligned with version 4 of the
-> [RCC manuscript](https://arxiv.org/abs/2509.18205). Appendix labels and
+> [RCC manuscript](https://arxiv.org/abs/2509.18205)
+> ([fixed V4](https://arxiv.org/abs/2509.18205v4)). Appendix labels and
 > equation numbers refer to manuscript version 4.
 
 ## Theory-to-software chain
 
 | paper layer | role in RCC | repository responsibility |
 |---|---|---|
-| Section II | declares the reference-contingent, structure-fair physical generation model and its qualification conditions | represents a finite-control instance with explicit references, controls, channels, codewords, and halting semantics |
+| Section II | formulates structural fairness and defines reference-contingent physical generation models and their qualification conditions | represents a finite-control instance with explicit references, controls, channels, codewords, and halting semantics |
 | Appendix F | constructs admissible native models, including an approximately universal qubit state-generation family, and proves the class is nonempty and nontrivial | reproduces rank coding, reference balance, selected nontrivial-generation constructions, and global-reset witnesses |
-| Appendix H | develops finite-control semidensities and sufficient reference-certificate routes | implements H.1–H.6 realization, fixed-point, domination, certificate, and gain–cost checks |
+| Appendix H | identifies finite-control semidensities, characterizes fixed-size domination by H.3, and supplies H.4/H.6 sufficient constructions | implements H.1–H.6 realization, fixed-point, domination, certificate, and gain–cost checks |
 | Section III and Appendix A | derive the RCC lower bound from the complete model hypotheses | evaluates uniform-reference exact-spectrum smoothing and canonical cost inversion under declared model inputs; the paired-reset example also verifies a matching one-slot preparation |
 | Section IV and Appendices B–D | convert terminal-state evidence, support treatment, calibration, and multiple audit paths into one-sided RCC lower-bound certificates | implements the fixed-projector, fixed-N Hoeffding route and scalar result records for ideal support and readout; support uncertainty, readout/leakage corrections, and multi-path synthesis remain outside the implementation |
 
@@ -39,6 +43,7 @@ established in the RCC paper.
 | H.2 least fixed point | `truncated_semidensity` | monotone finite partial sum |
 | H.2 linear branch | `linear_fixed_point` | full-transient spectral-radius gate and solve |
 | H.3 minimum value-map candidate | `linear_value_choi_envelopes` | constructs $\mathbb H(I-\mathbb T)^{-1}$ blocks after the same gate |
+| H.2 stable inverse and H.3 candidate construction | `prepare_bellman_choi` | prepares a full-space linear candidate with resource and numerical diagnostics; verification is a separate step |
 | H.3 proof object $X_x=J(\mathbb W_x)$ | `BellmanChoiCertificate`, `verify_bellman_choi` | supplied Choi, Bellman, and output-domination checks with a propagated constant correction |
 | H.34 minimum constant | `minimum_domination_constant` | resolved-support diagnostics and generalized-eigenvalue calculation |
 | H.4 envelopes and coefficients | `ReferencePotentialCertificate`, `verify_reference_potential` | supplied local domination and scalar Bellman checks with a propagated constant correction |
@@ -53,17 +58,30 @@ established in the RCC paper.
 | one finite model | `audit_model`, `ModelAnalysis` | H.1, H.2, and H.34 kept as separate outcomes |
 | bundled case | `CaseStudy`, `audit_case` | model, supplied proof objects, and declared expectations |
 | complete finite-control reference evidence | `audit_reference_suite`, CLI `reproduce` | deterministic structured result and Markdown report |
+| reusable finite inputs for H.3/H.4 and supported terminal-state routes | `save_analysis_bundle`, `verify_analysis_bundle`, CLI `bundle` | software container for raw model/proof arrays, controls and requests; fresh matrix checks and comparison with historical results |
 | fixed end-to-end bridge | `paired_reset_example`, `examples/paired_reset_lower_bound.py` | one declared model from program semidensity through $D_{\max}^{0}$ and Theorem 3.1 to a tight one-slot result, using Appendix A's canonical inversion and an explicit feasible program |
 
 ## From executable evidence to RCC results
 
 | RCC element | connection to the package |
 |---|---|
-| reference consistency `RCon` | the RCC paper supplies the physical interpretation of the declared reference, controls, and resources |
-| faithful transcription `TC` | the transcription argument connects an external computation to the declared finite-control model |
-| family-level reference admissibility `RA` | H.4 and H.6 provide family-facing certificate interfaces; the RCC paper supplies their uniform analytic realization |
+| reference consistency `RCon` | the reference background, processes and resource coordinates describe one coherent physical generation model; each application supplies the interpretation of its initial resources, outputs, controls and costs |
+| faithful transcription `TC` | every admissible physical history must be covered by the declared interpreter with the specified output error and length bound; this requires the application's compilation argument |
+| semantic reference admissibility `RA` | the full program semidensity must be dominated by a target-independent constant uniform over the declared family; H.3/H.4/H.6 provide certificate routes within their respective scopes |
 | $\sup_n C_n^\star<\infty$ | fixed-size calculations become a family result through a uniform bound in the scale parameter |
 | main RCC lower bound | combines `RCon`, `TC`, and `RA` with the remaining theorem hypotheses |
+
+The physical qualifications for a custom model remain that model's
+responsibility. The paper establishes the general theorem and explicit
+qualified families; supplying a model name or a passing numerical certificate
+does not establish the other qualifications.
+
+Section II.D, Eq. (II.14), defines the state-side linear leading term
+$C_R=D(\rho\Vert\sigma_R)/g_R$. Theorem 3.1 retains its spectral, smoothing
+and description corrections before cost inversion. The
+[scientific scope](SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
+explains how this state quantity, the complete lower bound and the process
+optimum differ.
 
 ## Worked end-to-end bridge
 
@@ -94,6 +112,19 @@ The [RCC paper](https://arxiv.org/abs/2509.18205) presents the complete physical
 model and lower-bound framework, including transcription, family-level
 arguments, finite-sample auditing, windowed RCC, dynamical witnesses, and the
 Complexity Window Thermodynamics (CWT) interfaces.
+
+The broader results have distinct roles:
+
+| paper location | result beyond the implemented workflows |
+|---|---|
+| Section V and Appendix E | reference-compatible observation windows and state-side structural profiles |
+| Section VI and Appendix I | conditional interfaces with dynamics, energy–entanglement resources and CWT on aligned objects and scales |
+| Appendix A.10 | cross-model cost comparisons requiring reference domination and resource compilation |
+| Section VII.C | exact finite-dimensional structural allocation identities, followed by Conjecture 7.1 on a broader physically calibrated reference covariance |
+
+The covariance conjecture retains its open status. These results and proposed
+extensions are part of the theory's scope; this package implements the finite
+certificate and scalar-bound routes listed above.
 
 ## Terminal-state calculation interfaces
 

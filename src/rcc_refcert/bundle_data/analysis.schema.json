@@ -1,0 +1,293 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:rcc-refcert:analysis:1",
+  "title": "RCC complete analysis v1",
+  "description": "High-level analysis metadata stored in analysis-bundle v1. Apply this schema to manifest.analysis in addition to analysis_bundle.schema.json for the container. Request/record scientific contracts, exact fractions, input identities and history relationships are checked by the runtime. Storage-only payloads may contain generic JSON metadata and do not constitute complete analyses.",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "rcc-refcert.analysis"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "producer": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "const": "rcc-refcert"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "python": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "numpy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "source_revision": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "python",
+        "numpy",
+        "source_revision"
+      ],
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "controls": {
+      "type": "object",
+      "properties": {
+        "tolerance_exact": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*(?:/[1-9][0-9]*)?$"
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "max_enumeration_nodes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "max_matrix_elements": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "max_enumeration_nodes",
+            "max_matrix_elements"
+          ],
+          "additionalProperties": false
+        },
+        "matrix_arithmetic": {
+          "const": "numpy-binary64"
+        }
+      },
+      "required": [
+        "tolerance_exact",
+        "limits",
+        "matrix_arithmetic"
+      ],
+      "additionalProperties": false
+    },
+    "input_bindings": {
+      "type": "object",
+      "properties": {
+        "model_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "certificate_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "input_hash_format": {
+          "const": "rcc-refcert.matrix-bytes.v1"
+        }
+      },
+      "required": [
+        "model_sha256",
+        "certificate_sha256",
+        "input_hash_format"
+      ],
+      "additionalProperties": false
+    },
+    "verification": {
+      "$ref": "#/$defs/verification"
+    },
+    "requests": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": [
+              "spectrum",
+              "counts"
+            ]
+          },
+          "request": {
+            "type": "object"
+          },
+          "record": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "kind",
+          "request",
+          "record"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "schema_version",
+    "producer",
+    "source",
+    "controls",
+    "input_bindings",
+    "verification",
+    "requests"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "check": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "outcome": {
+          "enum": [
+            "pass",
+            "fail",
+            "inconclusive",
+            "not_applicable"
+          ]
+        },
+        "evidence": {
+          "const": "numerical"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "value_exact": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^(?:-?[0-9]+(?:/[1-9][0-9]*)?|nan|-?inf)$"
+        },
+        "tolerance_exact": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^(?:-?[0-9]+(?:/[1-9][0-9]*)?|nan|-?inf)$"
+        }
+      },
+      "required": [
+        "name",
+        "outcome",
+        "evidence",
+        "message",
+        "value_exact",
+        "tolerance_exact"
+      ],
+      "additionalProperties": false
+    },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "outcome": {
+          "enum": [
+            "pass",
+            "fail",
+            "inconclusive",
+            "not_applicable"
+          ]
+        },
+        "evidence": {
+          "const": "numerical"
+        },
+        "constant_exact": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^(?:-?[0-9]+(?:/[1-9][0-9]*)?|nan|-?inf)$"
+        },
+        "candidate_constant_exact": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^(?:-?[0-9]+(?:/[1-9][0-9]*)?|nan|-?inf)$"
+        },
+        "constant_error_bound_exact": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^(?:-?[0-9]+(?:/[1-9][0-9]*)?|nan|-?inf)$"
+        },
+        "checks": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/check"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "outcome",
+        "evidence",
+        "constant_exact",
+        "candidate_constant_exact",
+        "constant_error_bound_exact",
+        "checks"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "pass"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "constant_exact": {
+                "type": "string",
+                "pattern": "^[0-9]+(?:/[1-9][0-9]*)?$"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "constant_exact": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

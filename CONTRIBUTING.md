@@ -1,9 +1,9 @@
 # Contributing
 
-RCC studies quantum circuit complexity under an explicit physical generation
-model. Its principle of structural fairness accounts for the structure supplied by
-the reference background, available dynamics, and program description, together
-with the resources spent on generation.
+RCC studies quantum circuit complexity as a reference-dependent physical
+quantity. Its principle of structural fairness guides the construction of
+models that account consistently for the structure supplied by the reference
+background and the resources spent on generation.
 
 `rcc-refcert` makes finite models and certificate methods available for
 researchers to test and extend. Contributions can bring new physical models
@@ -22,8 +22,8 @@ Contributions can address one layer at a time:
   inversion, and connections to finite-control reference certificates;
 - **numerical reliability:** interval bounds, exact arithmetic, conditioning
   diagnostics, solver integrations, or independent realizations;
-- **interfaces:** model serialization, larger simulation backends, and stable
-  machine-readable outputs;
+- **interfaces:** analysis-bundle formats, additional model adapters, larger
+  simulation backends, and stable machine-readable outputs;
 - **explanation and reproduction:** clearer derivations, examples, notebooks,
   tests, and RCC paper-to-code maps.
 
@@ -72,8 +72,9 @@ convention risk, or mathematical boundary. Document:
 - the expected outcomes, including designed route failures or boundaries;
 - the test that would fail under the most plausible incorrect implementation.
 
-An expected H.70 failure records a code-length shortfall along that sufficient
-route. An `inconclusive` result records an unresolved numerical condition. Check
+An expected H.70 failure rejects the chosen local sufficient criterion; it
+does not refute reference admissibility of the original model.
+An `inconclusive` result records an unresolved numerical condition. Check
 the other certificate routes for the original model; adopting suggested
 codewords changes its program weights and defines a re-encoded model.
 Family-uniform reference admissibility needs the corresponding uniform analytic
@@ -106,6 +107,16 @@ If inputs or outputs change, update the templates, record validation, replay,
 and schema documentation together. Keep the guide and bounds notebook runnable;
 describe any compatibility effect in the changelog. A saved record identifies
 its package version, so replay behavior must be assessed for that version.
+
+## Changing analysis bundles
+
+Read [Analysis bundles](docs/ANALYSIS_BUNDLES.md) before changing saved evidence
+or revalidation. Preserve raw numerical inputs, stored controls, component
+digests, and historical records. Fresh verification and changed-constant bounds
+produce separately identified results; the original acquisition protocol and
+counts event retain their identity. Exercise both H.3 and H.4 transfer paths
+from a normally installed package outside the checkout, together with invalid
+inputs and budget refusals.
 
 ## Local verification
 

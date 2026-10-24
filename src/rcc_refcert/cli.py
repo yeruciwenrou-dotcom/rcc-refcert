@@ -174,6 +174,28 @@ def build_parser() -> argparse.ArgumentParser:
         command.add_argument("input", type=Path)
         command.add_argument("--details", action="store_true")
         _add_format_argument(command)
+    bundle = commands.add_parser(
+        "bundle", help="inspect and revalidate complete model/certificate evidence"
+    )
+    bundle_commands = bundle.add_subparsers(dest="bundle_command", required=True)
+    for name in ("inspect", "verify"):
+        command = bundle_commands.add_parser(name)
+        command.add_argument("input", type=Path, help="saved analysis bundle")
+        command.add_argument("--output", type=Path, help="save JSON to a new file")
+        command.add_argument(
+            "--max-matrix-elements",
+            type=_positive_int,
+            default=1_048_576,
+            help="local resource preflight budget",
+        )
+        if name == "verify":
+            command.add_argument(
+                "--tolerance",
+                type=_positive_float,
+                default=None,
+                help="explicitly override the stored error budget",
+            )
+        _add_format_argument(command)
     return parser
 
 
@@ -278,6 +300,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     arguments = parser.parse_args(argv)
     if arguments.command == "bound":
         from .bounds.cli import run
+
+        return run(arguments)
+    if arguments.command == "bundle":
+        from .bundle_cli import run
 
         return run(arguments)
     try:

@@ -1,18 +1,19 @@
 cff-version: 1.2.0
-message: "If you use this software, cite the software and the associated RCC paper."
+message: "Cite the software version used and the associated RCC paper."
 title: "rcc-refcert: a Python research toolkit for structure-fair quantum circuit complexity"
 type: software
-version: 0.1.3
-doi: "10.5281/zenodo.22768920"
-date-released: 2026-09-15
+version: 0.2.0
+date-released: 2026-10-25
 license: MIT
 repository-code: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 abstract: >-
   rcc-refcert is a Python research toolkit for structure-fair quantum circuit
-  complexity. It implements finite-control models, reference certificates and
-  conditional terminal-state bounds from Reference-Contingent Complexity (RCC),
-  making supplied resources, allowed quantum processes, and description and
-  generation costs explicit.
+  complexity. Reference-Contingent Complexity (RCC) makes the physical reference
+  dependence of complexity explicit and uses structural fairness to organize
+  background resources, allowed quantum processes, and generation costs into
+  coherent physical models. The toolkit implements finite-control models,
+  reference certificates and conditional terminal-state bounds from this
+  framework.
   Researchers can construct prefix-controlled quantum-process models, compute
   terminating program semidensities, and check Bellman-Choi, reference-potential,
   fixed-model domination, and reference gain-cost conditions. Complete exact
@@ -20,11 +21,14 @@ abstract: >-
   bounds on preparation cost in atomic slots. Freshly verified H.3/H.4 proof
   objects can supply the reference-domination constant; versioned records
   preserve calculation inputs, evidence levels and same-version scalar replay.
+  Stable finite models support linear H.3 candidate preparation followed by
+  independent verification. Complete analysis bundles retain model and proof
+  arrays for fresh numerical checks and comparison with historical results.
   Three bundled reference cases cover closed-form, multiblock, and nonhalting
   behavior. A worked paired-reset model connects the physical declaration to a
-  numerical RCC lower
-  bound of one slot, attained by an explicit one-slot preparation. The package
-  provides a Python API, command-line tools, two Jupyter tutorials, and versioned
+  numerical RCC lower bound of one slot, attained by an explicit one-slot
+  preparation. The package provides a Python API, command-line tools, two
+  Jupyter tutorials, and versioned
   reports. Matrix checks provide reproducible numerical evidence for declared
   finite models, with explicit pass, fail, inconclusive, and not-applicable
   outcomes. Terminal-state records distinguish scalar enclosures, numerical

@@ -35,6 +35,13 @@ that variable to the exact tree tested by the workflow. Local runs without a
 verified source revision omit `provenance` rather than guessing from the
 current directory.
 
+Complete analysis bundles and fresh bundle-verification reports record the
+same explicitly supplied revision as `producer.source_revision`, or `null`
+when it is unavailable. Inspection reports the original bundle producer;
+verification reports the current recipient environment. This is declared
+source provenance, not a check that the installed code matches the commit.
+See [recording the revision](ANALYSIS_BUNDLES.md#record-the-software-revision).
+
 Canonical frozen evidence retains the stable `producer` identity but omits a
 commit field. Its containing repository commit or release tag supplies that
 version anchor without introducing a self-referential commit claim into the
@@ -196,3 +203,45 @@ state the one-sided coverage under the declared sampling model. All process
 bounds remain conditional on declared model premises. See
 [Terminal-state bounds](TERMINAL_BOUNDS.md) for the complete input, arithmetic,
 statistical, and replay contract.
+
+## Complete analysis bundles
+
+`bundle inspect` checks stored input and result consistency without matrix
+revalidation. `bundle verify` independently checks the saved model and proof,
+then reports fresh numerical evidence and support for historical results. Their
+JSON reports use `rcc-refcert.bundle-inspection` and
+`rcc-refcert.bundle-verification`, each with `schema_version: 1`. These report
+schemas are separate from the analysis-bundle container and bound-record
+schemas.
+
+Stored-history validation requires a nonempty check list. A passing report
+must contain only passing checks, a finite nonnegative usable constant, and
+finite nonnegative candidate and error diagnostics; its usable constant cannot
+be below its candidate. These three values must have exact finite binary64
+representations. The reserved error must equal the binary64 subtraction of
+the usable constant and candidate, including its rounding; exact rational
+addition of candidate and error need not recover the usable constant.
+For H.3, the historical candidate must also equal the stored proof object's
+`constant`. H.4 derives its candidate from a floating-point sum of coefficient
+products; that source calculation is repeated during fresh verification,
+where differences between numerical environments are assessed through the
+usable constants. Inspection does not reexecute that verifier.
+A non-passing report has no usable constant and must
+include a check with its reported outcome. Contradictions are `invalid_input`
+(exit `2`) before any fresh matrix verification. Consistent failed and
+inconclusive reports remain valid diagnostic records. Container digests alone
+do not establish these relationships.
+
+The bundle commands have their own exit-code contract: `0` indicates successful
+inspection or supported verification, `1` an unsupported or unresolved
+verification result, `2` an input or output-file error, and `3` a computation
+budget refusal. See [Analysis bundles](ANALYSIS_BUNDLES.md) for the complete
+contract, historical-constant comparison and counts-event handling.
+
+Resource-error JSON fields `estimate` and `limit`, and the fresh verification
+report's `controls.limits`, retain integers through 256 bits. Larger values use
+strings with the integer's bit length and an explicit `decimal expansion
+omitted` marker. These are diagnostic summaries; resource comparisons continue
+to use exact integers. A summary cannot be reused as a computation budget.
+Stored analysis controls and scientific records keep
+their exact representations and existing storage limits.
