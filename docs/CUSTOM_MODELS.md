@@ -154,6 +154,29 @@ specialized structural argument.
 
 ## Adapt the examples to your inputs
 
+Begin with one channel parameter. Keep the two-phase control language and
+reference state, change the damping probability from $3/5$ to $2/5$, and save
+the result under a new name:
+
+```bash
+.venv/bin/python examples/custom_model_workflow.py --p 2/5 --bundle alternating-p-2-5.rccbundle
+.venv/bin/python -m rcc_refcert bundle verify alternating-p-2-5.rccbundle
+```
+
+The script reports `parameters: {"p": "2/5", "q": "1/5"}`, the analytic
+reference constant `307/264`, and an H.3 `pass` with numerical upper constant
+approximately `1.162878788`. The local H.70 sums become `1.2` and `1.1`;
+that sufficient route still fails. This calculation establishes reference
+domination for the modified model. A target-state cost bound additionally needs
+the task declarations in step 3 below.
+
+Both `--p` and `--q` accept rational probabilities in $[0,1]$. The analytic
+comparison is recalculated from these parameters, and the bundle preserves
+the resulting channels. An existing destination produces a short diagnostic
+and exit code `2`; choose an unused `--bundle` path and run again.
+
+For a different physical model:
+
 1. Start from `build_model()` and replace the channels, control spaces,
    codewords, initial state, and reference state together. The
    [model guide](MODEL_GUIDE.md#construction-rules) defines their consistency

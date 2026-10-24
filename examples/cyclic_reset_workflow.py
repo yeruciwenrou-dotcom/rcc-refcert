@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from fractions import Fraction
 from pathlib import Path
 
@@ -252,11 +253,30 @@ def main() -> int:
         help="explicit additional H.3 error-budget diagnostic",
     )
     arguments = parser.parse_args()
-    result = run(
-        arguments.bundle,
-        diagnose_h3=arguments.diagnose_h3,
-        h3_tolerance=arguments.h3_tolerance,
-    )
+    try:
+        result = run(
+            arguments.bundle,
+            diagnose_h3=arguments.diagnose_h3,
+            h3_tolerance=arguments.h3_tolerance,
+        )
+    except FileExistsError as exc:
+        if arguments.bundle is None or not arguments.bundle.exists():
+            print(
+                f"Cannot write bundle: {exc}. Check the destination directory and permissions.",
+                file=sys.stderr,
+            )
+            return 2
+        print(
+            f"Bundle already exists: {arguments.bundle}. Choose an unused --bundle path.",
+            file=sys.stderr,
+        )
+        return 2
+    except OSError as exc:
+        print(
+            f"Cannot write bundle: {exc}. Check the destination directory and permissions.",
+            file=sys.stderr,
+        )
+        return 2
     print(json.dumps(result, indent=2, allow_nan=False))
     return 0 if result["H4"]["outcome"] == "pass" else 1
 

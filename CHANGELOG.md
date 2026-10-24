@@ -17,26 +17,20 @@
   historical records alongside the new numerical evidence.
 - Reject contradictory historical verification summaries before inspecting or
   reverifying a bundle, while retaining consistent failed and inconclusive
-  analyses for diagnosis. Record an explicitly supplied source revision in
+  analyses for diagnosis. Check the binary64 relationship between the usable
+  constant, candidate and reserved error, and bind H.3 candidates to their
+  saved proof objects. Record an explicitly supplied source revision in
   fresh bundle-verification reports as well as exported bundles.
-- Exercise the bounds notebook's final terminal command without shell
-  activation, and check local links and section anchors across the guides
-  and notebooks.
 - Add alternating damping/pumping and cyclic noisy-reset workflows, guides,
-  and notebook steps for complete evidence transfer.
-- Organize the README around reference reproduction, terminal-state bounds,
-  custom-model analysis, and recipient revalidation. Introduce the toolkit
-  through quantum circuit complexity, reference dependence, and structure-fair
-  physical modeling, then explain its state-preparation calculations.
-  Clarify installation by version, adapting the
-  examples, and interpreting shared evidence. Introduce certificate names
-  before appendix labels, use one quickstart interpreter throughout the
-  tutorials, and separate input-budget details from the calculation path.
-- Align the scientific explanations with the V4 theorem: distinguish the
+  and notebook steps for complete evidence transfer. The alternating example
+  accepts channel probabilities and recalculates its analytic comparison;
+  both scripts preserve existing bundles and give recovery hints for file errors.
+- Show fresh and historical constants together in verification reports,
+  explaining why a passing new check may leave an older result unsupported
+  even when its integer lower bound is unchanged.
+- Explain the relation between the
   state-side RCC leading term, full one-shot lower bound and process optimum;
-  clarify H.3/H.70 logic, prefix-code mass, and the external measurement
-  definition required by counts records. Complete the paper map and candidate
-  capability metadata.
+  document the external measurement definition required by counts records.
 
 The frozen reference calculations and bound-record v2 contract retain their
 numerical meaning. Same-version scalar replay remains exact; use the original

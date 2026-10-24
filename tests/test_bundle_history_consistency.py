@@ -2,7 +2,9 @@
 
 import json
 from copy import deepcopy
+from fractions import Fraction
 
+import numpy as np
 import pytest
 
 from rcc_refcert import ReferencePotentialCertificate, prepare_bellman_choi
@@ -48,6 +50,10 @@ def proof(request):
         "candidate_above_bound",
         "negative_error",
         "nonfinite_error",
+        "unrelated_error",
+        "zero_candidate",
+        "non_binary64_constant",
+        "overflow_constant",
     ],
 )
 def test_digest_correct_contradictions_are_rejected(
@@ -77,8 +83,16 @@ def test_digest_correct_contradictions_are_rejected(
         history["candidate_constant_exact"] = "100"
     elif mutation == "negative_error":
         history["constant_error_bound_exact"] = "-1"
-    else:
+    elif mutation == "nonfinite_error":
         history["constant_error_bound_exact"] = "inf"
+    elif mutation == "unrelated_error":
+        history["constant_error_bound_exact"] = "100"
+    elif mutation == "zero_candidate":
+        history["candidate_constant_exact"] = "0"
+    elif mutation == "non_binary64_constant":
+        history["constant_exact"] = "11/10"
+    else:
+        history["constant_exact"] = str(2**1024)
     changed = save_bundle_payload(
         tmp_path / "contradiction.rcc",
         payload.model,
@@ -95,6 +109,48 @@ def test_digest_correct_contradictions_are_rejected(
     for reader in (inspect_analysis_bundle, verify_analysis_bundle):
         with pytest.raises(InputError):
             reader(changed)
+
+
+def test_h3_candidate_is_bound_to_the_stored_proof(tmp_path, monkeypatch, capsys):
+    model = build_terminal_model()
+    certificate = prepare_bellman_choi(model).certificate
+    original = save_analysis_bundle(tmp_path / "original.rcc", model, certificate)
+    payload = load_bundle_payload(original)
+    history = payload.analysis["verification"]
+    # Keep the arithmetic self-consistent while substituting another candidate.
+    history["candidate_constant_exact"] = "0"
+    history["constant_error_bound_exact"] = history["constant_exact"]
+    changed = save_bundle_payload(
+        tmp_path / "changed.rcc", model, certificate, analysis=payload.analysis
+    )
+    monkeypatch.setattr(
+        "rcc_refcert.bundle._verify",
+        lambda *a, **k: pytest.fail("unexpected matrix verification"),
+    )
+    for action in ("inspect", "verify"):
+        assert main(["bundle", action, str(changed), "--format", "json"]) == 2
+        assert "stored certificate" in json.loads(capsys.readouterr().out)["message"]
+
+
+def test_actual_history_with_rounded_subtraction_remains_readable(tmp_path):
+    model = build_terminal_model()
+    for action in model.actions_by_syntax["s"]:
+        action.codeword += "0" * 20
+    certificate = prepare_bellman_choi(model).certificate
+    certificate.constant = float(np.nextafter(certificate.constant, np.inf))
+    path = save_analysis_bundle(tmp_path / "rounded.rcc", model, certificate, tol=0.01)
+    history = inspect_analysis_bundle(path)["historical_verification"]
+    assert history["outcome"] == "pass"
+    upper, candidate, error = (
+        Fraction(history[k])
+        for k in (
+            "constant_exact",
+            "candidate_constant_exact",
+            "constant_error_bound_exact",
+        )
+    )
+    assert upper != candidate + error
+    assert verify_analysis_bundle(path)["historical_results_supported"] is True
 
 
 @pytest.mark.parametrize("outcome", ["pass", "fail", "inconclusive"])

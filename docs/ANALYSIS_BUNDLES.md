@@ -27,19 +27,26 @@ Replace `received.rccbundle` with the path to your file:
 .venv/bin/python -m rcc_refcert bundle verify received.rccbundle --output received-verification.json
 ```
 
-Inspection reports the original producer version and checks stored consistency.
-This includes agreement between the historical outcome and its individual
-checks. A saved `pass` requires every reported check to pass and finite,
-nonnegative constant diagnostics. Contradictory history is invalid input, even
-when the container digests match; both commands reject it before fresh matrix
-verification. Consistent failed or inconclusive certificate-only analyses
-remain readable for diagnosis.
+For the cyclic-reset example below, a successful verification includes:
 
-Verification performs fresh matrix checks and compares their consequences with
-the historical results. Read **Fresh matrix verification** and
-**Historical results supported** together; the report also separates scalar
-comparison from same-version replay. A different producer version can leave
-exact replay unavailable while fresh matrix verification remains possible.
+```text
+Stored record consistency: pass
+Fresh matrix verification: pass (numerical)
+Fresh certificate constant: 1.0000000001000002
+Historical certificate constant: 1.0000000001000002
+Historical results supported: yes
+```
+
+The two request sections each report `scalar comparison match`,
+`Same-version replay: match`, and `Integer lower bound: 2`. The decimal
+constants may differ across numerical environments.
+
+`inspect` checks the stored record and identifies its producer. `verify`
+then checks the matrices afresh. Read **Fresh matrix verification** and
+**Historical results supported** together: the first concerns the current
+certificate check; the second asks whether that result supports the earlier
+calculation. A different producer version can leave exact scalar replay
+unavailable while fresh matrix verification remains possible.
 
 Verification can also run from another directory: use the full path to the
 installed environment's Python and to the bundle. Choose an unused report
@@ -134,6 +141,14 @@ requiring byte-for-byte equality of matrix reports.
 - A failed or inconclusive verifier, or a resource refusal, is reported with
   its own diagnostics. It does not become a successful historical check.
 
+For example, verifying the cyclic-reset bundle with the explicit tolerance
+`1e-8` gives a fresh constant approximately `1.0000000100000002`, larger than
+the historical `1.0000000001000002`. The matrix check passes, historical
+support is `no`, and the integer bound remains **two**. The report shows the
+constant comparison and explains that rounding to the same integer does not
+establish support for the smaller historical constant. The command and its
+separate output file appear [below](#format-and-numerical-identity).
+
 For terminal-state tasks, comparison uses the same $C\ge1$ convention as the
 certificate-binding adapter. A finite certificate may report a smaller
 constant, but the bound task normalizes its usable constant to at least one.
@@ -191,6 +206,16 @@ The `rcc-refcert.analysis-bundle` format has its own schema version, independent
 of the bound-record schema. A bundle is a ZIP container with a JSON manifest
 and numerical array payloads. It carries data rather than executable Python.
 The loader reconstructs only the supported finite model and H.3/H.4 types.
+
+Stored-history checks also compare the reported outcome with its individual
+checks. A saved `pass` requires passing checks, finite nonnegative binary64
+constants, and a reserved error consistent with the rounded subtraction of
+the candidate from the usable constant. An H.3 candidate must match its stored
+proof object. H.4's coefficient calculation is repeated by fresh verification.
+See the [output contract](OUTPUT_CONTRACT.md#complete-analysis-bundles) for
+the precise scope. Contradictory history is invalid input, even when container
+digests match; both commands reject it before fresh matrix verification.
+Consistent failed and inconclusive certificate-only analyses remain readable.
 
 Array metadata retains shape, supported numeric dtype, and logical C-order
 entries using a canonical little-endian representation. This preserves the

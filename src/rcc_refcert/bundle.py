@@ -183,8 +183,26 @@ def _validate_report(report: dict) -> None:
             if diagnostic < 0:
                 raise InputError("passing history requires nonnegative diagnostics")
             diagnostics.append(diagnostic)
-        if rational(constant, "verified constant") < diagnostics[0]:
+        upper = rational(constant, "verified constant")
+        candidate, error = diagnostics
+        for value in (upper, candidate, error):
+            try:
+                binary = float(value)
+            except OverflowError as exc:
+                raise InputError(
+                    "historical constants must be finite binary64 values"
+                ) from exc
+            if not math.isfinite(binary) or Fraction.from_float(binary) != value:
+                raise InputError("historical constants must be exact binary64 values")
+        if upper < candidate:
             raise InputError("verified constant cannot be below its candidate")
+        # accepted_constant serializes a binary64 subtraction. Requiring the
+        # rational identity upper == candidate + error would reject valid
+        # histories when that subtraction rounds.
+        if error != Fraction.from_float(float(upper - candidate)):
+            raise InputError(
+                "historical reserved error differs from upper minus candidate"
+            )
     elif outcome not in check_outcomes:
         raise InputError("historical outcome requires a matching reported check")
 
@@ -370,6 +388,13 @@ def _history(payload) -> tuple[dict, float]:
         )
     verification = analysis["verification"]
     _validate_report(verification)
+    if (
+        verification["outcome"] == "pass"
+        and isinstance(payload.certificate, BellmanChoiCertificate)
+        and rational(verification["candidate_constant_exact"])
+        != rational(_number(payload.certificate.constant), "H.3 candidate")
+    ):
+        raise InputError("historical H.3 candidate differs from the stored certificate")
     constant = verification["constant_exact"]
     if not isinstance(analysis["requests"], list) or len(analysis["requests"]) > 100:
         raise InputError("bundle requests must be a list of at most 100 entries")

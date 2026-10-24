@@ -2,16 +2,12 @@
 
 [![arXiv: 2509.18205](https://raw.githubusercontent.com/yeruciwenrou-dotcom/rcc-refcert/main/docs/assets/arxiv.svg)](https://arxiv.org/abs/2509.18205)
 [![PyPI](https://img.shields.io/pypi/v/rcc-refcert.svg?label=PyPI)](https://pypi.org/project/rcc-refcert/)
-[![Archived 0.1.3 DOI](https://img.shields.io/badge/0.1.3_DOI-10.5281%2Fzenodo.22768920-blue)](https://doi.org/10.5281/zenodo.22768920)
+[![Archived 0.1.3 DOI](https://img.shields.io/badge/0.1.3_DOI-10.5281%2Fzenodo.22768920-darkgreen)](https://doi.org/10.5281/zenodo.22768920)
 
-`rcc-refcert` is a Python research toolkit for **quantum circuit complexity**,
-with tools for auditing structure-fair models, verifying reference
-certificates, and computing **complexity lower bounds**.
-
-> **Version.** This checkout is the **0.2.0rc1 development version**. Use the
-> [source installation](#quick-start) for candidate preparation and complete
-> analysis bundles. The published PyPI package and linked archive are **0.1.3**,
-> with model audits, supplied-certificate verification, and scalar bounds.
+`rcc-refcert` is a Python research toolkit for **quantum circuit complexity**.
+It audits small finite-control quantum models, verifies reference certificates,
+and computes **conditional lower bounds on state-preparation cost** from exact
+target spectra or predeclared measurement counts.
 
 The toolkit implements selected parts of **Reference-Contingent Complexity
 (RCC)**, introduced in
@@ -23,13 +19,17 @@ processes, and resource costs into a coherent physical generation model.
 Within an admissible model, final-state information gives a cost floor shared
 by every successful preparation history.
 
-Use it to build and audit small finite-control quantum models, verify
-reference certificates, and compute conditional preparation-cost lower bounds
-from exact target spectra or predeclared measurement counts. You supply the
-model's channels, reference state, control language, and cost assumptions; the
-package returns explicit numerical checks and reproducible bound records.
+You supply the model's channels, reference state, control language, and cost
+assumptions, together with the target-state inputs for a bound calculation.
+The package returns numerical checks and a reproducible record of the bound.
 A complete analysis bundle also carries the model and proof arrays so another
 researcher can reverify the calculation without the original modeling script.
+
+For example, the [paired-reset model](docs/END_TO_END_EXAMPLE.md) has an
+integer lower bound of **one primitive slot**, attained by an explicit
+one-slot preparation. The [four-qubit workflow](docs/CUSTOM_MODELS.md#cyclic-noisy-reset-register)
+gives a lower bound of **two slots**, while its separately established optimum
+is five. A lower bound need not equal the cost of the best process.
 
 The [conceptual introduction](#why-reference-contingent-complexity) explains
 the research question; the [scientific scope](docs/SCIENTIFIC_SCOPE.md)
@@ -48,6 +48,11 @@ You can also [read the reference results](results/reference_report.md)
 without running code, or follow either [Jupyter notebook](#jupyter-notebook).
 
 ## Install from PyPI
+
+> **Version.** This checkout is the **0.2.0rc1 development version**. Use the
+> [source installation](#quick-start) for certificate-candidate preparation
+> and complete analysis bundles. The published PyPI package and linked archive
+> are **0.1.3**, with model audits, supplied-certificate verification, and scalar bounds.
 
 For the published **0.1.3** capabilities, use a Python 3.10 or newer environment:
 

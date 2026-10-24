@@ -8,7 +8,11 @@ from pathlib import Path
 from .bounds.scalar import decimal_endpoint, decimal_string, rational
 from .bundle import inspect_analysis_bundle, verify_analysis_bundle
 from .limits import ComputationLimits, ResourceLimitError, _resource_diagnostic
-from .numeric import format_certificate_constant
+
+
+def _constant(value: str) -> str:
+    # Seventeen significant digits distinguish neighboring binary64 constants.
+    return format(float(rational(value)), ".17g")
 
 
 def render_bundle_report(report: dict) -> str:
@@ -32,11 +36,11 @@ def render_bundle_report(report: dict) -> str:
         )
         if fresh["constant_exact"] is not None:
             lines.append(
-                "Fresh certificate constant: "
-                + format_certificate_constant(
-                    float(rational(fresh["constant_exact"])), None, None
-                )
+                "Fresh certificate constant: " + _constant(fresh["constant_exact"])
             )
+        historical = report["historical_verification"]["constant_exact"]
+        if historical is not None:
+            lines.append("Historical certificate constant: " + _constant(historical))
         supported = report["historical_results_supported"]
         lines.append(
             "Historical results supported: "
@@ -50,6 +54,10 @@ def render_bundle_report(report: dict) -> str:
         )
         if report["controls"]["tolerance_overridden"]:
             lines.append("Tolerance: explicit override; original controls retained")
+        if not report["requests"] and supported is False:
+            lines.append(
+                "The fresh constant is larger; it does not support the smaller historical constant."
+            )
         for index, request in enumerate(report["requests"], 1):
             lines.append(
                 f"Request {index} ({request['kind']}): scalar comparison "
@@ -63,6 +71,18 @@ def render_bundle_report(report: dict) -> str:
                 "  Same-version replay: " + request["same_version_replay"]["status"]
             )
             if request["fresh_bound"] is not None:
+                new_c, old_c = (
+                    request["fresh_constant_exact"],
+                    request["historical_constant_exact"],
+                )
+                relation = "<=" if request["historical_constant_supported"] else ">"
+                lines.append(
+                    f"  Usable constants: fresh {_constant(new_c)} {relation} historical {_constant(old_c)}"
+                )
+                if not request["historical_constant_supported"]:
+                    lines.append(
+                        "  The larger fresh constant gives a weaker bound; the historical constant is unsupported."
+                    )
                 cost = request["fresh_bound"]["cost"]
                 lines.append(
                     "  Fresh lower bound: "
@@ -73,6 +93,20 @@ def render_bundle_report(report: dict) -> str:
                     lines.append(
                         f"  Integer lower bound: {cost['integer_lower_bound_slots']}"
                     )
+                    old_integer = request["historical_record"]["cost"][
+                        "integer_lower_bound_slots"
+                    ]
+                    if (
+                        not request["historical_constant_supported"]
+                        and old_integer == cost["integer_lower_bound_slots"]
+                    ):
+                        lines.append(
+                            "  The integer bound is unchanged after rounding; this does not establish historical support."
+                        )
+            if not request["current_scalar_comparison"]["matches"]:
+                lines.append(
+                    "  Recomputing the original scalar inputs differs from the saved record; inspect the JSON comparison."
+                )
         if fresh["outcome"] != "pass":
             for check in fresh["checks"]:
                 if check["outcome"] != "pass":

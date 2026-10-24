@@ -217,7 +217,16 @@ schemas.
 Stored-history validation requires a nonempty check list. A passing report
 must contain only passing checks, a finite nonnegative usable constant, and
 finite nonnegative candidate and error diagnostics; its usable constant cannot
-be below its candidate. A non-passing report has no usable constant and must
+be below its candidate. These three values must have exact finite binary64
+representations. The reserved error must equal the binary64 subtraction of
+the usable constant and candidate, including its rounding; exact rational
+addition of candidate and error need not recover the usable constant.
+For H.3, the historical candidate must also equal the stored proof object's
+`constant`. H.4 derives its candidate from a floating-point sum of coefficient
+products; that source calculation is repeated during fresh verification,
+where differences between numerical environments are assessed through the
+usable constants. Inspection does not reexecute that verifier.
+A non-passing report has no usable constant and must
 include a check with its reported outcome. Contradictions are `invalid_input`
 (exit `2`) before any fresh matrix verification. Consistent failed and
 inconclusive reports remain valid diagnostic records. Container digests alone
