@@ -23,13 +23,16 @@ additional target-directed structure are counted. Within an admissible model,
 cost of every successful preparation process, without reconstructing how the
 state was produced.
 
-For example, in the [paired-reset model](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/END_TO_END_EXAMPLE.md),
-preparing a pure qubit from the maximally mixed state requires at least
-**one primitive slot**, and a single reset attains this bound.
-The [four-qubit workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/CUSTOM_MODELS.md#cyclic-noisy-reset-register)
-uses noisy resets to prepare a polarized product state from a maximally mixed
-register. Its lower bound is **two slots**; a separate model-specific argument
-establishes the optimum at five, including halt.
+For example:
+
+- In the [paired-reset model](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/END_TO_END_EXAMPLE.md),
+  preparing a pure qubit from the maximally mixed state requires at least
+  **one primitive slot**, and a single reset attains this bound.
+- The [four-qubit workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/CUSTOM_MODELS.md#cyclic-noisy-reset-register)
+  uses noisy resets to prepare a polarized product state from a maximally mixed
+  register. Its lower bound is **two slots**; a separate model-specific argument
+  establishes the optimum at five, including halt.
+
 Matching a lower bound to the cost of an explicit preparation establishes
 optimality within the model; a gap leaves room for a sharper bound.
 
@@ -47,7 +50,7 @@ connects the implemented checks to the RCC framework.
 
 | Your task | What you obtain | Entry point |
 |---|---|---|
-| Reproduce the reference results | Model audits checked against frozen numerical evidence | [Published package](#install-from-pypi) or [current source](#quick-start) |
+| Reproduce calculations and examples from the RCC paper | Reference-model checks and worked lower bounds, linked to paper equations | [Quick start](#quick-start) · [Paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/PAPER_MAP.md) · [Worked example](#end-to-end-rcc-lower-bound-example) |
 | Calculate a preparation-cost lower bound | A bound from an exact target spectrum or predeclared measurement counts | [Terminal-state workflow](#target-spectra-and-measured-counts) |
 | Analyze your own finite-control model | Numerical certificate checks, conditional bounds, and shareable inputs | [Custom-model workflow](#work-with-your-own-model) |
 | Reverify a shared analysis | Fresh matrix checks and a comparison with historical results | [Recipient workflow](#reverify-a-shared-analysis) |
