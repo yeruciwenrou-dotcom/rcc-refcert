@@ -14,18 +14,19 @@ the complete model and proof arrays.
 
 ## Reverify a bundle you received
 
-You need the installed package and the `.rccbundle` file. Follow the
-[0.2.0rc1 source quickstart](../README.md#quick-start) and run the commands
-below from the checkout root. On Windows, substitute
-`.venv\Scripts\python.exe`. For your own active installation, use its
-interpreter instead. The `bundle` interfaces require 0.2.0rc1.
-
-Replace `received.rccbundle` with the path to your file:
+You need `rcc-refcert` 0.2.0 or newer and the `.rccbundle` file. Follow the
+[package installation](../README.md#install-from-pypi), then replace
+`received.rccbundle` with the path to your file:
 
 ```bash
-.venv/bin/python -m rcc_refcert bundle inspect received.rccbundle
-.venv/bin/python -m rcc_refcert bundle verify received.rccbundle --output received-verification.json
+python -m rcc_refcert bundle inspect received.rccbundle
+python -m rcc_refcert bundle verify received.rccbundle --output received-verification.json
 ```
+
+Use the interpreter from your active installation; no source checkout is
+required. Later examples in this guide use the
+[source quickstart](../README.md#quick-start) and `.venv/bin/python` from the
+checkout root. On Windows, substitute `.venv\Scripts\python.exe`.
 
 For the cyclic-reset example below, a successful verification includes:
 

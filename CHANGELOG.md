@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0rc1 (unreleased)
+## 0.2.0 (2026-10-25)
 
 - Prepare linear H.3 candidates for custom finite models, with explicit
   diagnostics for unsupported, unresolved and resource-limited calculations.
@@ -36,7 +36,6 @@ The frozen reference calculations and bound-record v2 contract retain their
 numerical meaning. Same-version scalar replay remains exact; use the original
 package version to replay older records. Complete bundles additionally support
 fresh model/certificate revalidation and a separately labeled scalar comparison.
-This candidate has no release DOI.
 
 ## 0.1.3 (2026-09-15)
 

@@ -14,8 +14,8 @@ admissibility qualify the resulting cost bound.
 Follow the [source quickstart](../README.md#quick-start), then run these
 commands from the checkout root. On Windows, substitute
 `.venv\Scripts\python.exe`. If you installed into your own active environment,
-use its interpreter instead. The published 0.1.3 package also supports these
-basic spectrum, counts and scalar-replay commands.
+use its interpreter instead. These spectrum, counts and scalar-replay commands
+also work with the installed package outside a checkout.
 
 ```bash
 .venv/bin/python -m rcc_refcert bound template spectrum > spectrum.json

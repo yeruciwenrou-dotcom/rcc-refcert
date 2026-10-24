@@ -23,9 +23,9 @@ additional target-directed structure are counted. Within an admissible model,
 cost of every successful preparation process, without reconstructing how the
 state was produced.
 
-For example, the [paired-reset model](docs/END_TO_END_EXAMPLE.md) has an
+For example, the [paired-reset model](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/END_TO_END_EXAMPLE.md) has an
 integer lower bound of **one primitive slot**, attained by an explicit
-one-slot preparation. The [four-qubit workflow](docs/CUSTOM_MODELS.md#cyclic-noisy-reset-register)
+one-slot preparation. The [four-qubit workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/CUSTOM_MODELS.md#cyclic-noisy-reset-register)
 gives a lower bound of **two slots**, while its separately established optimum
 is five. A lower bound need not equal the cost of the best process.
 
@@ -36,7 +36,7 @@ A complete analysis bundle also carries the model and proof arrays so another
 researcher can reverify the calculation without the original modeling script.
 
 The [conceptual introduction](#why-reference-contingent-complexity) explains
-the research question; the [scientific scope](docs/SCIENTIFIC_SCOPE.md)
+the research question; the [scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/SCIENTIFIC_SCOPE.md)
 connects the implemented checks to the RCC framework.
 
 ## Start here
@@ -48,20 +48,15 @@ connects the implemented checks to the RCC framework.
 | Analyze your own finite-control model | Numerical certificate checks, conditional bounds, and shareable inputs | [Custom-model workflow](#work-with-your-own-model) |
 | Reverify a shared analysis | Fresh matrix checks and a comparison with historical results | [Recipient workflow](#reverify-a-shared-analysis) |
 
-You can also [read the reference results](results/reference_report.md)
+You can also [read the reference results](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/results/reference_report.md)
 without running code, or follow either [Jupyter notebook](#jupyter-notebook).
 
 ## Install from PyPI
 
-> **Version.** This checkout is the **0.2.0rc1 development version**. Use the
-> [source installation](#quick-start) for certificate-candidate preparation
-> and complete analysis bundles. The published PyPI package and linked archive
-> are **0.1.3**, with model audits, supplied-certificate verification, and scalar bounds.
-
-For the published **0.1.3** capabilities, use a Python 3.10 or newer environment:
+Use a Python 3.10 or newer environment:
 
 ```bash
-python3 -m pip install "rcc-refcert==0.1.3"
+python3 -m pip install "rcc-refcert==0.2.0"
 python3 -m rcc_refcert examples
 python3 -m rcc_refcert reproduce --check
 ```
@@ -72,23 +67,23 @@ The check should report `MATCH` for the reference expectations, data, and report
 The [reference cases](#reference-cases) explain the deliberately failed
 sufficient route and the nonhalting boundary among those expected results.
 
-For the new candidate-preparation and complete-bundle workflows, install the
-current source below.
+The installed package includes candidate preparation and bundle verification.
+For the example scripts and notebooks, use the source quickstart below.
 
 ## Quick start
 
-For the **0.2.0rc1 development version**, clone this branch:
+To run the example scripts and notebooks for **0.2.0**, clone its release tag:
 
 ```bash
-git clone --branch upgrade/complete-evidence-0.2.0rc1 https://github.com/yeruciwenrou-dotcom/rcc-refcert.git
+git clone --branch v0.2.0 https://github.com/yeruciwenrou-dotcom/rcc-refcert.git
 cd rcc-refcert
 python3 --version
 python3 quickstart.py --reproduce-only
 ```
 
 Python 3.10 or newer is required. On Windows, or where your interpreter is
-named `python`, use `python` in place of `python3`. You can also select this
-branch on GitHub, choose **Code → Download ZIP**, and run the last two commands
+named `python`, use `python` in place of `python3`. You can also select the `v0.2.0`
+tag on GitHub, choose **Code → Download ZIP**, and run the last two commands
 from the extracted directory containing `quickstart.py`.
 
 The script creates `.venv`, installs the locked verification dependencies,
@@ -104,7 +99,7 @@ If you prefer your own active environment, install with
 The module entry point accepts the same arguments as `rcc-refcert`.
 
 To reproduce a particular source version, check out its full commit or release
-tag before installation. The published 0.1.3 source is tagged `v0.1.3`.
+tag before installation.
 
 ## Work with your own model
 
@@ -124,7 +119,7 @@ Both bound paths for this register return **two primitive slots**; a separate
 analysis establishes its five-slot optimum.
 
 Each command saves a bundle containing the model, certificate and results.
-Choose an unused filename. Follow the [custom-model guide](docs/CUSTOM_MODELS.md)
+Choose an unused filename. Follow the [custom-model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/CUSTOM_MODELS.md)
 to replace the channels, states, control language and cost assumptions, then
 verify your certificate and add a supported target-state task. The guide
 explains the two certificate routes and their numerical limits.
@@ -147,7 +142,7 @@ larger conservative constant and leave an earlier, stronger result unsupported.
 The installed package and bundle are sufficient for verification; the sender's
 model script is unnecessary. The original bundle is preserved, and `--output`
 saves a separate report under an unused filename. The
-[analysis-bundle guide](docs/ANALYSIS_BUNDLES.md) explains result comparisons,
+[analysis-bundle guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/ANALYSIS_BUNDLES.md) explains result comparisons,
 exit codes and the original counts protocol. Exact historical scalar replay
 uses the producer's package version.
 
@@ -191,7 +186,7 @@ counts with 550 hits in 1000 trials:
 
 For real measurements, fix the protocol **before collecting data** with
 `bound prepare-protocol` and preserve its digest with the dataset. The
-[terminal-state guide](docs/TERMINAL_BOUNDS.md) explains the projector,
+[terminal-state guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/TERMINAL_BOUNDS.md) explains the projector,
 sample-size and evidence requirements.
 
 Both routes use a uniform reference on an ideal support and exact transcription.
@@ -202,7 +197,7 @@ environment's interpreter.
 
 ## End-to-end RCC lower-bound example
 
-The [paired-reset example](docs/END_TO_END_EXAMPLE.md) follows one qubit from
+The [paired-reset example](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/END_TO_END_EXAMPLE.md) follows one qubit from
 its physical model through reference certification to Theorem 3.1. Its
 final-state information gap is
 
@@ -256,9 +251,9 @@ The values are `True`, `15/14` numerically, and `"fail"` for the deliberately
 failed local test described above. The model still passes its supplied
 Bellman–Choi and reference-potential certificate checks.
 
-The [model guide](docs/MODEL_GUIDE.md) shows how to build a model with `Action`
+The [model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/MODEL_GUIDE.md) shows how to build a model with `Action`
 and `FiniteControlModel`, audit it, and verify supplied certificates. For
-target-state calculations, the [bounds guide](docs/TERMINAL_BOUNDS.md) covers
+target-state calculations, the [bounds guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/TERMINAL_BOUNDS.md) covers
 `bound_from_spectrum`, `bound_from_counts`, `prepare_protocol`,
 `with_reference_certificate`, `validate_record` and `replay_record`.
 
@@ -267,18 +262,18 @@ target-state calculations, the [bounds guide](docs/TERMINAL_BOUNDS.md) covers
 Model and certificate checks report `pass`, `fail`, `inconclusive` or
 `not_applicable`, with an explicit evidence level, currently `numerical`.
 These outcomes describe finite-input and fixed-model checks. The
-[scientific scope](docs/SCIENTIFIC_SCOPE.md) connects them to the RCC theorem
+[scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/SCIENTIFIC_SCOPE.md) connects them to the RCC theorem
 and its physical, transcription and family-uniformity requirements.
 
 Terminal-state records distinguish the scalar calculation's enclosure,
 numerical certificate evidence and sampling confidence. A completed zero lower
 bound is a valid result; it does not establish zero preparation cost.
-The [output contract](docs/OUTPUT_CONTRACT.md) explains fields and exit codes.
+The [output contract](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/OUTPUT_CONTRACT.md) explains fields and exit codes.
 
 The explicit matrix and path algorithms target small finite models. Resource
 budgets are checked before enumeration or dense matrix construction, and
 unresolved precision is reported explicitly. The
-[model guide](docs/MODEL_GUIDE.md#numerical-and-resource-limits)
+[model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/MODEL_GUIDE.md#numerical-and-resource-limits)
 describes limits and certificate error budgets.
 
 ## Why reference-contingent complexity
@@ -337,14 +332,14 @@ distinct physical action classes per atomic slot. It gives the bandwidth-scaled
 entropy deficit and the linear leading term of the lower bound under the
 paper's regularity conditions. The full one-shot bound also retains spectral
 skew, smoothing loss, and transcription and reference overheads. The
-[scientific scope](docs/SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
+[scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
 gives their precise relation and units.
 
 With the model qualifications established and the measurement protocol fixed
 in advance, endpoint statistics can thus certify a minimum cost without
 reconstructing the preparation history.
 
-The [paired-reset example](docs/END_TO_END_EXAMPLE.md)
+The [paired-reset example](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/END_TO_END_EXAMPLE.md)
 makes the chain concrete. A qubit starts at the maximally mixed reference
 $I/2$. Two reset directions, to $\lvert0\rangle$ and $\lvert1\rangle$, are
 available before the target is chosen; their uniform average preserves the
@@ -356,9 +351,9 @@ fixed model.
 
 The package exposes the model inputs, numerical certificate checks, and
 scalar cost inversion that make such examples reproducible. The
-[scientific scope](docs/SCIENTIFIC_SCOPE.md)
+[scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/SCIENTIFIC_SCOPE.md)
 explains the evidence each calculation supplies; the
-[paper-to-code map](docs/PAPER_MAP.md)
+[paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/PAPER_MAP.md)
 connects the implementation to the full model construction and lower-bound
 theorem.
 
@@ -371,12 +366,12 @@ theorem.
 
 | Area | Available calculations | Guide |
 |---|---|---|
-| Finite-control models | Code-weighted trajectories, terminating program semidensities, least fixed points and reference domination | [Model guide](docs/MODEL_GUIDE.md) |
-| Reference certificates | Linear H.3 candidate preparation for stable finite models, independent H.3/H.4 verification, and local gain–cost checks with sufficient code completions | [Custom models](docs/CUSTOM_MODELS.md) |
-| Terminal-state bounds | Exact-spectrum smoothing, fixed-projector counts, certificate binding and scalar cost inversion | [Terminal-state bounds](docs/TERMINAL_BOUNDS.md) |
-| Reproducible evidence | Frozen Appendix F/H cases, same-version scalar replay, and complete model/proof bundles for fresh verification | [Analysis bundles](docs/ANALYSIS_BUNDLES.md) |
+| Finite-control models | Code-weighted trajectories, terminating program semidensities, least fixed points and reference domination | [Model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/MODEL_GUIDE.md) |
+| Reference certificates | Linear H.3 candidate preparation for stable finite models, independent H.3/H.4 verification, and local gain–cost checks with sufficient code completions | [Custom models](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/CUSTOM_MODELS.md) |
+| Terminal-state bounds | Exact-spectrum smoothing, fixed-projector counts, certificate binding and scalar cost inversion | [Terminal-state bounds](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/TERMINAL_BOUNDS.md) |
+| Reproducible evidence | Frozen Appendix F/H cases, same-version scalar replay, and complete model/proof bundles for fresh verification | [Analysis bundles](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/ANALYSIS_BUNDLES.md) |
 
-The [paper-to-code map](docs/PAPER_MAP.md) locates each implemented object in
+The [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/PAPER_MAP.md) locates each implemented object in
 the RCC argument. Together these tools let researchers examine the supplied
 structure and generation costs of explicit quantum-complexity models.
 
@@ -384,17 +379,17 @@ structure and generation costs of explicit quantum-complexity models.
 
 | Question | Guide |
 |---|---|
-| What do the checks establish? | [Scientific scope](docs/SCIENTIFIC_SCOPE.md) |
-| How do paper formulas map to code? | [Paper-to-code map](docs/PAPER_MAP.md) |
-| How are numerical and tensor conventions fixed? | [Conventions](docs/CONVENTIONS.md) |
-| How should I interpret result fields and exit codes? | [Output contract](docs/OUTPUT_CONTRACT.md) |
-| How can I extend or contribute to the toolkit? | [Contributing](CONTRIBUTING.md) |
+| What do the checks establish? | [Scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/SCIENTIFIC_SCOPE.md) |
+| How do paper formulas map to code? | [Paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/PAPER_MAP.md) |
+| How are numerical and tensor conventions fixed? | [Conventions](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/CONVENTIONS.md) |
+| How should I interpret result fields and exit codes? | [Output contract](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/OUTPUT_CONTRACT.md) |
+| How can I extend or contribute to the toolkit? | [Contributing](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/CONTRIBUTING.md) |
 
 ## Extending the research kernel
 
 Contributions can add physical models, certificate constructions, stronger
 numerical verification, terminal-state methods or interfaces for new research
-tasks. The [contribution guide](CONTRIBUTING.md) explains the scientific
+tasks. The [contribution guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/CONTRIBUTING.md) explains the scientific
 contracts, expected evidence and development checks for each kind of change.
 
 ## Repository structure
@@ -411,27 +406,24 @@ contracts, expected evidence and development checks for each kind of change.
 ## Development, citation, and license
 
 For development setup, tests, formatting and package builds, follow
-[Contributing](CONTRIBUTING.md#local-verification).
+[Contributing](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/CONTRIBUTING.md#local-verification).
 
-Version 0.1.3 is archived on
-[Zenodo](https://doi.org/10.5281/zenodo.22768920). Cite the version DOI of the
-release you ran; the [all-versions DOI](https://doi.org/10.5281/zenodo.22544967)
-identifies the project across releases. [`CITATION.cff`](CITATION.cff) provides
-software and RCC-paper citation metadata.
+Cite the software version used and the associated RCC paper.
+[`CITATION.cff`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/CITATION.cff) provides both citation records. The
+[all-versions DOI](https://doi.org/10.5281/zenodo.22544967) identifies the
+software archive across releases.
 
-For a calculation made with the released software, a copyable citation is:
+For a calculation made with this version, a copyable citation is:
 
 > Liu, HongZheng; Tian, YiNuo; and Wu, Zhiyue. *rcc-refcert: a Python research
-> toolkit for structure-fair quantum circuit complexity*. Version 0.1.3,
-> 2026. https://doi.org/10.5281/zenodo.22768920
+> toolkit for structure-fair quantum circuit complexity*. Version 0.2.0,
+> 2026. https://github.com/yeruciwenrou-dotcom/rcc-refcert/releases/tag/v0.2.0
 
-For this unreleased candidate, cite **rcc-refcert 0.2.0rc1**, the repository
-URL and the full commit used (`git rev-parse HEAD` in a clean source checkout).
-It has no release DOI. The GitHub **Cite this repository** button follows the
-paper preference in `CITATION.cff`; include the software version citation as
-well when reporting a calculation. Complete bundles can
-[record the source revision](docs/ANALYSIS_BUNDLES.md#record-the-software-revision)
+The GitHub **Cite this repository** button follows the paper preference in
+`CITATION.cff`; include the software version citation as well when reporting a
+calculation. Complete bundles can
+[record the source revision](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/docs/ANALYSIS_BUNDLES.md#record-the-software-revision)
 for both the author and the recipient.
 
-See the [Changelog](CHANGELOG.md) for this version's changes. The source code
-is available under the [MIT License](LICENSE).
+See the [Changelog](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/CHANGELOG.md) for this version's changes. The source code
+is available under the [MIT License](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/LICENSE).

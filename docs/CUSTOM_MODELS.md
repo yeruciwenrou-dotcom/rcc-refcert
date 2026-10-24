@@ -15,7 +15,7 @@ reverification. Both use ordinary NumPy arrays and the public Python API.
 
 ## Run the first example
 
-Follow the [0.2.0rc1 source quickstart](../README.md#quick-start), then run
+Follow the [0.2.0 source quickstart](../README.md#quick-start), then run
 these commands from the checkout root:
 
 ```bash
@@ -25,9 +25,7 @@ these commands from the checkout root:
 
 All commands in this guide use that environment. On Windows, substitute
 `.venv\Scripts\python.exe`. If you installed the checkout into your own active
-environment, use its interpreter instead. These candidate and bundle
-interfaces require 0.2.0rc1; the published 0.1.3 package provides the earlier
-certificate and scalar-bound interfaces.
+environment, use its interpreter instead. Candidate preparation and complete bundles are available from version 0.2.0.
 
 The example builds a **Bellman–Choi certificate (H.3)**, a set of matrices
 used to bound the code-weighted sum of terminating outputs relative to the
