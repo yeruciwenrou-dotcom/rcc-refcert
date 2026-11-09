@@ -1,7 +1,7 @@
 # From model qualification to an RCC lower bound
 
 The paired-reset example gives one minimal, reproducible path from a
-structure-fair physical model to a numerical lower bound on the state-preparation
+structure-fair physical model to a numerical lower bound on quantum circuit
 complexity $C_{\rm opt}^{(\epsilon)}$. Every state, channel, codeword, cost constant,
 and theorem input is visible in one small construction. Section and equation
 references follow manuscript version 4; see the [paper map](PAPER_MAP.md) for

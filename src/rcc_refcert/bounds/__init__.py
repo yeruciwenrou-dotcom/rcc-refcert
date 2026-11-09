@@ -1,4 +1,4 @@
-"""Conditional terminal-state cost bounds and replayable records."""
+"""Quantum circuit complexity bounds from terminal states and replayable records."""
 
 from .._version import __version__
 from .api import bound_from_counts, bound_from_spectrum, render_record, replay_record

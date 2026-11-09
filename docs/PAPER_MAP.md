@@ -4,8 +4,9 @@ This map locates the repository inside the argument of
 [the RCC paper](https://arxiv.org/abs/2509.18205) and connects the implemented
 mathematical objects to executable checks. The argument starts from structural
 fairness and reference-dependent physical modeling, constructs admissible
-models with universal state-generation capabilities, and derives a lower bound
-on the optimum over admissible preparation histories in a chosen model.
+models with universal state-generation capabilities, and proves a rigorous
+lower bound on universal optimal quantum circuit complexity. The optimum is
+taken over all admissible successful preparation histories in a chosen model.
 
 > **Manuscript alignment.** This source tree is aligned with version 4 of the
 > [RCC manuscript](https://arxiv.org/abs/2509.18205)
@@ -107,7 +108,7 @@ verified one-slot program makes that bound tight for this fixed model.
 ## Complete framework
 
 `rcc-refcert` implements the finite-control qualification layer and the
-conditional terminal-state calculations mapped here.
+terminal-state calculations mapped here.
 The [RCC paper](https://arxiv.org/abs/2509.18205) presents the complete physical
 model and lower-bound framework, including transcription, family-level
 arguments, finite-sample auditing, windowed RCC, dynamical witnesses, and the

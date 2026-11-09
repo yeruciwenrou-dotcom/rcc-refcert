@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Improve documentation and navigation.
+
 ## 0.2.0 (2026-10-25)
 
 - Prepare linear H.3 candidates for custom finite models, with explicit

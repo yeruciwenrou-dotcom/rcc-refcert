@@ -1,4 +1,4 @@
-"""Lossless JSON entry points for conditional terminal-state bounds."""
+"""Lossless JSON entry points for terminal-state complexity bounds."""
 
 from __future__ import annotations
 

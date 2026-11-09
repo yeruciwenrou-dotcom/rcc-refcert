@@ -1,3 +1,6 @@
+<!-- Keep the description proportionate to the change. For routine documentation
+maintenance, a short summary and validation are enough; omit irrelevant sections. -->
+
 ## Purpose
 
 What scientific question, audit risk, interface need, or reader problem does
@@ -6,7 +9,7 @@ this change address?
 ## RCC layer
 
 - [ ] Finite numerical input or realization
-- [ ] Fixed-model semidensity, certificate, or conditional cost bound
+- [ ] Fixed-model semidensity, certificate, or terminal-state bound
 - [ ] Model-family or uniform-scaling argument
 - [ ] Theorem-facing interpretation
 - [ ] Documentation or public interface only
