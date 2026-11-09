@@ -12,14 +12,15 @@ abstract: >-
   complexity. Reference-Contingent Complexity (RCC) makes the physical reference
   dependence of complexity explicit and uses structural fairness to organize
   background resources, allowed quantum processes, and generation costs into
-  coherent physical models. The toolkit implements finite-control models,
-  reference certificates and conditional terminal-state bounds from this
-  framework.
+  coherent physical models. The RCC paper proves a rigorous lower bound on
+  universal optimal quantum circuit complexity within an admissible model.
+  The toolkit implements finite-control models, reference certificates and
+  terminal-state bounds from this framework.
   Researchers can construct prefix-controlled quantum-process models, compute
   terminating program semidensities, and check Bellman-Choi, reference-potential,
   fixed-model domination, and reference gain-cost conditions. Complete exact
-  spectra and predeclared fixed-projector counts provide conditional lower
-  bounds on preparation cost in atomic slots. Freshly verified H.3/H.4 proof
+  spectra and predeclared fixed-projector counts provide quantum circuit
+  complexity lower bounds in the declared model's atomic resource slots. Freshly verified H.3/H.4 proof
   objects can supply the reference-domination constant; versioned records
   preserve calculation inputs, evidence levels and same-version scalar replay.
   Stable finite models support linear H.3 candidate preparation followed by

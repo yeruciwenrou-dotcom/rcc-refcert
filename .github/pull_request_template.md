@@ -6,7 +6,7 @@ this change address?
 ## RCC layer
 
 - [ ] Finite numerical input or realization
-- [ ] Fixed-model semidensity, certificate, or conditional cost bound
+- [ ] Fixed-model semidensity, certificate, or terminal-state bound
 - [ ] Model-family or uniform-scaling argument
 - [ ] Theorem-facing interpretation
 - [ ] Documentation or public interface only

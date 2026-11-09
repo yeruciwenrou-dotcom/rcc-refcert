@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Align the overview, citation abstract, guides, notebooks and CLI heading with
+  the paper's rigorous lower bound on universal optimal quantum circuit
+  complexity. Retain the model qualifications, numerical evidence levels and
+  sampling contracts at their points of use.
+- Link the repository overview to maintained guides while keeping the 0.2.0
+  installation and frozen reference results tied to the release.
+
+Numerical calculations, saved-record formats and replay behavior are unchanged.
+
 ## 0.2.0 (2026-10-25)
 
 - Prepare linear H.3 candidates for custom finite models, with explicit

@@ -1,4 +1,4 @@
-"""Conditional bounds following Appendices C.1/C.2 and D.6 audit-record requirements.
+"""Terminal-state bounds following C.1/C.2 and D.6 audit-record requirements.
 
 All process conclusions remain conditional on the supplied model premises.
 The scalar calculations share a single implementation across API and CLI.
@@ -215,7 +215,7 @@ def render_record(result: dict, *, details: bool = False) -> str:
     c = result["cost"]
     display = result["display"]
     lines = [
-        "RCC lower bound (conditional on the declared model)",
+        "RCC quantum circuit complexity lower bound",
         f"Task: {result['task']['id']} | model: {result['model']['id']}",
         f"Continuous lower bound: {display['lower_bound_slots']} atomic slots (rounded down)",
     ]

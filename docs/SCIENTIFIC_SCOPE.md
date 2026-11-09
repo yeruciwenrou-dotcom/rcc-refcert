@@ -28,9 +28,9 @@ admissible history that prepares the target within accuracy $\epsilon$.
 The reference and resource rules are held fixed across those histories.
 This optimization defines a relational physical quantity, specified jointly
 by the target, reference background, admissible processes, error semantics,
-and cost scale. The main RCC theorem converts the target's one-shot structural
-gap relative to the reference into a rigorous lower bound on this global
-process optimum.
+and cost scale. The main RCC theorem proves a rigorous lower bound on universal
+optimal quantum circuit complexity by converting the target's one-shot structural
+gap relative to the reference into a lower bound on this process optimum.
 
 `rcc-refcert` implements finite-control qualification machinery for this model
 class. Given prefix-coded quantum operations and a reference state, it
@@ -38,8 +38,8 @@ constructs the terminating program
 semidensity, verifies reference certificates, evaluates the reference gain of
 individual actions, and tests the corresponding code-length allocation.
 Its terminal-state calculator then accepts declared model inputs and a target's
-exact spectrum or fixed-projector counts to evaluate a conditional lower bound
-on preparation cost.
+exact spectrum or fixed-projector counts to evaluate a quantum circuit
+complexity lower bound in that model's atomic resource units.
 
 The implementation fixes program-semidensity and certificate conventions and
 reproduces selected constructions from Appendices F and H of RCC manuscript
@@ -262,8 +262,8 @@ witnesses, and numerical
 verification of supplied certificates.
 
 The terminal-state interfaces also let researchers study how target spectra,
-preparation tolerance, sampling budgets, and model overhead change a conditional
-cost lower bound. Saved exact inputs and replayable scalar records make those
+preparation tolerance, sampling budgets, and model overhead change the quantum
+circuit complexity lower bound for a declared model. Saved exact inputs and replayable scalar records make those
 comparisons inspectable independently of the bundled models.
 
 ## Extension points
@@ -278,7 +278,7 @@ family-uniform diagnostics, and larger simulation backends. The
 [custom-model guide](CUSTOM_MODELS.md) and
 [bundle guide](ANALYSIS_BUNDLES.md) describe the implemented workflows.
 
-## Conditional target-state bounds
+## Target-state bounds
 
 The fixed eight-output example has a complete finite program domain and
 one-slot witnesses for its named pure and mixed targets. It illustrates both

@@ -49,8 +49,7 @@ A convention or certificate change normally needs both:
 Keep the claim layers visible in code, tests, and prose:
 
 1. a finite-input computation, with numerical or scalar-enclosure evidence;
-2. a fixed-model semidensity, domination, certificate, or conditional cost-bound
-   statement;
+2. a fixed-model semidensity, domination, certificate, or terminal-state bound;
 3. a model-family statement requiring a uniform argument;
 4. the RCC theorem under its complete physical and transcription hypotheses.
 

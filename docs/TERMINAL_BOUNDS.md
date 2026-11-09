@@ -1,4 +1,4 @@
-# Terminal-state cost bounds
+# Quantum circuit complexity bounds from terminal states
 
 The `bound` command and `rcc_refcert.bounds` API calculate a quantum circuit
 complexity lower bound for state preparation, measured in atomic resource

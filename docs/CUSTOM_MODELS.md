@@ -10,8 +10,8 @@ and preserve the complete finite input for another researcher to inspect.
 
 This guide follows two executable examples. The first studies a reference
 constant when a local sufficient condition fails. The second carries a model
-through numerical certification, a conditional cost bound, and independent
-reverification. Both use ordinary NumPy arrays and the public Python API.
+through numerical certification, a quantum circuit complexity bound, and
+independent reverification. Both use ordinary NumPy arrays and the public Python API.
 
 ## Run the first example
 
