@@ -1,3 +1,6 @@
+<!-- Keep the description proportionate to the change. For routine documentation
+maintenance, a short summary and validation are enough; omit irrelevant sections. -->
+
 ## Purpose
 
 What scientific question, audit risk, interface need, or reader problem does
