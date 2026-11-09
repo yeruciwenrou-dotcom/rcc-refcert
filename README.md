@@ -177,8 +177,8 @@ are optional and do not enter the runtime package.
 ## Target spectra and measured counts
 
 Use the Python environment where you [installed the package](#install-from-pypi).
-In a new working directory, create an input template, calculate a bound, save
-its record and replay it:
+The following commands create an input template, calculate a bound, save its
+record and replay it:
 
 ```bash
 python3 -m rcc_refcert bound template spectrum > spectrum.json
@@ -188,8 +188,9 @@ python3 -m rcc_refcert bound replay bound.json
 ```
 
 Use `python` instead of `python3` if that is your environment's interpreter.
-In the [source quickstart](#quick-start) environment, use `.venv/bin/python`
-on macOS/Linux or `.venv\Scripts\python.exe` on Windows instead.
+In the [source quickstart](#quick-start) environment, stay in the checkout and
+use `.venv/bin/python` on macOS/Linux or `.venv\Scripts\python.exe` on Windows.
+Use unused filenames for your own input files and saved results.
 
 The template declares a four-dimensional model and a complete exact spectrum.
 Expect an integer-slot lower bound of **one**. To try synthetic measurement
