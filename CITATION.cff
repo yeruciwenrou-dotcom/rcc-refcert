@@ -43,9 +43,9 @@ keywords:
   - quantum information
   - quantum computing
   - quantum state preparation
-  - finite-control quantum processes
+  - quantum channels
   - reference certificates
-  - reproducible research
+  - algorithmic information theory
 authors:
   - family-names: Liu
     given-names: HongZheng
