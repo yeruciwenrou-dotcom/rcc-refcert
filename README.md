@@ -24,59 +24,56 @@ complexity. Final-state information relative to the reference bounds the
 cost of every successful preparation history, without reconstructing how the
 state was produced.
 
-For example:
-
-- In the [paired-reset model](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/END_TO_END_EXAMPLE.md),
-  preparing a pure qubit from the maximally mixed state requires at least
-  **one primitive slot**, and a single reset attains this bound.
-- The [four-qubit workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CUSTOM_MODELS.md#cyclic-noisy-reset-register)
-  uses noisy resets to prepare a polarized product state from a maximally mixed
-  register. Its lower bound is **two slots**; a separate model-specific argument
-  establishes the optimum at five, including halt.
-
-Matching a lower bound to the cost of an explicit preparation establishes
-optimality within the model; a gap leaves room for a sharper bound.
-
-You supply the model's channels, reference state, control language, and cost
-assumptions, together with the target-state inputs for a bound calculation.
-The package returns numerical checks and a reproducible record of the bound.
-A complete analysis bundle also carries the model and proof arrays so another
-researcher can reverify the calculation without the original modeling script.
-
-The [conceptual introduction](#why-reference-contingent-complexity) explains
-the research question; the [scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/SCIENTIFIC_SCOPE.md)
-connects the implemented checks to the RCC framework.
-
 ## Start here
 
 | Your task | What you obtain | Entry point |
 |---|---|---|
-| Reproduce calculations and examples from the RCC paper | Reference-model checks and worked lower bounds, linked to paper equations | [Quick start](#quick-start) · [Paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md) · [Worked example](#end-to-end-rcc-lower-bound-example) |
-| Calculate a quantum circuit complexity lower bound | A bound from an exact target spectrum or predeclared measurement counts | [Terminal-state workflow](#target-spectra-and-measured-counts) |
+| Calculate a quantum circuit complexity lower bound | A bound from an exact target spectrum or predeclared measurement counts | [Try a bound](#install-from-pypi) · [Spectra and counts](#target-spectra-and-measured-counts) |
 | Analyze your own finite-control model | Numerical certificate checks, terminal-state bounds, and shareable inputs | [Custom-model workflow](#work-with-your-own-model) |
 | Reverify a shared analysis | Fresh matrix checks and a comparison with historical results | [Recipient workflow](#reverify-a-shared-analysis) |
+| Reproduce calculations and examples from the RCC paper | Reference-model checks and worked lower bounds, linked to paper equations | [Quick start](#quick-start) · [Paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md) · [Worked example](#end-to-end-rcc-lower-bound-example) |
+
+For the physical motivation and how the bound works, see
+[Why reference-contingent complexity](#why-reference-contingent-complexity).
 
 You can also [read the reference results](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/results/reference_report.md)
 without running code, or follow either [Jupyter notebook](#jupyter-notebook).
 
 ## Install from PyPI
 
-Use a Python 3.10 or newer environment:
+In a new working directory, use your Python 3.10 or newer environment to
+install **0.2.0** and calculate a first bound:
 
 ```bash
 python3 -m pip install "rcc-refcert==0.2.0"
+python3 -m rcc_refcert bound template spectrum > spectrum.json
+python3 -m rcc_refcert bound spectrum spectrum.json
+```
+
+Use `python` instead of `python3` when that is your interpreter's name.
+The template supplies a complete exact spectrum for a four-dimensional target
+and declared model parameters. Expect an integer lower bound of **one primitive
+slot**: under those parameters, every successful preparation must incur at least
+that cost. The [spectra and counts workflow](#target-spectra-and-measured-counts)
+shows how to save a record and use measurement inputs; the
+[terminal-state guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md)
+explains how to supply your own task.
+
+To list the bundled cases and reproduce the paper's reference calculations:
+
+```bash
 python3 -m rcc_refcert examples
 python3 -m rcc_refcert reproduce --check
 ```
 
-Use `python` instead of `python3` when that is your interpreter's name.
-The API, CLI, and frozen reference data work outside a source checkout.
-The check should report `MATCH` for the reference expectations, data, and report.
+Expect three `MATCH` checks for the reference expectations, data, and report.
 The [reference cases](#reference-cases) explain the deliberately failed
 sufficient route and the nonhalting boundary among those expected results.
 
-The installed package includes candidate preparation and bundle verification.
-For the example scripts and notebooks, use the source quickstart below.
+The API, CLI, templates, and frozen reference data work outside a source
+checkout. The installed package also includes candidate preparation and bundle
+verification. For the example scripts and notebooks, use the source quickstart
+below.
 
 ## Quick start
 
@@ -110,6 +107,12 @@ To reproduce a particular source version, check out its full commit or release
 tag before installation.
 
 ## Work with your own model
+
+You supply the model's channels, reference state, control language, and cost
+assumptions, together with the target-state inputs for a bound calculation.
+The package returns numerical checks and a reproducible record of the bound.
+A complete analysis bundle also carries the model and proof arrays so another
+researcher can reverify the calculation without the original modeling script.
 
 After the [source installation](#quick-start), run these examples:
 
@@ -173,35 +176,39 @@ are optional and do not enter the runtime package.
 
 ## Target spectra and measured counts
 
-After the [source quickstart](#quick-start), create an input template, calculate
-a bound, save its record and replay it:
+Use the Python environment where you [installed the package](#install-from-pypi).
+In a new working directory, create an input template, calculate a bound, save
+its record and replay it:
 
 ```bash
-.venv/bin/python -m rcc_refcert bound template spectrum > spectrum.json
-.venv/bin/python -m rcc_refcert bound spectrum spectrum.json
-.venv/bin/python -m rcc_refcert bound spectrum spectrum.json --format json > bound.json
-.venv/bin/python -m rcc_refcert bound replay bound.json
+python3 -m rcc_refcert bound template spectrum > spectrum.json
+python3 -m rcc_refcert bound spectrum spectrum.json
+python3 -m rcc_refcert bound spectrum spectrum.json --format json > bound.json
+python3 -m rcc_refcert bound replay bound.json
 ```
+
+Use `python` instead of `python3` if that is your environment's interpreter.
+In the [source quickstart](#quick-start) environment, use `.venv/bin/python`
+on macOS/Linux or `.venv\Scripts\python.exe` on Windows instead.
 
 The template declares a four-dimensional model and a complete exact spectrum.
 Expect an integer-slot lower bound of **one**. To try synthetic measurement
 counts with 550 hits in 1000 trials:
 
 ```bash
-.venv/bin/python -m rcc_refcert bound template counts > counts.json
-.venv/bin/python -m rcc_refcert bound counts counts.json
+python3 -m rcc_refcert bound template counts > counts.json
+python3 -m rcc_refcert bound counts counts.json
 ```
 
 For real measurements, fix the protocol **before collecting data** with
 `bound prepare-protocol` and preserve its digest with the dataset. The
-[terminal-state guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md) explains the projector,
-sample-size and evidence requirements.
+[terminal-state guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md)
+explains the projector, sample-size and evidence requirements.
 
 Both routes use a uniform reference on an ideal support and exact transcription.
 The cost bound depends on the declared model premises; sampling coverage
-describes the counts alone. Templates are installed package resources, so
-these commands also work outside the checkout when run with the installed
-environment's interpreter.
+describes the counts alone. These templates and commands are available directly
+from the installed package.
 
 ## End-to-end RCC lower-bound example
 
