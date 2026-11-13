@@ -1,5 +1,6 @@
 """Installed resources, legacy producer fixtures and presentation semantics."""
 
+import csv
 import json
 from importlib.resources import files
 from pathlib import Path
@@ -69,6 +70,20 @@ def test_text_width_markdown_json_and_csv_use_stored_values(tmp_path):
     path = tmp_path / "values.csv"
     export_window_files(windows, csv_path=path)
     assert len(path.read_text().splitlines()) == 7
+    with path.open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    expected = [
+        (profile["id"], window)
+        for profile in windows["profiles"]
+        for window in profile["windows"]
+    ]
+    assert len(rows) == len(expected)
+    for row, (state_id, window) in zip(rows, expected, strict=True):
+        assert row["state"] == state_id
+        assert row["window"] == window["id"]
+        assert float(row["entropy_bits"]) == window["entropy_bits"]
+        assert float(row["deficit_bits"]) == window["entropy_deficit_bits"]
+        assert float(row["rcc_main_term"]) == window["rcc_main_term"]
     with pytest.raises(FileExistsError):
         export_window_files(windows, csv_path=path)
 

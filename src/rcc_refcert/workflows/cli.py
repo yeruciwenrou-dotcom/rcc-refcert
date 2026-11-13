@@ -83,7 +83,7 @@ def write_atomic(path, content, *, overwrite=False):
         prefix=".rcc-output-", suffix=".tmp", dir=destination.parent
     )
     try:
-        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="") as stream:
             stream.write(content)
             stream.flush()
             os.fsync(stream.fileno())
