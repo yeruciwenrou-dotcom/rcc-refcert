@@ -251,3 +251,10 @@ constant, even though the fresh integer lower bound remains two.
 Keep the original bundle and fresh report together when sharing that
 comparison. The [custom-model guide](CUSTOM_MODELS.md) explains the two example
 models, candidate preparation, and unresolved numerical states.
+
+## Complete cost and window workflows
+
+[Cost and windows](COST_AND_WINDOWS.md#reports-limits-and-revalidation) use schema-2
+archives with full effective inputs and separate author/recipient results. The
+schema-1 contract described above remains unchanged. Version 0.2.0 readers
+explicitly reject schema 2.

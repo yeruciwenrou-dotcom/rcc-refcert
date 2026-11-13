@@ -8,7 +8,9 @@
 complexity**.
 It audits small finite-control quantum models, verifies reference certificates,
 and computes **quantum circuit complexity lower bounds** from exact
-target spectra or predeclared measurement counts.
+target spectra or predeclared measurement counts. The 0.3 development series
+adds complete preparation-cost tasks, feasible program witnesses, subsystem
+windows and reproducible research probes.
 
 The toolkit implements selected parts of **Reference-Contingent Complexity
 (RCC)**, introduced in
@@ -28,6 +30,8 @@ state was produced.
 
 | Your task | What you obtain | Entry point |
 |---|---|---|
+| Bound preparation cost and test candidate programs | Exact gain exclusion, complete-target checks and cost intervals | [Cost and window workflows](docs/COST_AND_WINDOWS.md) |
+| Understand state organization | Subsystem entropy deficits, correlation decompositions and cooling trajectories | [State windows and probes](docs/COST_AND_WINDOWS.md#state-windows-and-probes) |
 | Calculate a quantum circuit complexity lower bound | A bound from an exact target spectrum or predeclared measurement counts | [Try a bound](#install-from-pypi) · [Spectra and counts](#target-spectra-and-measured-counts) |
 | Analyze your own finite-control model | Numerical certificate checks, terminal-state bounds, and shareable inputs | [Custom-model workflow](#work-with-your-own-model) |
 | Reverify a shared analysis | Fresh matrix checks and a comparison with historical results | [Recipient workflow](#reverify-a-shared-analysis) |
@@ -38,6 +42,23 @@ For the physical motivation and how the bound works, see
 
 You can also [read the reference results](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/results/reference_report.md)
 without running code, or follow either [Jupyter notebook](#jupyter-notebook).
+
+## Cost and window workflows
+
+For the new workflows, install this source checkout with
+`python3 -m pip install .` in your Python environment, then run:
+
+```bash
+python3 -m rcc_refcert cost template cyclic-reset > task.json
+python3 -m rcc_refcert cost analyze task.json --bundle task.rccbundle
+python3 -m rcc_refcert bundle verify task.rccbundle
+```
+
+The default complete task gives a strict **[5,5]** preparation-cost interval.
+The [workflow guide](docs/COST_AND_WINDOWS.md) covers changing the target and
+tolerance, cooling, your own matrices, window probes, reports and independent
+revalidation. `RCC_Workflows_Quickstart.ipynb` provides the same path in a notebook.
+The following PyPI commands reproduce the published 0.2.0 workflows.
 
 ## Install from PyPI
 
@@ -126,8 +147,9 @@ certificate (H.3)** for its reference-domination bound. Independent
 verification passes even though a local sufficient test fails.
 The second uses a **reference-potential certificate (H.4)** for a four-qubit
 register, then computes bounds from an exact spectrum and synthetic counts.
-Both bound paths for this register return **two primitive slots**; a separate
-analysis establishes its five-slot optimum.
+Both bound paths for this register return **two primitive slots**. The new
+[complete cost workflow](docs/COST_AND_WINDOWS.md#a-complete-cost-task) independently
+verifies the five-slot optimum with gain exclusion and a matching program.
 
 Each command saves a bundle containing the model, certificate and results.
 Choose an unused filename. Follow the [custom-model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CUSTOM_MODELS.md)
@@ -382,6 +404,7 @@ theorem.
 
 | Area | Available calculations | Guide |
 |---|---|---|
+| Cost and state windows | Exact recipe-based cost intervals, complete program checks, subsystem organization and versioned probes | [Cost and windows](docs/COST_AND_WINDOWS.md) |
 | Finite-control models | Code-weighted trajectories, terminating program semidensities, least fixed points and reference domination | [Model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/MODEL_GUIDE.md) |
 | Reference certificates | Linear H.3 candidate preparation for stable finite models, independent H.3/H.4 verification, and local gain–cost checks with sufficient code completions | [Custom models](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CUSTOM_MODELS.md) |
 | Terminal-state bounds | Exact-spectrum smoothing, fixed-projector counts, certificate binding and scalar cost inversion | [Terminal-state bounds](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md) |
@@ -429,7 +452,7 @@ Cite the software version used and the associated RCC paper.
 [all-versions DOI](https://doi.org/10.5281/zenodo.22544967) identifies the
 software archive across releases.
 
-For a calculation made with this version, a copyable citation is:
+For a calculation made with the published 0.2.0 version, a copyable citation is:
 
 > Liu, HongZheng; Tian, YiNuo; and Wu, Zhiyue. *rcc-refcert: a Python research
 > toolkit for structure-fair quantum circuit complexity*. Version 0.2.0,

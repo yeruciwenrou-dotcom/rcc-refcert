@@ -50,6 +50,7 @@ rcc-refcert = "rcc_refcert.cli:main"
 
 [project.optional-dependencies]
 dev = ["build>=1.2", "pytest>=8", "ruff>=0.11", "jsonschema>=4.18"]
+plots = ["matplotlib>=3.8"]
 notebook = [
   "ipykernel>=6",
   "jupyterlab>=4",
@@ -64,7 +65,7 @@ where = ["src"]
 version = {attr = "rcc_refcert._version.__version__"}
 
 [tool.setuptools.package-data]
-rcc_refcert = ["reference_data/*.json", "reference_data/*.md", "bounds/data/*.json", "bundle_data/*.json"]
+rcc_refcert = ["reference_data/*.json", "reference_data/*.md", "bounds/data/*.json", "bundle_data/*.json", "workflows/data/*.json"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

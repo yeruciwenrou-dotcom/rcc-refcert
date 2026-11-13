@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/yeruciwenrou-dotcom/rcc-refcert/state.schema.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "schema_version",
+    "kind",
+    "data",
+    "subsystem_dims",
+    "subsystem_labels",
+    "basis_order",
+    "support",
+    "provenance"
+  ],
+  "properties": {
+    "schema": {
+      "const": "rcc-refcert.state"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "kind": {
+      "enum": [
+        "diagonal_exact",
+        "density_numeric"
+      ]
+    },
+    "data": {
+      "type": "array",
+      "minItems": 1
+    },
+    "subsystem_dims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "subsystem_labels": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "basis_order": {
+      "const": "tensor_msb_first"
+    },
+    "support": {
+      "type": "object"
+    },
+    "provenance": {
+      "type": "object"
+    },
+    "numeric_policy": {
+      "type": "object"
+    },
+    "content_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "additionalProperties": false
+}

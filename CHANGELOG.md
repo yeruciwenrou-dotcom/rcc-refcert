@@ -1,8 +1,22 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 development series
 
-- Improve documentation and navigation.
+- Analyze complete preparation tasks with exact channel recipes, independently
+  checked reference envelopes, finite-syntax budget exclusion and program
+  witnesses. Preserve full target orientation and charge halt explicitly.
+- Add cyclic-reset and algorithmic-cooling templates, tolerance scans, task-aware
+  candidate comparisons and a numerical FiniteControlModel adapter.
+- Analyze subsystem entropy deficits and total correlations from explicit state
+  data or the same candidate trajectory. Record tensor axes, physical scales,
+  input checks and explicit roundoff corrections.
+- Include three editable research probes for quantum organization, phase-noise
+  distribution and cooling, with analytic and nondiscriminating controls.
+- Save complete workflow evidence in schema-2 bundles for independent replay,
+  retaining author history and the schema-1 compatibility path.
+- Add text, JSON, Markdown, CSV and optional plots, a workflow notebook and
+  installation tests. Existing scientific reference values are unchanged;
+  their producer version identifies the current source build.
 
 ## 0.2.0 (2026-10-25)
 

@@ -58,8 +58,8 @@ jobs:
           python -m pip install -e ".[dev]"
       - name: Test
         run: |
-          ruff check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb
-          ruff format --check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb
+          ruff check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb RCC_Workflows_Quickstart.ipynb
+          ruff format --check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb RCC_Workflows_Quickstart.ipynb
           python -W error -m pytest
       - name: Check installed version identity
         run: |
@@ -85,6 +85,7 @@ jobs:
           distribution_directory="$PWD/dist"
           smoke_script="$PWD/tests/distribution_smoke.py"
           bundle_smoke_script="$PWD/tests/bundle_smoke.py"
+          workflow_smoke_script="$PWD/tests/workflow_smoke.py"
           for artifact in "$distribution_directory"/*.whl "$distribution_directory"/*.tar.gz; do
             installation_root="$(mktemp -d)"
             environment="$installation_root/environment"
@@ -94,6 +95,7 @@ jobs:
             cd "$installation_root/run"
             "$environment/bin/python" "$smoke_script"
             "$environment/bin/python" "$bundle_smoke_script"
+            "$environment/bin/python" "$workflow_smoke_script"
             "$environment/bin/rcc-refcert" reproduce --check
             "$environment/bin/rcc-refcert" example dephase-or-halt --format json
             "$environment/bin/python" -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert')"
@@ -123,7 +125,9 @@ jobs:
       - name: Install candidate for complete-evidence checks
         run: python -m pip install .
       - name: Revalidate transferred H.3/H.4 bundles
-        run: python tests/bundle_smoke.py
+        run: |
+          python tests/bundle_smoke.py
+          python tests/workflow_smoke.py
 
   notebook:
     needs: source-tree

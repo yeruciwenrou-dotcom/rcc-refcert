@@ -245,3 +245,11 @@ omitted` marker. These are diagnostic summaries; resource comparisons continue
 to use exact integers. A summary cannot be reused as a computation budget.
 Stored analysis controls and scientific records keep
 their exact representations and existing storage limits.
+
+## Workflow results
+
+Cost and window analyses use `rcc-refcert.workflow-result`, schema version 1,
+and bundle container version 2. Full request identities, evidence type,
+execution state and scientific decision are separate. See the
+[workflow guide](COST_AND_WINDOWS.md#reports-limits-and-revalidation) for fields,
+resource behavior, outputs and exit codes.

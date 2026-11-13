@@ -288,3 +288,14 @@ scaling or reachability of arbitrary user targets. Matrix spectral
 certification, approximate transcription, optional stopping, and
 readout/leakage corrections are outside the implemented contract. See
 [Terminal-state bounds](TERMINAL_BOUNDS.md).
+
+## Cost witnesses and subsystem organization
+
+The [workflow layer](COST_AND_WINDOWS.md) adds exact unweighted reference-envelope
+exclusion and complete candidate witnesses for declared finite recipes. These
+are model-specific preparation-cost results. The original RCC admissibility,
+transcription and family conditions retain their roles in the universal
+complexity argument. A window entropy deficit is the state-side RCC main term;
+it is not itself the full finite-accuracy one-shot cost bound. Exact diagonal
+probabilities yield numerical logarithmic entropies. Mixed-state total
+correlation is reported with that meaning, including for classical cooling.

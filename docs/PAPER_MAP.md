@@ -146,3 +146,13 @@ snapshots, hashes, and same-version replay to the paper's reporting fields.
 The H.3/H.4 adapter retains the matrix kernel's numerical evidence level.
 Full assumptions and the fixed eight-output example are in
 [Terminal-state bounds](TERMINAL_BOUNDS.md).
+
+## Workflow calculations
+
+[Cost and window workflows](COST_AND_WINDOWS.md) connect complete-target
+preparation tasks with reference-relative state information. The new
+unweighted gain-envelope DP is a finite-model exclusion calculation, distinct
+from the code-weighted H.70 sufficient test. Window deficits apply the
+uniform-product-reference state-side expression to explicit reduced states;
+their bipartition decomposition is the entropy identity with mutual
+information. Existing paper equation mappings above retain their meaning.

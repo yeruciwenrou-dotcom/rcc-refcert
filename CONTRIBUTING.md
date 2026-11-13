@@ -144,3 +144,13 @@ nonhalting boundary regressions.
 If the scientific output intentionally changes, explain why, update the
 declared expectations, and regenerate both frozen reference files from the same
 verified run.
+
+## Adding a research probe
+
+Start from an exported [probe](docs/COST_AND_WINDOWS.md#state-windows-and-probes).
+Supply a research question, complete input requirements, physical labels and
+reference scale, editable parameters, a reproducible positive comparison and
+a failure or nondiscriminating control. Preserve the distinction between a
+probe question and a measurement protocol. Test its independent mathematical
+control and save/reverify path. Changes to parameter meaning require a new
+revision.

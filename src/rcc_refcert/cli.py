@@ -196,6 +196,9 @@ def build_parser() -> argparse.ArgumentParser:
                 help="explicitly override the stored error budget",
             )
         _add_format_argument(command)
+    from .workflows.cli import add_commands
+
+    add_commands(commands)
     return parser
 
 
@@ -298,6 +301,10 @@ def _run_reproduce(
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     arguments = parser.parse_args(argv)
+    if arguments.command in {"cost", "window", "probe"}:
+        from .workflows.cli import run
+
+        return run(arguments)
     if arguments.command == "bound":
         from .bounds.cli import run
 
