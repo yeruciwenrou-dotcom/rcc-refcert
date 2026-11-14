@@ -21,6 +21,10 @@ def render_probe(entry, *, width=80):
     command = (
         "cost" if entry["request_template"]["kind"] == "cost_analysis" else "window"
     )
+    run_commands = [
+        f"python -m rcc_refcert probe export {entry['probe_id']} > probe.json",
+        f"python -m rcc_refcert {command} analyze probe.json",
+    ]
     lines = [
         entry["title"],
         f"Probe: {entry['probe_id']} (revision {entry['revision']})",
@@ -50,8 +54,7 @@ def render_probe(entry, *, width=80):
             f"Parameter changes: {entry['parameter_guidance']}",
             "",
             "Run this probe:",
-            f"python -m rcc_refcert probe export {entry['probe_id']} > probe.json",
-            f"python -m rcc_refcert {command} analyze probe.json",
+            *run_commands,
             "",
             "Use 'probe show ID --format json' for the complete probe record.",
         ]
@@ -61,8 +64,8 @@ def render_probe(entry, *, width=80):
             textwrap.fill(
                 line, width=width, subsequent_indent="  ", break_on_hyphens=False
             )
-            if line
-            else ""
+            if line and line not in run_commands
+            else line
             for line in lines
         )
         + "\n"

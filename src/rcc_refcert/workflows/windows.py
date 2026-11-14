@@ -503,12 +503,19 @@ def window_report_lines(result, *, details=False):
     for profile in result["profiles"]:
         lines.append(f"State: {profile['id']}")
         record = records[profile["id"]]
-        if "step" in record:
-            unit = "slot" if record["slots"] == 1 else "slots"
-            lines.append(
-                f"  Step {record['step']}: {record['action'] or 'initial state'}; "
-                f"cumulative cost {record['slots']} atomic {unit}"
+        metadata = f"Step {record['step']}" if "step" in record else ""
+        if record.get("action") is not None:
+            metadata = (
+                f"{metadata}: {record['action']}"
+                if metadata
+                else f"Action: {record['action']}"
             )
+        if "slots" in record:
+            unit = "slot" if record["slots"] == 1 else "slots"
+            cost = f"cumulative cost {record['slots']} atomic {unit}"
+            metadata = f"{metadata}; {cost}" if metadata else cost.capitalize()
+        if metadata:
+            lines.append(f"  {metadata}")
         if profile["global_quantity"] is None:
             lines.append(
                 "  Numerical input checks unresolved: "

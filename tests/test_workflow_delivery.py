@@ -2,7 +2,9 @@
 
 import csv
 import json
+import shlex
 from copy import deepcopy
+from fractions import Fraction
 from importlib.resources import files
 from pathlib import Path
 
@@ -12,6 +14,7 @@ from jsonschema import Draft202012Validator
 from rcc_refcert.bundle import inspect_analysis_bundle, verify_analysis_bundle
 from rcc_refcert.cli import main
 from rcc_refcert.workflows import (
+    StateInput,
     analyze_cost,
     analyze_windows,
     export_probe,
@@ -131,19 +134,152 @@ def test_large_exact_parameters_survive_full_execution_and_transfer(tmp_path):
         ("w3-cooling-trajectory", "cost"),
     ],
 )
+@pytest.mark.parametrize("width", [40, 80, 240])
 def test_probe_cards_keep_complete_machine_records_and_runnable_next_steps(
-    capsys, probe, command
+    capsys, tmp_path, monkeypatch, probe, command, width
 ):
-    assert main(["probe", "show", probe]) == 0
+    monkeypatch.chdir(tmp_path)
+    assert main(["probe", "show", probe, "--width", str(width)]) == 0
     card = capsys.readouterr().out
-    assert len(card.splitlines()) < 80
-    assert "Expected results at the default parameters" in card
+    assert "Expected results at the default parameters" in " ".join(card.split())
     assert f"python -m rcc_refcert {command} analyze probe.json" in card
     assert "request_template" not in card
+    commands = card.split("Run this probe:\n", 1)[1].split("\n\n", 1)[0].splitlines()
+    assert len(commands) == 2
+    for line in card.splitlines():
+        assert line in commands or len(line) <= width
+    for line in commands:
+        tokens = shlex.split(line)
+        assert tokens[:3] == ["python", "-m", "rcc_refcert"]
+        args = tokens[3:]
+        if ">" in args:
+            assert args[-2:] == [">", "probe.json"]
+            assert main(args[:-2]) == 0
+            Path("probe.json").write_text(capsys.readouterr().out, encoding="utf-8")
+        else:
+            assert main(args) == 0
+            assert "Execution: completed" in capsys.readouterr().out
     assert main(["probe", "show", probe, "--format", "json"]) == 0
     assert json.loads(capsys.readouterr().out) == load_probe(probe)
     assert main(["probe", "export", probe]) == 0
     assert json.loads(capsys.readouterr().out) == export_probe(probe)
+
+
+def _window_request_with_metadata(metadata):
+    request = load_workflow_template("window-state")
+    request.update(
+        states=[
+            {
+                "id": "correlated",
+                "state": StateInput.diagonal(
+                    [Fraction(1, 2), 0, 0, Fraction(1, 2)], [2, 2], ["a", "b"]
+                ).as_dict(),
+                **metadata,
+            }
+        ],
+        windows=[{"id": "a", "keep": ["a"]}, {"id": "b", "keep": ["b"]}],
+        partition={"left": ["a"], "right": ["b"]},
+    )
+    request["reference"]["gamma"] = "4"
+    return request
+
+
+@pytest.mark.parametrize(
+    "metadata",
+    [
+        {},
+        {"step": 3},
+        {"action": "prepare"},
+        {"slots": 2},
+        {"step": 3, "action": "prepare"},
+        {"step": 3, "slots": 2},
+        {"action": "prepare", "slots": 2},
+        {"step": 3, "action": "prepare", "slots": 2},
+        {"step": 0, "action": None, "slots": 0},
+        {"step": 3, "action": None, "slots": 2},
+        {"action": None},
+        {"slots": 1},
+    ],
+)
+@pytest.mark.parametrize("format", ["text", "markdown", "json"])
+def test_optional_window_metadata_survives_cli_delivery_and_reverification(
+    tmp_path, capsys, metadata, format
+):
+    source = tmp_path / "request.json"
+    source.write_text(json.dumps(_window_request_with_metadata(metadata)))
+    output = tmp_path / "result.txt"
+    bundle = tmp_path / "result.rccbundle"
+    args = ["window", "analyze", str(source), "--bundle", str(bundle)]
+    if format != "text":
+        args += ["--format", format]
+    assert main([*args, "--output", str(output)]) == 0
+    assert capsys.readouterr().err == ""
+    rendered = output.read_text()
+    if format != "json":
+        if "step" in metadata:
+            assert f"Step {metadata['step']}" in rendered
+        else:
+            assert "Step " not in rendered
+        assert ("prepare" in rendered) == (metadata.get("action") == "prepare")
+        assert "initial state" not in rendered
+        if "slots" in metadata:
+            unit = "slot" if metadata["slots"] == 1 else "slots"
+            assert (
+                f"cumulative cost {metadata['slots']} atomic {unit}" in rendered.lower()
+            )
+        else:
+            assert "cumulative cost" not in rendered.lower()
+    original_bundle = bundle.read_bytes()
+    original_output = output.read_bytes()
+    assert main([*args, "--output", str(output)]) == 2
+    capsys.readouterr()
+    assert output.read_bytes() == original_output
+    assert bundle.read_bytes() == original_bundle
+    assert main(["bundle", "inspect", str(bundle)]) == 0
+    capsys.readouterr()
+    for verify_format in ("text", "json"):
+        verification = tmp_path / f"verification-{verify_format}.json"
+        verify_args = ["bundle", "verify", str(bundle), "--output", str(verification)]
+        if verify_format == "json":
+            verify_args += ["--format", "json"]
+        assert main(verify_args) == 0
+        captured = capsys.readouterr()
+        assert captured.err == ""
+        report = json.loads(verification.read_text())
+        assert report["fresh_verification"]["outcome"] == "pass"
+        assert report["historical_results_supported"] is True
+        fresh = report["fresh_result"]
+        profile = fresh["profiles"][0]
+        assert profile["global_quantity"]["entropy_bits"] == 1
+        assert profile["global_quantity"]["rcc_main_term"] == 0.5
+        assert profile["partition"]["total_correlation_bits"] == 1
+        record = fresh["effective_request"]["states"][0]
+        assert {k: v for k, v in record.items() if k not in {"id", "state"}} == metadata
+        if verify_format == "json":
+            assert json.loads(captured.out) == report
+        if format == "json":
+            assert json.loads(rendered) == report["historical_result"]
+        before = verification.read_bytes()
+        assert main(verify_args) == 2
+        capsys.readouterr()
+        assert verification.read_bytes() == before
+        assert bundle.read_bytes() == original_bundle
+
+
+@pytest.mark.parametrize(
+    "metadata",
+    [{key: value} for key in ("step", "slots") for value in (-1, True, 1.5, None)]
+    + [{"action": ""}, {"action": 1}],
+)
+def test_invalid_window_metadata_is_rejected_before_delivery(
+    tmp_path, capsys, metadata
+):
+    source = tmp_path / "invalid.json"
+    source.write_text(json.dumps(_window_request_with_metadata(metadata)))
+    bundle = tmp_path / "invalid.rccbundle"
+    assert main(["window", "analyze", str(source), "--bundle", str(bundle)]) == 2
+    assert "invalid_input" in capsys.readouterr().err
+    assert not bundle.exists()
 
 
 def test_cooling_details_expose_actions_cost_and_windows_without_changing_results():
