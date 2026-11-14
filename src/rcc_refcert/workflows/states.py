@@ -355,12 +355,25 @@ def check_numeric_diagnostics(state, saved, *, limits=None):
     if "derived_state" not in fresh:
         if saved["repair_applied"]:
             raise InputError("history: numerical correction has no derived state")
-        if "perturbation_trace_norm_half" in fresh and not _close(
-            saved["perturbation_trace_norm_half"],
-            fresh["perturbation_trace_norm_half"],
-            tolerance,
-        ):
-            raise InputError("history: unresolved numerical correction mismatch")
+        if "perturbation_trace_norm_half" in fresh:
+            reported = saved["perturbation_trace_norm_half"]
+            if (
+                isinstance(reported, bool)
+                or not isinstance(reported, (int, float))
+                or not 0 <= reported < float("inf")
+                or (
+                    saved.get("reason") == "roundoff correction exceeds repair_budget"
+                    and reported <= state.numeric_policy["repair_budget"]
+                )
+                # The attempted correction was not saved. Compare fresh
+                # reconstructions at the policy scale, not at a fixed-array ULP.
+                or not _close(
+                    reported, fresh["perturbation_trace_norm_half"], tolerance
+                )
+            ):
+                raise InputError(
+                    "history: unresolved numerical correction or repair budget mismatch"
+                )
         return fresh
 
     derived = StateInput.from_dict(saved["derived_state"], limits=limits)
@@ -383,7 +396,6 @@ def check_numeric_diagnostics(state, saved, *, limits=None):
     if (
         isinstance(reported, bool)
         or not isinstance(reported, (int, float))
-        or not np.isfinite(reported)
         or not 0 <= reported <= budget
         or perturbation > budget
         # This norm describes two saved arrays, rather than a fresh correction.

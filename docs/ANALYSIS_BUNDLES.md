@@ -300,6 +300,11 @@ within the smaller of that budget and the state tolerance. Original input
 identities remain exact. This permits supported scientific results alongside
 a same-version bitwise replay mismatch.
 
+When a correction exceeds its budget, no derived state is saved. Its reported
+magnitude must be finite, nonnegative and greater than that budget. A fresh
+attempt is compared at the declared numerical tolerance; the record remains
+inconclusive and produces no cost interval or window value.
+
 Verification uses the saved numerical policy. To study a different policy,
 edit the request and run a new analysis. The original author result and the
 recipient's fresh result retain separate identities. The schema-1 validation

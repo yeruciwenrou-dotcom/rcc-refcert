@@ -175,10 +175,11 @@ def test_equivalent_roundoff_record_completes_full_handoff(tmp_path, kind, unifo
         "repair_marker",
         "negative_perturbation",
         "incorrect_perturbation",
+        "oversized_perturbation",
         "over_budget",
     ],
 )
-def test_rehashed_derived_record_tampering_is_rejected(tmp_path, kind, change):
+def test_rehashed_derived_record_tampering_is_rejected(tmp_path, capsys, kind, change):
     path = _case(kind, tmp_path)
 
     def mutate(data):
@@ -204,6 +205,8 @@ def test_rehashed_derived_record_tampering_is_rejected(tmp_path, kind, change):
             diagnostic["perturbation_trace_norm_half"] = -1e-16
         elif change == "incorrect_perturbation":
             diagnostic["perturbation_trace_norm_half"] += 1e-12
+        elif change == "oversized_perturbation":
+            diagnostic["perturbation_trace_norm_half"] = 10**30
         elif change == "over_budget":
             state["data"][0][0][0] += 1e-7
             state["data"][1][1][0] -= 1e-7
@@ -215,6 +218,11 @@ def test_rehashed_derived_record_tampering_is_rejected(tmp_path, kind, change):
         with pytest.raises(InputError):
             read(path)
     assert path.read_bytes() == before
+    if change == "oversized_perturbation":
+        for operation in ["inspect", "verify"]:
+            assert main(["bundle", operation, str(path), "--format", "json"]) == 2
+            output = capsys.readouterr()
+            assert "Traceback" not in output.out + output.err
 
 
 def test_custom_support_description_survives_numeric_correction(tmp_path):

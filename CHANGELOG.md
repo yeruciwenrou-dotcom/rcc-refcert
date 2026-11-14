@@ -25,7 +25,9 @@
   unresolved numerical analyses return a partial completion status.
 - Reverify numerical analyses across backends while retaining exact input
   identities and checking each saved roundoff correction against its own
-  digest and budget. Cost comparisons validate supplied records; trajectory
+  digest and budget. Unresolved correction records retain finite, nonnegative
+  magnitudes consistent with their stated budget outcome. Cost comparisons
+  validate supplied records; trajectory
   windows preserve the distinction between numerical and resource limits.
 
 The existing model, certificate and terminal-state interfaces remain available.
