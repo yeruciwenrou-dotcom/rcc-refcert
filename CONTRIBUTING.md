@@ -11,6 +11,8 @@ into the framework, compare certificate constructions, improve numerical
 reliability, or help readers reproduce and understand the results.
 The terminal-state interfaces also support exact-spectrum and fixed-projector
 calculations with explicit model assumptions, sampling contracts, and replay.
+Cost and window workflows add complete-target candidate checks, exact
+finite-model cost intervals and subsystem structure probes.
 
 Contributions can address one layer at a time:
 
@@ -20,6 +22,8 @@ Contributions can address one layer at a time:
   gain–cost encodings, negative witnesses, or family-scaling diagnostics;
 - **terminal-state bounds:** spectrum or measurement-based methods, cost
   inversion, and connections to finite-control reference certificates;
+- **preparation costs and state windows:** exact model recipes, candidate
+  witnesses, subsystem comparisons, trajectories and research probes;
 - **numerical reliability:** interval bounds, exact arithmetic, conditioning
   diagnostics, solver integrations, or independent realizations;
 - **interfaces:** analysis-bundle formats, additional model adapters, larger
@@ -59,6 +63,12 @@ inversion under declared model arguments; it records matrix-certificate
 evidence and sampling confidence separately. A family-level or theorem-level
 claim also needs its uniform analytic, physical, and transcription arguments;
 scalar replay does not discharge those obligations.
+
+Exact recipe-based cost intervals retain their model, target, tolerance and
+cost-unit identities. Numerical candidate diagnostics and window entropies
+retain their numerical evidence level. A window RCC main term and a complete
+finite-accuracy cost bound answer different questions; document their relation
+where a change uses both.
 
 ## Adding a model or certificate
 
@@ -124,8 +134,8 @@ From the repository root, use the environment created by the
 dependencies. On macOS and Linux:
 
 ```bash
-.venv/bin/python -m ruff check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb
-.venv/bin/python -m ruff format --check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb
+.venv/bin/python -m ruff check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb RCC_Workflows_Quickstart.ipynb
+.venv/bin/python -m ruff format --check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb RCC_Workflows_Quickstart.ipynb
 .venv/bin/python -W error -m pytest
 .venv/bin/python -m rcc_refcert reproduce --check
 .venv/bin/python -m build
@@ -135,7 +145,7 @@ On Windows, substitute `.venv\Scripts\python.exe`. For an environment you
 manage yourself, install with `python -m pip install -e ".[dev]"` and replace
 `.venv/bin/python` with that environment's Python interpreter in every command.
 
-CI also executes both notebooks in their declared kernel, installs both distribution
+CI also executes all three notebooks in their declared kernel, installs both distribution
 formats outside the checkout, and checks the public entry points on Windows
 and macOS. Certificate changes must preserve the distinction between a supplied
 candidate and the returned upper constant, including near-critical and

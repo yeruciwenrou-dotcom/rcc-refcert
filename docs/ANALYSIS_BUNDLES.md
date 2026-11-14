@@ -1,11 +1,13 @@
 # Share and reverify an analysis
 
-An analysis bundle lets a recipient check a calculation from its saved
-numerical inputs. It contains the finite model, a Bellman–Choi (H.3) or
-reference-potential (H.4) proof object, raw arrays, numerical controls, and any
-supported terminal-state requests. It also keeps the original verification
-and bound records for comparison. The recipient can check the matrices and
-recompute the results without the author's model script.
+An analysis bundle contains the inputs needed to recompute a result and the
+author's saved evidence for comparison. A recipient can independently check
+the calculation without the author's modeling script.
+
+| Calculation | Bundle contents | Reader version |
+|---|---|---|
+| Model certificates and terminal-state bounds | Model and proof arrays, numerical controls, requests and historical results; container schema 1 | 0.2.0 or later |
+| Preparation costs and state windows | Complete effective requests, exact recipes or numerical inputs, candidates, windows and historical results; container schema 2 | 0.3 source series |
 
 Use a bundle when handing results to a collaborator, preserving a calculation
 for review, or comparing numerical environments. The existing bound record
@@ -14,21 +16,36 @@ the complete model and proof arrays.
 
 ## Reverify a bundle you received
 
-You need `rcc-refcert` 0.2.0 or newer and the `.rccbundle` file. Follow the
-[package installation](../README.md#install-from-pypi), then replace
-`received.rccbundle` with the path to your file:
+Use the producer version supplied with the `.rccbundle` file, or a compatible
+later reader. For cost and window bundles, follow the
+[0.3 source quickstart](../README.md#quick-start); the published 0.2.0 reader
+supports schema 1. Replace `received.rccbundle` with your file's path:
 
 ```bash
 python -m rcc_refcert bundle inspect received.rccbundle
 python -m rcc_refcert bundle verify received.rccbundle --output received-verification.json
 ```
 
-Use the interpreter from your active installation; no source checkout is
-required. Later examples in this guide use the
+Use the interpreter from your active installation. Verification itself needs
+only the installed package and bundle. Later examples in this guide use the
 [source quickstart](../README.md#quick-start) and `.venv/bin/python` from the
 checkout root. On Windows, substitute `.venv\Scripts\python.exe`.
 
-For the cyclic-reset example below, a successful verification includes:
+`inspect` checks stored data, object bindings and result consistency. `verify`
+recomputes the analysis and compares fresh evidence with the saved history.
+The bundle stays unchanged; `--output` writes a separate recipient report.
+
+Workflow readers check numerical decisions against the saved candidate errors,
+legal programs and numerical diagnostics before reporting a consistent record.
+The recipient's resource limits apply before reconstructing matrices. Compound
+workflow records have bounded storage for both original and effective inputs;
+the [workflow guide](COST_AND_WINDOWS.md#reports-limits-and-revalidation) gives
+their capacity and delivery rules.
+
+For cost and window results, continue to
+[complete cost and window workflows](#complete-cost-and-window-workflows).
+The certificate examples and detailed contracts below concern schema 1.
+For the cyclic-reset certificate example, a successful verification includes:
 
 ```text
 Stored record consistency: pass
@@ -254,7 +271,30 @@ models, candidate preparation, and unresolved numerical states.
 
 ## Complete cost and window workflows
 
-[Cost and windows](COST_AND_WINDOWS.md#reports-limits-and-revalidation) use schema-2
-archives with full effective inputs and separate author/recipient results. The
-schema-1 contract described above remains unchanged. Version 0.2.0 readers
-explicitly reject schema 2.
+From the 0.3 quickstart environment, save a complete cost task and verify it:
+
+```bash
+.venv/bin/python -m rcc_refcert cost template cyclic-reset > task.json
+.venv/bin/python -m rcc_refcert cost analyze task.json --bundle task.rccbundle
+.venv/bin/python -m rcc_refcert bundle inspect task.rccbundle
+.venv/bin/python -m rcc_refcert bundle verify task.rccbundle --output task-verification.json
+```
+
+Use the same `--bundle` option with `window analyze` for state-window inputs.
+These schema-2 archives save the full effective request, including the model,
+target basis and tensor labels, candidate words, reference scale, numerical
+policy and computation controls. Verification reconstructs the request,
+checks its evidence, executes candidates and recalculates windows.
+
+Read `fresh_verification` and `historical_results_supported` in the recipient
+report. Exact rational values are compared exactly; numerical scientific
+results use a relative and absolute tolerance of `1e-10`. Same-version
+bitwise replay is reported separately, so a change of producer version can
+still yield matching scientific results.
+
+Verification uses the saved numerical policy. To study a different policy,
+edit the request and run a new analysis. The original author result and the
+recipient's fresh result retain separate identities. The schema-1 validation
+path described above remains available; version 0.2.0 readers reject schema 2.
+See the [workflow guide](COST_AND_WINDOWS.md#reports-limits-and-revalidation)
+for analysis budgets, presentation options and examples.

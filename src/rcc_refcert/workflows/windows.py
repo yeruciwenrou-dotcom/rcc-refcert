@@ -289,8 +289,12 @@ def analyze_windows(request, *, limits=None):
         "digests": {"request": digest(effective)},
         "reference": scale,
         "execution": {
-            "state": "partial" if limited else "completed",
-            "reason": "resource_limited" if limited else None,
+            "state": "partial" if limited or unresolved else "completed",
+            "reason": "resource_limited"
+            if limited
+            else "numerical_evidence_unresolved"
+            if unresolved
+            else None,
         },
         "decision": "numerical_unresolved" if unresolved else "window_analysis",
         "evidence": {"windows": "numerical_entropy"},
@@ -383,8 +387,14 @@ def check_window_history(history, *, limits):
     ):
         raise InputError("history: window request or reference binding mismatch")
     profiles = history["profiles"]
+    unresolved = any(p["input_diagnostics"]["outcome"] != "pass" for p in profiles)
+    if history["decision"] != (
+        "numerical_unresolved" if unresolved else "window_analysis"
+    ):
+        raise InputError("history: window decision is inconsistent with its evidence")
     if len(profiles) > len(states) or (
-        history["execution"]["state"] == "completed" and len(profiles) != len(states)
+        history["execution"]["state"] == "completed"
+        and (len(profiles) != len(states) or unresolved)
     ):
         raise InputError("history: window completion or profile count mismatch")
     for record, state, profile in zip(effective["states"], states, profiles):
@@ -460,18 +470,21 @@ def check_window_history(history, *, limits):
 
 
 def window_report_lines(result, *, details=False):
+    from .render import _decision_label
+
     ref = result["reference"]
     lines = [
         "RCC state windows",
-        f"Decision: {result['decision']}",
+        f"Decision: {_decision_label(result['decision'])}",
         f"Reference: uniform product support; Gamma={ref['gamma_exact']}; g_R={ref['g_bits']:.10g} bits",
         f"Scale source: {ref['source']}",
+        "C = entropy deficit / g_R: the state-side RCC main term.",
     ]
     for profile in result["profiles"]:
         lines.append(f"State: {profile['id']}")
         if profile["global_quantity"] is None:
             lines.append(
-                "  numerical_unresolved: "
+                "  Numerical input checks unresolved: "
                 + profile["input_diagnostics"].get("reason", "invalid state")
             )
             continue
@@ -480,13 +493,16 @@ def window_report_lines(result, *, details=False):
                 f"  {q['id']}: entropy={q['entropy_bits']:.10g} bits; deficit={q['entropy_deficit_bits']:.10g} bits; C={q['rcc_main_term']:.10g}"
             )
         if profile["partition"] is not None:
+            left = ", ".join(profile["partition"]["left"]["keep"])
+            right = ", ".join(profile["partition"]["right"]["keep"])
             lines.append(
-                f"  Total correlation: {profile['partition']['total_correlation_bits']:.10g} bits"
+                f"  Total correlation ({left} | {right}): {profile['partition']['total_correlation_bits']:.10g} bits"
             )
         if details:
             lines.append(f"  State identity: {profile['state_digest']}")
     lines.append(
-        "Entropy arithmetic: binary64 logarithms; mixed-state correlation is total correlation."
+        "Entropies use binary64 logarithms; small signed roundoff can remain near zero. "
+        "Mixed-state total correlation includes classical correlation."
     )
     return lines
 

@@ -22,6 +22,7 @@ taken over all admissible successful preparation histories in a chosen model.
 | Appendix H | identifies finite-control semidensities, characterizes fixed-size domination by H.3, and supplies H.4/H.6 sufficient constructions | implements H.1–H.6 realization, fixed-point, domination, certificate, and gain–cost checks |
 | Section III and Appendix A | derive the RCC lower bound from the complete model hypotheses | evaluates uniform-reference exact-spectrum smoothing and canonical cost inversion under declared model inputs; the paired-reset example also verifies a matching one-slot preparation |
 | Section IV and Appendices B–D | convert terminal-state evidence, support treatment, calibration, and multiple audit paths into one-sided RCC lower-bound certificates | implements the fixed-projector, fixed-N Hoeffding route and scalar result records for ideal support and readout; support uncertainty, readout/leakage corrections, and multi-path synthesis remain outside the implementation |
+| Section II.D, Section V and Appendix E | define the state-side RCC value and reference-compatible observation windows | evaluates entropy deficits on explicit subsystems with a uniform product reference, including state comparisons and candidate trajectories |
 
 The code therefore provides executable evidence for a qualified finite model.
 The RCC theorem additionally depends on the physical and analytic premises
@@ -61,6 +62,13 @@ established in the RCC paper.
 | complete finite-control reference evidence | `audit_reference_suite`, CLI `reproduce` | deterministic structured result and Markdown report |
 | reusable finite inputs for H.3/H.4 and supported terminal-state routes | `save_analysis_bundle`, `verify_analysis_bundle`, CLI `bundle` | software container for raw model/proof arrays, controls and requests; fresh matrix checks and comparison with historical results |
 | fixed end-to-end bridge | `paired_reset_example`, `examples/paired_reset_lower_bound.py` | one declared model from program semidensity through $D_{\max}^{0}$ and Theorem 3.1 to a tight one-slot result, using Appendix A's canonical inversion and an explicit feasible program |
+
+The [cost workflow](COST_AND_WINDOWS.md) adds a finite-model preparation-cost
+calculation: an exact unweighted reference-envelope budget excludes shorter
+programs, and executed candidates supply feasible upper bounds. This budget
+calculation is separate from the code-weighted H.70 sufficient test. The
+window workflow applies the uniform-product-reference state-side expression
+to reduced states and reports its bipartition identity with mutual information.
 
 ## From executable evidence to RCC results
 
@@ -107,8 +115,8 @@ verified one-slot program makes that bound tight for this fixed model.
 
 ## Complete framework
 
-`rcc-refcert` implements the finite-control qualification layer and the
-terminal-state calculations mapped here.
+`rcc-refcert` implements finite-control qualification, terminal-state bounds,
+finite-model cost intervals and subsystem windows as mapped here.
 The [RCC paper](https://arxiv.org/abs/2509.18205) presents the complete physical
 model and lower-bound framework, including transcription, family-level
 arguments, finite-sample auditing, windowed RCC, dynamical witnesses, and the
@@ -116,16 +124,16 @@ Complexity Window Thermodynamics (CWT) interfaces.
 
 The broader results have distinct roles:
 
-| paper location | result beyond the implemented workflows |
+| paper location | broader theoretical scope |
 |---|---|
-| Section V and Appendix E | reference-compatible observation windows and state-side structural profiles |
+| Section V and Appendix E | general reference-compatible observation windows; the software implements explicit subsystem windows with a uniform product reference |
 | Section VI and Appendix I | conditional interfaces with dynamics, energy–entanglement resources and CWT on aligned objects and scales |
 | Appendix A.10 | cross-model cost comparisons requiring reference domination and resource compilation |
 | Section VII.C | exact finite-dimensional structural allocation identities, followed by Conjecture 7.1 on a broader physically calibrated reference covariance |
 
-The covariance conjecture retains its open status. These results and proposed
-extensions are part of the theory's scope; this package implements the finite
-certificate and scalar-bound routes listed above.
+The covariance conjecture retains its open status. The implemented calculations
+provide concrete uses of the framework; its general reference, dynamical and
+cross-model statements retain the hypotheses given in the paper.
 
 ## Terminal-state calculation interfaces
 
@@ -146,13 +154,3 @@ snapshots, hashes, and same-version replay to the paper's reporting fields.
 The H.3/H.4 adapter retains the matrix kernel's numerical evidence level.
 Full assumptions and the fixed eight-output example are in
 [Terminal-state bounds](TERMINAL_BOUNDS.md).
-
-## Workflow calculations
-
-[Cost and window workflows](COST_AND_WINDOWS.md) connect complete-target
-preparation tasks with reference-relative state information. The new
-unweighted gain-envelope DP is a finite-model exclusion calculation, distinct
-from the code-weighted H.70 sufficient test. Window deficits apply the
-uniform-product-reference state-side expression to explicit reduced states;
-their bipartition decomposition is the entropy identity with mutual
-information. Existing paper equation mappings above retain their meaning.

@@ -2,7 +2,10 @@
 
 These conventions determine every numerical result. A change here requires the
 convention tests, the multiblock regression, the negative certificate tests, and
-the frozen report to be rerun.
+the frozen report to be rerun. These sections describe the finite-control
+matrix and certificate kernel. Exact cost recipes use unweighted physical
+channels; their target basis, tensor order, slot costs and window conventions
+are described in [cost and state windows](COST_AND_WINDOWS.md).
 
 ## Spaces, support, and block order
 

@@ -2,21 +2,31 @@
 
 ## 0.3.0 development series
 
-- Analyze complete preparation tasks with exact channel recipes, independently
-  checked reference envelopes, finite-syntax budget exclusion and program
-  witnesses. Preserve full target orientation and charge halt explicitly.
-- Add cyclic-reset and algorithmic-cooling templates, tolerance scans, task-aware
-  candidate comparisons and a numerical FiniteControlModel adapter.
-- Analyze subsystem entropy deficits and total correlations from explicit state
-  data or the same candidate trajectory. Record tensor axes, physical scales,
-  input checks and explicit roundoff corrections.
-- Include three editable research probes for quantum organization, phase-noise
-  distribution and cooling, with analytic and nondiscriminating controls.
-- Save complete workflow evidence in schema-2 bundles for independent replay,
-  retaining author history and the schema-1 compatibility path.
-- Add text, JSON, Markdown, CSV and optional plots, a workflow notebook and
-  installation tests. Existing scientific reference values are unchanged;
-  their producer version identifies the current source build.
+- Evaluate preparation-cost intervals for complete targets in declared exact
+  channel models. Verified gain bounds exclude smaller budgets; executed
+  candidate programs supply feasible upper bounds, with halt included in cost.
+- Compare programs and scan accuracy requirements using editable cyclic-reset
+  and algorithmic-cooling tasks. Existing `FiniteControlModel` inputs can also
+  be used for numerical candidate diagnostics.
+- Analyze subsystem entropy deficits and total correlations from state data or
+  a candidate's own trajectory. Three editable probes explore Bell/GHZ
+  organization, phase-noise distribution and cooling.
+- Share complete cost and window analyses in schema-2 bundles for independent
+  recomputation. Existing schema-1 bundles remain readable and verifiable;
+  recipients of schema-2 bundles need the 0.3 workflow reader.
+- Read results as text, JSON or Markdown, and export window values as CSV or
+  optional plots. A task guide and notebook accompany the new workflows.
+- Preserve physical edge directions when transferring numerical multiblock
+  models. Numeric-model schema 2 covers rectangular transitions; ambiguous
+  schema-1 cross-control models require re-export from the original model.
+- Check saved numerical decisions against their evidence, apply recipient
+  budgets before reconstruction, and retain computed results when bundle
+  delivery fails. Workflow readers and writers share bounded record capacities;
+  unresolved numerical analyses return a partial completion status.
+
+The existing model, certificate and terminal-state interfaces remain available.
+Scientific reference values are unchanged; their producer metadata identifies
+the current source build.
 
 ## 0.2.0 (2026-10-25)
 

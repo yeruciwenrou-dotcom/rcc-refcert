@@ -61,7 +61,7 @@ def serialize_numeric_model(
     )
     doc = {
         "schema": "rcc-refcert.numeric-model",
-        "schema_version": 1,
+        "schema_version": 2,
         "id": model.name,
         "subsystem_dims": list(subsystem_dims),
         "subsystem_labels": list(subsystem_labels),
@@ -83,11 +83,13 @@ def serialize_numeric_model(
                     "successor": a.successor,
                     "continue_kraus": [
                         {
-                            "destination": d,
-                            "source": q,
+                            "destination": destination,
+                            "source": source,
                             "matrices": [_encoded_matrix(m) for m in ks],
                         }
-                        for (d, q), ks in sorted(a.continue_kraus.items())
+                        for (source, destination), ks in sorted(
+                            a.continue_kraus.items()
+                        )
                     ],
                     "halt_kraus": [
                         {"source": q, "matrices": [_encoded_matrix(m) for m in ks]}
@@ -129,7 +131,7 @@ def parse_numeric_model(document, *, limits=None):
     if (
         doc["schema"] != "rcc-refcert.numeric-model"
         or type(doc["schema_version"]) is not int
-        or doc["schema_version"] != 1
+        or doc["schema_version"] not in (1, 2)
         or doc["basis_order"] != "tensor_msb_first"
     ):
         raise InputError("numeric model: unsupported schema or tensor order")
@@ -236,7 +238,13 @@ def parse_numeric_model(document, *, limits=None):
                         continuation and dest not in controls
                     ):
                         raise InputError("Kraus group: unknown control")
-                    key = (dest, source) if continuation else source
+                    if continuation and source != dest and doc["schema_version"] == 1:
+                        raise UnsupportedContract(
+                            "numeric model schema 1: cross-control edge directions are "
+                            "ambiguous; re-export the original FiniteControlModel with "
+                            "the current serializer (schema 2), then rerun the task"
+                        )
+                    key = (source, dest) if continuation else source
                     if (
                         key in target
                         or not isinstance(group["matrices"], list)
@@ -394,6 +402,55 @@ def normalize_numerical_request(request, *, limits=None):
     return original, effective, model, target, limits, core
 
 
+def _candidate_actions(model, raw):
+    """Validate the declared word without executing its physical channels."""
+    keys(raw, {"id", "action_names", "codeword", "source"}, name="candidate")
+    text(raw["id"], "candidate.id")
+    text(raw["source"], "candidate.source")
+    names = raw["action_names"]
+    if (
+        not isinstance(names, list)
+        or any(not isinstance(n, str) for n in names)
+        or not isinstance(raw["codeword"], str)
+    ):
+        raise InputError("candidate: expected action name list and codeword string")
+    syntax, bits, actions = model.start_syntax, "", []
+    for name in names:
+        if syntax is None:
+            raise InputError("candidate: actions follow halt")
+        lookup = {a.name: a for a in model.actions_by_syntax[syntax]}
+        if name not in lookup:
+            raise InputError("candidate: unknown action")
+        action = lookup[name]
+        actions.append(action)
+        bits += action.codeword
+        syntax = action.successor
+    if not actions or syntax is not None or bits != raw["codeword"]:
+        raise InputError(
+            "candidate: complete matching codeword ending in halt required"
+        )
+    return actions
+
+
+def _target_status(distance, epsilon, tolerance, target_check, output_check):
+    margin = float(exact(epsilon)) - distance
+    if (
+        target_check["outcome"] != "pass"
+        or output_check["outcome"] != "pass"
+        or abs(margin) <= tolerance
+    ):
+        return "unresolved"
+    return "within_tolerance" if margin > 0 else "outside_tolerance"
+
+
+def _numerical_decision(target_check, candidates):
+    unresolved = target_check["outcome"] != "pass" or any(
+        c["legality"] == "pass" and c["numerical_target_status"] == "unresolved"
+        for c in candidates
+    )
+    return "numerical_unresolved" if unresolved else "numerical_analysis"
+
+
 def analyze_numerical_cost(request, *, limits=None):
     from .api import compose_interval, producer
     from .probes import check_probe_identity
@@ -436,7 +493,12 @@ def analyze_numerical_cost(request, *, limits=None):
             "error": None,
             "trajectory": [],
         }
-        syntax, bits = model.start_syntax, ""
+        try:
+            actions = _candidate_actions(model, raw)
+        except InputError as exc:
+            result["error"] = str(exc)
+            candidates.append(result)
+            continue
         blocks = {
             q: np.array(model.initial_blocks.get(q, np.zeros((d, d))), dtype=complex)
             for q, d in model.control_dims.items()
@@ -480,42 +542,23 @@ def analyze_numerical_cost(request, *, limits=None):
                 }
             )
         output = None
-        try:
-            for step, name in enumerate(names, 1):
-                if syntax is None:
-                    raise InputError("candidate: actions follow halt")
-                lookup = {a.name: a for a in model.actions_by_syntax[syntax]}
-                if name not in lookup:
-                    raise InputError("candidate: unknown action")
-                action = lookup[name]
-                bits += action.codeword
-                if action.is_halt:
-                    output = _apply_halt_action(model, action, blocks)
-                else:
-                    blocks = _apply_continue_action(model, action, blocks)
-                syntax = action.successor
-                if can_record:
-                    result["trajectory"].append(
-                        {
-                            "step": step,
-                            "action": name,
-                            "slots": step,
-                            "state": state(
-                                output
-                                if action.is_halt
-                                else next(iter(blocks.values())),
-                                f"numerical candidate step {step}",
-                            ),
-                        }
-                    )
-            if output is None or syntax is not None or bits != raw["codeword"]:
-                raise InputError(
-                    "candidate: complete matching codeword ending in halt required"
+        for step, action in enumerate(actions, 1):
+            if action.is_halt:
+                output = _apply_halt_action(model, action, blocks)
+            else:
+                blocks = _apply_continue_action(model, action, blocks)
+            if can_record:
+                result["trajectory"].append(
+                    {
+                        "step": step,
+                        "action": action.name,
+                        "slots": step,
+                        "state": state(
+                            output if action.is_halt else next(iter(blocks.values())),
+                            f"numerical candidate step {step}",
+                        ),
+                    }
                 )
-        except InputError as exc:
-            result.update(error=str(exc), trajectory=[])
-            candidates.append(result)
-            continue
         output_state = StateInput.from_dict(
             state(output, "unweighted unconditional numerical output"), limits=limits
         )
@@ -524,15 +567,8 @@ def analyze_numerical_cost(request, *, limits=None):
             output - target.matrix(limits=limits), compute_uv=False
         )
         distance = float(singular.sum() / 2)
-        margin = float(exact(effective["epsilon"])) - distance
-        numerical_status = (
-            "unresolved"
-            if target_check["outcome"] != "pass"
-            or output_check["outcome"] != "pass"
-            or abs(margin) <= tol
-            else "within_tolerance"
-            if margin > 0
-            else "outside_tolerance"
+        numerical_status = _target_status(
+            distance, effective["epsilon"], tol, target_check, output_check
         )
         result.update(
             legality="pass",
@@ -550,6 +586,8 @@ def analyze_numerical_cost(request, *, limits=None):
     cost = compose_interval(
         None, None, core_digest=digest(core), epsilon=effective["epsilon"]
     )
+    decision = _numerical_decision(target_check, candidates)
+    unresolved = decision == "numerical_unresolved"
     result = {
         "schema": "rcc-refcert.workflow-result",
         "schema_version": 1,
@@ -561,12 +599,14 @@ def analyze_numerical_cost(request, *, limits=None):
         "effective_request": effective,
         "digests": {"request": digest(effective), "task_core": digest(core), **core},
         "execution": {
-            "state": "partial" if partial else "completed",
-            "reason": "optional_trajectory_unavailable" if partial else None,
+            "state": "partial" if partial or unresolved else "completed",
+            "reason": "numerical_evidence_unresolved"
+            if unresolved
+            else "optional_trajectory_unavailable"
+            if partial
+            else None,
         },
-        "decision": "numerical_analysis"
-        if target_check["outcome"] == "pass"
-        else "numerical_unresolved",
+        "decision": decision,
         "evidence": {"candidates": "numerical", "model": "numerical_CPTP_checks"},
         "cost": cost,
         "gain_certificate": None,
@@ -590,7 +630,7 @@ def check_numerical_history(history, *, limits):
     from .api import compose_interval
     from .windows import _close
 
-    _, effective, _, target, limits, core = normalize_numerical_request(
+    _, effective, model, target, limits, core = normalize_numerical_request(
         history["effective_request"], limits=limits
     )
     if history["digests"] != {
@@ -605,26 +645,93 @@ def check_numerical_history(history, *, limits):
         raise InputError("history: numerical evidence cannot assert strict endpoints")
     if len(history["candidates"]) != len(effective["candidates"]):
         raise InputError("history: numerical candidate count mismatch")
+    _, target_check = prepare_numeric_state(target, limits=limits)
+    if not _close(history["diagnostics"]["target"], target_check):
+        raise InputError("history: numerical target diagnostics mismatch")
+    tol = effective["model"]["validation_tolerance"]
+    if (
+        history["gain_certificate"] is not None
+        or history["gain_bound"] is not None
+        or history["epsilon_scan"] != []
+        or history["evidence"]
+        != {"candidates": "numerical", "model": "numerical_CPTP_checks"}
+    ):
+        raise InputError("history: numerical evidence cannot assert exact proofs")
     for saved, raw in zip(history["candidates"], effective["candidates"]):
         if (
             saved["id"] != raw["id"]
             or saved["model_digest"] != core["model_digest"]
             or saved["target_digest"] != target.content_digest
             or saved["target_satisfied"] is not None
+            or saved["trace_distance_exact"] is not None
+            or saved["evidence"] != "numerical"
+            or saved["legality"] not in {"pass", "fail"}
         ):
             raise InputError(
                 "history: numerical candidate binding or evidence mismatch"
             )
-        if saved["legality"] == "pass":
+        try:
+            _candidate_actions(model, raw)
+            error = None
+        except InputError as exc:
+            error = str(exc)
+        if (
+            saved["legality"] != ("pass" if error is None else "fail")
+            or saved["error"] != error
+        ):
+            raise InputError("history: numerical candidate legality mismatch")
+        if error is not None:
+            if (
+                any(
+                    saved[k] is not None
+                    for k in ("slots", "output", "trace_distance_numeric")
+                )
+                or saved["numerical_target_status"] != "unresolved"
+                or saved["trajectory"] != []
+            ):
+                raise InputError("history: invalid candidate asserts an output")
+        else:
             output = StateInput.from_dict(saved["output"], limits=limits)
-            distance = float(
-                np.linalg.svd(
-                    output.matrix(limits=limits) - target.matrix(limits=limits),
-                    compute_uv=False,
-                ).sum()
-                / 2
+            if (output.subsystem_dims, output.subsystem_labels) != (
+                target.subsystem_dims,
+                target.subsystem_labels,
+            ):
+                raise InputError("history: numerical output layout mismatch")
+            if output.numeric_policy != {
+                "mode": "roundoff_only",
+                "tolerance": tol,
+                "repair_budget": tol,
+            }:
+                raise InputError("history: numerical output policy mismatch")
+            _, output_check = prepare_numeric_state(output, limits=limits)
+            singular = np.linalg.svd(
+                output.matrix(limits=limits) - target.matrix(limits=limits),
+                compute_uv=False,
             )
+            distance = float(singular.sum() / 2)
             if not _close(distance, saved["trace_distance_numeric"]) or saved[
                 "slots"
             ] != len(raw["action_names"]):
                 raise InputError("history: numerical distance or charged cost mismatch")
+            if (
+                saved["comparison_tolerance"] != tol
+                or not _close(saved["distance_singular_values"], singular.tolist())
+                or not _close(saved["output_diagnostics"], output_check)
+                or saved["numerical_target_status"]
+                != _target_status(
+                    distance, effective["epsilon"], tol, target_check, output_check
+                )
+            ):
+                raise InputError(
+                    "history: numerical target status or diagnostics mismatch"
+                )
+    decision = _numerical_decision(target_check, history["candidates"])
+    if history["decision"] != decision:
+        raise InputError(
+            "history: numerical decision is inconsistent with its evidence"
+        )
+    if history["execution"]["state"] == "completed" and (
+        decision == "numerical_unresolved"
+        or any(c.get("trajectory_status") for c in history["candidates"])
+    ):
+        raise InputError("history: unresolved numerical analysis claims completion")

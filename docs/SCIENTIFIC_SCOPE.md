@@ -41,13 +41,19 @@ Its terminal-state calculator then accepts declared model inputs and a target's
 exact spectrum or fixed-projector counts to evaluate a quantum circuit
 complexity lower bound in that model's atomic resource units.
 
+The preparation-cost workflow combines exact reference-envelope exclusions
+with executed candidate programs to bound a complete target's cost in a
+declared finite model. The window workflow analyzes subsystem entropy
+deficits and correlations, either directly from states or along a candidate's
+trajectory. These calculations make model costs and internal state
+organization available as separate, complementary research outputs.
+
 The implementation fixes program-semidensity and certificate conventions and
 reproduces selected constructions from Appendices F and H of RCC manuscript
 version 4. The [paper map](PAPER_MAP.md) locates the implemented objects and
 checks in the RCC manuscript.
 
-`rcc-refcert` connects finite-control qualification to selected terminal-state
-lower-bound calculations. The RCC paper develops the complete framework,
+The RCC paper develops the complete framework,
 including physical reference consistency, faithful transcription,
 windowed RCC, cross-reference compilation, the Complexity Window
 Thermodynamics (CWT) interfaces, and the lower-bound theorem.
@@ -120,10 +126,39 @@ At a fixed uniform reference and tolerance, identical target spectra yield
 the same global information bound. In particular, all pure targets share
 this state-side value, while their optimal preparation costs can differ.
 The paper's reference-compatible windows resolve task-relevant internal
-structure (Section V and Appendix E). Window calculations are part of the
-broader framework; the implemented scalar routes use the declared global
-support or one predeclared projector. An exact optimum additionally needs a
-matching feasible preparation, as in the paired-reset example.
+structure (Section V and Appendix E). The window workflow implements explicit
+subsystem reductions with a uniform product reference. The terminal-state
+bound routes use the declared global support or one predeclared projector.
+An exact optimum additionally needs a matching feasible preparation, as in
+the paired-reset example and the closed intervals in the cost workflow.
+
+## Preparation-cost intervals and window profiles
+
+For supported exact finite recipes, a verified reference-envelope certificate
+and a budget calculation rule out cheaper preparations. Candidate programs
+are then executed against the complete target in its original basis. A
+candidate that meets the trace-distance tolerance supplies an upper bound.
+Equal endpoints establish the optimum in that declared model; an open
+interval records the remaining gap. This unweighted gain calculation is
+distinct from the code-weighted H.70 certificate route.
+
+Numerically supplied models support candidate execution and trace-distance
+diagnostics with recorded precision policies. Those diagnostics retain their
+numerical status and supply no strict feasible upper endpoint. The exact
+recipe route and the numerical route therefore expose different evidence.
+
+For a subsystem $A$, the window workflow evaluates
+$C_A=(\log_2 d_A-S(\rho_A))/g_R$. This is the state-side RCC main term; the
+full finite-accuracy cost bound also uses the one-shot corrections and model
+inputs above. Entropies are numerical, including when the input probabilities
+are exact. For a complete bipartition, the decomposition is
+$C_{AB}=C_A+C_B+I(A:B)/g_R$. On mixed states, $I(A:B)$ measures total
+correlation, including classical correlation in the cooling examples.
+
+The [cost and window guide](COST_AND_WINDOWS.md) gives editable reset and
+cooling tasks, state comparisons and trajectory probes. The model's reference,
+transcription and family conditions retain their roles in the universal
+complexity argument.
 
 ## From programs to the terminating output
 
@@ -226,6 +261,12 @@ the counts route. None of these fields verifies the external physical and
 transcription premises. See [Terminal-state bounds](TERMINAL_BOUNDS.md) for
 their input and replay semantics.
 
+Cost and window results record `execution` separately from the scientific
+`decision`. Exact cost evidence uses rational arithmetic; window entropies
+and numerical candidate diagnostics carry their numerical evidence level.
+An executed candidate may miss the target tolerance while the analysis
+itself completes successfully. See the [output contract](OUTPUT_CONTRACT.md#workflow-results).
+
 ## How the results connect to RCC
 
 The executable evidence connects to the RCC results in a precise order:
@@ -288,14 +329,3 @@ scaling or reachability of arbitrary user targets. Matrix spectral
 certification, approximate transcription, optional stopping, and
 readout/leakage corrections are outside the implemented contract. See
 [Terminal-state bounds](TERMINAL_BOUNDS.md).
-
-## Cost witnesses and subsystem organization
-
-The [workflow layer](COST_AND_WINDOWS.md) adds exact unweighted reference-envelope
-exclusion and complete candidate witnesses for declared finite recipes. These
-are model-specific preparation-cost results. The original RCC admissibility,
-transcription and family conditions retain their roles in the universal
-complexity argument. A window entropy deficit is the state-side RCC main term;
-it is not itself the full finite-accuracy one-shot cost bound. Exact diagonal
-probabilities yield numerical logarithmic entropies. Mixed-state total
-correlation is reported with that meaning, including for classical cooling.

@@ -12,6 +12,12 @@ from fractions import Fraction
 from ..bounds.scalar import BudgetError, InputError, UnsupportedContract, require_int
 from ..limits import ComputationLimits, ResourceLimitError
 
+# A task/object and a compound record have different storage responsibilities.
+# Records retain original/effective inputs, outputs, diagnostics and trajectories.
+MAX_INPUT_JSON_NODES = 200_000
+MAX_DOCUMENT_JSON_NODES = 2_000_000
+MAX_JSON_BYTES = 32 * 1024 * 1024
+
 
 @dataclass(frozen=True)
 class WorkflowLimits:
@@ -46,6 +52,12 @@ class WorkflowLimits:
 
     def as_dict(self):
         return asdict(self)
+
+    def restricted_by(self, other):
+        other = WorkflowLimits.from_value(other)
+        return WorkflowLimits(
+            **{k: min(v, getattr(other, k)) for k, v in self.as_dict().items()}
+        )
 
 
 def mapping(value, name):
@@ -149,12 +161,13 @@ def check_fraction(value, name, limits):
     return value
 
 
-def json_value(value, *, _depth=0, _budget=None):
+def json_value(value, *, document=False, _depth=0, _budget=None, _copy=True):
     """Copy data-only public values with bounds before hashing or serialization."""
     if _budget is None:
         _budget = [0, 0]
     _budget[0] += 1
-    if _depth > 40 or _budget[0] > 200_000:
+    node_limit = MAX_DOCUMENT_JSON_NODES if document else MAX_INPUT_JSON_NODES
+    if _depth > 40 or _budget[0] > node_limit:
         raise BudgetError("workflow JSON nesting or node budget exceeded")
     if value is None or isinstance(value, bool):
         return value
@@ -176,31 +189,84 @@ def json_value(value, *, _depth=0, _budget=None):
             raise BudgetError("workflow JSON text budget exceeded")
         return value
     if isinstance(value, (list, tuple)):
-        if len(value) > 200_000 - _budget[0]:
+        if len(value) > node_limit - _budget[0]:
             raise BudgetError("workflow JSON node budget exceeded")
-        return [json_value(v, _depth=_depth + 1, _budget=_budget) for v in value]
+        if not _copy:
+            for v in value:
+                json_value(
+                    v,
+                    document=document,
+                    _depth=_depth + 1,
+                    _budget=_budget,
+                    _copy=False,
+                )
+            return value
+        return [
+            json_value(v, document=document, _depth=_depth + 1, _budget=_budget)
+            for v in value
+        ]
     if isinstance(value, dict):
         mapping(value, "workflow JSON")
+        if not _copy:
+            for k, v in value.items():
+                json_value(
+                    k,
+                    document=document,
+                    _depth=_depth + 1,
+                    _budget=_budget,
+                    _copy=False,
+                )
+                json_value(
+                    v,
+                    document=document,
+                    _depth=_depth + 1,
+                    _budget=_budget,
+                    _copy=False,
+                )
+            return value
         return {
-            json_value(k, _depth=_depth + 1, _budget=_budget): json_value(
-                v, _depth=_depth + 1, _budget=_budget
-            )
+            json_value(
+                k, document=document, _depth=_depth + 1, _budget=_budget
+            ): json_value(v, document=document, _depth=_depth + 1, _budget=_budget)
             for k, v in value.items()
         }
     raise InputError("workflow JSON: unsupported value type")
 
 
-def canonical_bytes(value):
+def canonical_bytes(value, *, document=False):
     try:
-        return json.dumps(
-            json_value(value),
+        # Check aggregate capacity before cloning or constructing encoded bytes.
+        json_value(value, document=document, _copy=False)
+        normalized = json_value(value, document=document)
+        encoder = json.JSONEncoder(
             sort_keys=True,
             separators=(",", ":"),
             ensure_ascii=False,
             allow_nan=False,
-        ).encode("utf-8")
+        )
+        data = bytearray()
+        for piece in encoder.iterencode(normalized):
+            encoded = piece.encode("utf-8")
+            if len(data) + len(encoded) > MAX_JSON_BYTES:
+                raise BudgetError("workflow JSON exceeds the 32 MiB byte budget")
+            data.extend(encoded)
+        return bytes(data)
     except (UnicodeError, RecursionError) as exc:
         raise InputError("workflow data must be bounded valid UTF-8 JSON") from exc
+
+
+def read_json(data, *, document=False):
+    """Read workflow data with the same capacity contract as its writer."""
+    from ..bundle_storage import _pairs_unique
+
+    if len(data) > MAX_JSON_BYTES:
+        raise BudgetError("workflow JSON exceeds the 32 MiB byte budget")
+    try:
+        value = json.loads(data, object_pairs_hook=_pairs_unique)
+        json_value(value, document=document, _copy=False)
+    except (UnicodeError, RecursionError) as exc:
+        raise InputError("workflow data must be bounded valid UTF-8 JSON") from exc
+    return value
 
 
 def digest(value):

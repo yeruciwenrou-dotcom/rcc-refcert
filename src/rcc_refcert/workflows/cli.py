@@ -9,11 +9,17 @@ import tempfile
 import uuid
 from pathlib import Path
 
-from ..bundle_storage import _read_json
 from ..limits import ResourceLimitError, _resource_diagnostic
 from .api import analyze_cost, compare_cost_results
 from .bundles import save_workflow_bundle
-from .core import BudgetError, InputError, WorkflowLimits
+from .core import (
+    MAX_JSON_BYTES,
+    BudgetError,
+    InputError,
+    WorkflowLimits,
+    mapping,
+    read_json,
+)
 from .render import render_workflow_result
 from .templates import load_workflow_template
 
@@ -23,11 +29,9 @@ def add_commands(commands):
         ("cost", "bound preparation cost and check complete programs"),
         ("window", "analyze quantum-state windows and correlations"),
     ):
-        parent = commands.add_parser(name, help=help_text)
+        parent = commands.add_parser(name, help=help_text, description=help_text)
         sub = parent.add_subparsers(dest="workflow_command", required=True)
-        template = sub.add_parser(
-            "template", help="print an editable installed request"
-        )
+        template = sub.add_parser("template", help="print an editable JSON request")
         if name == "cost":
             template.add_argument(
                 "name", choices=("cyclic-reset", "algorithmic-cooling")
@@ -37,29 +41,61 @@ def add_commands(commands):
         analyze = sub.add_parser(
             "analyze", help="analyze a request and optionally save complete evidence"
         )
-        analyze.add_argument("input", type=Path)
-        analyze.add_argument("--bundle", type=Path)
-        analyze.add_argument("--max-matrix-elements", type=int)
-        analyze.add_argument("--width", type=int, default=80)
+        analyze.add_argument("input", type=Path, help="JSON analysis request")
+        analyze.add_argument(
+            "--bundle",
+            type=Path,
+            help="save complete inputs and results for independent verification",
+        )
+        analyze.add_argument(
+            "--max-matrix-elements",
+            type=int,
+            help="override the working-element budget saved in the request",
+        )
+        analyze.add_argument(
+            "--width",
+            type=int,
+            default=80,
+            help="text line width, 40–240 columns (default: 80)",
+        )
         _output_options(analyze)
         if name == "window":
-            analyze.add_argument("--plot", type=Path)
-            analyze.add_argument("--csv", type=Path)
+            analyze.add_argument(
+                "--plot",
+                type=Path,
+                help="save window values as SVG, PNG or PDF; requires the plots extra",
+            )
+            analyze.add_argument(
+                "--csv", type=Path, help="save window quantities as CSV"
+            )
         if name == "cost":
             compare = sub.add_parser(
                 "compare", help="compare saved cost result JSON files"
             )
-            compare.add_argument("inputs", type=Path, nargs="+")
-            compare.add_argument("--width", type=int, default=80)
+            compare.add_argument(
+                "inputs",
+                type=Path,
+                nargs="+",
+                help="cost result JSON files; comparisons preserve full task identity",
+            )
+            compare.add_argument(
+                "--width",
+                type=int,
+                default=80,
+                help="text line width, 40–240 columns (default: 80)",
+            )
             _output_options(compare)
     probe = commands.add_parser(
         "probe", help="find and export executable research probes"
     )
     sub = probe.add_subparsers(dest="workflow_command", required=True)
     sub.add_parser("list", help="list installed probe questions")
-    for name in ("show", "export"):
-        command = sub.add_parser(name)
-        command.add_argument("probe_id")
+    for name, help_text in (
+        ("show", "show a probe's question, inputs, parameters and controls"),
+        ("export", "print the probe's complete editable JSON request"),
+    ):
+        command = sub.add_parser(name, help=help_text, description=help_text)
+        command.add_argument("probe_id", help="probe identifier from 'probe list'")
 
 
 def _output_options(parser):
@@ -68,10 +104,21 @@ def _output_options(parser):
         dest="output_format",
         choices=("text", "json", "markdown"),
         default="text",
+        help="output format (default: text)",
     )
-    parser.add_argument("--output", type=Path)
-    parser.add_argument("--overwrite", action="store_true")
-    parser.add_argument("--details", action="store_true")
+    parser.add_argument(
+        "--output", type=Path, help="save the report to a file instead of printing it"
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="replace existing output files atomically",
+    )
+    parser.add_argument(
+        "--details",
+        action="store_true",
+        help="include evidence diagnostics and input identities",
+    )
 
 
 def write_atomic(path, content, *, overwrite=False):
@@ -96,12 +143,10 @@ def write_atomic(path, content, *, overwrite=False):
             os.unlink(temporary)
 
 
-def _read_request(path):
+def _read_request(path, *, document=False):
     with Path(path).open("rb") as stream:
-        data = stream.read(32 * 1024 * 1024 + 1)
-    if len(data) > 32 * 1024 * 1024:
-        raise BudgetError("input JSON exceeds the 32 MiB budget")
-    return _read_json(data)
+        data = stream.read(MAX_JSON_BYTES + 1)
+    return read_json(data, document=document)
 
 
 def run(arguments):
@@ -144,14 +189,17 @@ def run(arguments):
                     f"{path}: already exists; select a new path or explicitly use --overwrite"
                 )
         if arguments.workflow_command == "compare":
-            result = compare_cost_results([_read_request(p) for p in arguments.inputs])
+            result = compare_cost_results(
+                [_read_request(p, document=True) for p in arguments.inputs]
+            )
         else:
             request = _read_request(arguments.input)
+            mapping(request, "analysis request")
             limits = None
             if arguments.max_matrix_elements is not None:
                 limits = WorkflowLimits.from_value(
                     {
-                        **request.get("limits", {}),
+                        **mapping(request.get("limits", {}), "limits"),
                         "max_matrix_elements": arguments.max_matrix_elements,
                     }
                 )
@@ -169,9 +217,21 @@ def run(arguments):
                 )
             run_id = result["run_id"]
             if arguments.bundle is not None:
-                save_workflow_bundle(
-                    arguments.bundle, request, result, overwrite=arguments.overwrite
-                )
+                try:
+                    save_workflow_bundle(
+                        arguments.bundle, request, result, overwrite=arguments.overwrite
+                    )
+                except (ValueError, TypeError, KeyError, OSError, OverflowError) as exc:
+                    # Delivery failure must not erase an already computed result.
+                    result.setdefault("delivery", {})["bundle"] = {
+                        "state": "failed",
+                        "path": str(arguments.bundle),
+                        "reason": str(exc),
+                    }
+                    result["execution"] = {
+                        "state": "partial",
+                        "reason": "bundle_write_failed",
+                    }
         rendered = render_workflow_result(
             result,
             format=arguments.output_format,

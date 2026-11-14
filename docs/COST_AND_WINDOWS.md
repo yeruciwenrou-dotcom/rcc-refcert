@@ -1,13 +1,25 @@
 # Preparation cost and state windows
 
-The workflow API joins a complete target, a declared preparation model and
-candidate programs in one reproducible task. A second entry analyzes subsystem
-organization directly from state data. Both entries save complete inputs for
-independent revalidation.
+How much does a preparation cost in a specified model, and where is the
+resulting structure stored? The cost workflow bounds the optimum and checks
+candidate programs against a complete target. State windows then reveal how
+information and correlation are distributed across its subsystems. You can
+analyze states directly or follow a preparation step by step, and share either
+calculation for independent revalidation.
 
-These commands belong to the 0.3 development series. Install this checkout in a
-Python 3.10+ environment with `python -m pip install .`. The published 0.2.0
-package provides the earlier model, certificate and terminal-bound workflows.
+| Your question | Start here |
+|---|---|
+| Does a candidate reach my target, and how close is its cost to optimal? | [A complete cost task](#a-complete-cost-task) |
+| How does changing the tolerance affect the result? | [Cost tasks](#a-complete-cost-task) and [candidate comparisons](#candidate-comparisons) |
+| Which subsystem windows reveal a structural difference? | [State windows and probes](#state-windows-and-probes) |
+| How do I analyze my own state or model? | [Matrix inputs](#your-own-matrix-and-tensor-labels) and [numerical models](#numerical-models-and-candidate-diagnostics) |
+| How do I save, share and verify the calculation? | [Reports and revalidation](#reports-limits-and-revalidation) |
+
+Use the **0.3 source series** with Python 3.10 or later. Follow the
+[source quickstart](../README.md#quick-start), then activate its environment
+or substitute that environment's Python path in the commands below. The
+published 0.2.0 package provides the model, certificate and terminal-bound
+workflows.
 
 ## A complete cost task
 
@@ -60,7 +72,7 @@ and identity `halt`. `classical_channel` uses a nonnegative column-stochastic
 matrix and the declared measure-and-prepare quantum extension. Each action's
 primitive composition is fixed before comparing costs.
 
-An action costs one slot and halt costs one slot. The reference scale comes
+In these recipes, each action costs one slot, including halt. The reference scale comes
 from the declared physical action classes. Codeword length, reference gain and
 this physical scale are recorded separately. Single-control-block exact
 recipes are supported here; existing multiblock model APIs remain available.
@@ -81,9 +93,8 @@ comes from the verified gain relaxation; the eight-action witness supplies the
 upper endpoint. The software preserves this distinction even when a separate
 small-program enumeration can establish a sharper optimum.
 
-The original information/transcription route stays available through
-[`bound`](TERMINAL_BOUNDS.md) and the legacy certificate examples. Its fixed
-constants and evidence are preserved. For example, the earlier cyclic-reset
+The information/transcription route is available through
+[`bound`](TERMINAL_BOUNDS.md) and the certificate examples. For example, the cyclic-reset
 example still returns two slots along that route. The gain-budget method does
 not replace the physical scale by the logarithm of a local gain. H.70 checks
 code-weighted sufficient inequalities; its failure does not invalidate an
@@ -113,6 +124,12 @@ can be reverified using its complete bundle.
 
 ## State windows and probes
 
+Start with a probe whose question matches the structure you want to study.
+Each installed probe pairs a physical question with explicit states or a
+preparation, selected windows and comparison controls. Export its request to
+inspect the assumptions, change parameters or use the same windows on your
+own data.
+
 ```bash
 python -m rcc_refcert probe list
 python -m rcc_refcert probe show w1-quantum-organization
@@ -127,11 +144,14 @@ remain in the result. `keep` names the systems retained by a partial trace.
 Tensor axes follow the input order, with the leftmost axis most significant.
 An empty window has zero deficit; the full window gives the global quantity.
 
-| Probe | Question and control |
-|---|---|
-| `w1-quantum-organization` | Paired Bell modules versus GHZ: identical pure spectra, different subsystem organization. At Gamma=4, windows 12/13/34 give (1,0,1) versus (1/2,1/2,1/2). Global fidelity can also distinguish these states. |
-| `w2-noise-distribution` | Concentrated versus distributed phase noise: entropy 1 bit and global C=3/2 for both, but module values (1/2,1) versus (3/4,3/4). The cross window is a null control. The distributed probability is solved numerically, with its root residual retained. |
-| `w3-cooling-trajectory` | One exact cooling trajectory: refresh removes bath entropy and correlation; reversible compression redistributes them. Gamma=3 comes from the model, so g=log2(3). The diagonal correlations are classical. |
+| Probe | Physical question | What to inspect |
+|---|---|---|
+| `w1-quantum-organization` | How do paired Bell modules and a GHZ state organize the same global purity? | At Gamma=4, windows 12/13/34 give (1,0,1) versus (1/2,1/2,1/2). |
+| `w2-noise-distribution` | Where is phase noise concentrated when global entropy is held fixed? | Both states have entropy 1 bit and global C=3/2; module values are (1/2,1) versus (3/4,3/4), with the cross window as a null control. |
+| `w3-cooling-trajectory` | How do bath refresh and reversible compression change local structure? | Follow target purity, bath entropy and classical correlation along the same candidate; Gamma=3 comes from its model. |
+
+The W2 distributed-noise probability is solved numerically, and its root
+residual is saved with the result. All window entropy values are numerical.
 
 Exported requests are complete editable inputs. `export_probe(...,
 parameters={...})` regenerates a parameterized instance and its identity; use
@@ -139,10 +159,17 @@ parameters={...})` regenerates a parameterized instance and its identity; use
 `p` or `cycles` for W3. The instance digest identifies the declared probe
 parameters; the separate request digest identifies the actual edited inputs.
 
-For W3, send the exported request to **`cost analyze`**. Its window profiles use
-the states already produced by each candidate, including step, action and
-cumulative cost. Set `windows.steps` to a list of step numbers to retain a
-selection. Halt advances charged cost but leaves the state unchanged.
+W3 is a preparation task, so send its request to **`cost analyze`**:
+
+```bash
+python -m rcc_refcert probe export w3-cooling-trajectory > trajectory.json
+python -m rcc_refcert cost analyze trajectory.json --bundle trajectory.rccbundle
+```
+
+Its window profiles use the states produced by each candidate, with the step,
+action and cumulative cost recorded together. Set `windows.steps` to a list
+of step numbers to retain a selection. Halt advances charged cost and leaves
+the state unchanged.
 
 A declared bipartition A|B reports
 `C_global = C_A + C_B + I(A:B)/g` and a numerical decomposition residual.
@@ -196,7 +223,7 @@ corrections within both the check tolerance and repair budget. Results retain
 the original input, derived state and perturbation. Entropies use binary64
 logarithms, including for exact probabilities; they are numerical quantities.
 
-## Numerical candidate migration
+## Numerical models and candidate diagnostics
 
 `serialize_numeric_model(model, subsystem_dims=..., subsystem_labels=...,
 reference=..., cost=...)` exports an existing `FiniteControlModel` as data-only
@@ -204,6 +231,17 @@ complex matrices. Use that document in a `mode="numerical"` cost request with
 a complete target and candidate words. The reference and cost fields have the
 same form as an expanded exact recipe. Model validation uses its saved
 `validation_tolerance`.
+
+Numeric-model schema 2 names each continuation edge by its physical `source`
+and `destination`. Its Kraus matrices have destination rows and source columns,
+including transitions between control blocks of different dimensions. In the
+Python model these keys are `(source, destination)`.
+
+Schema-1 numeric models with only self-edges remain readable. Cross-control
+records from the first development build have ambiguous edge directions:
+re-export the original `FiniteControlModel` with the current serializer and
+rerun the task. Changing a schema number alone does not resolve that ambiguity.
+This model format is separate from the analysis-bundle container version.
 
 Numerical candidate execution uses the existing unweighted physical channel
 semantics. The actual trace distance is computed against the original target;
@@ -240,6 +278,13 @@ must remain distinct.
 | Total candidate actions | 10,000 |
 | Saved trajectory states / window evaluations | 256 / 256 |
 | Matrix or vector working elements | 1,048,576 |
+| JSON nodes per task or state / compound record | 200,000 / 2,000,000 |
+| UTF-8 bytes per JSON input or bundle data member | 32 MiB |
+
+Compound records retain original and effective inputs, outputs and diagnostics,
+so they have a larger aggregate capacity than a single task. Readers and writers
+use the same limits for each role; JSON nesting is limited to 40 levels and
+string content to 16 MiB. A bundle member's byte limit applies separately.
 
 Checks precede dense allocations and optional trajectory storage. These are
 work bounds, not runtime guarantees. Exact DP uses syntax states and budgets,
@@ -251,6 +296,10 @@ scientific decision are separate fields.
 New CLI analysis exits: 0 completed, 1 partial, 2 invalid or unsupported input,
 3 preflight resource limit, 130 interrupted. A fresh run identifier accompanies
 each result or failure. A failed candidate alone does not mean failed execution.
+An unresolved numerical input or tolerance comparison returns a partial result
+and exit 1. A definite numerical candidate miss remains a completed analysis.
+If bundle saving fails after calculation, the CLI still delivers the scientific
+result, records the delivery error and exits 1.
 
 Workflow bundles use container schema 2. `inspect` checks archive integrity,
 object bindings and stored-result consistency; it does not rerun the physical
@@ -260,6 +309,11 @@ history and writes a separate recipient result. Numerical semantic comparison
 uses a 1e-10 relative/absolute scale; exact rational strings remain exact.
 Bitwise same-version replay is reported separately. Different producer versions
 can still have matching newly computed scientific results.
+
+Stored numerical decisions, candidate status and diagnostics must agree before
+inspection succeeds. Numeric evidence retains empty strict cost endpoints.
+The recipient's resource ceilings constrain the first reconstruction as well as
+fresh calculation; the author's saved limits and input identity remain intact.
 
 Schema-1 model/certificate/spectrum/counts bundles from 0.2.0 retain their
 existing validation path. A 0.2 reader rejects schema 2; recipients need the

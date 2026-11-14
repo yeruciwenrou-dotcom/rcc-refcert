@@ -13,9 +13,14 @@ constant when a local sufficient condition fails. The second carries a model
 through numerical certification, a quantum circuit complexity bound, and
 independent reverification. Both use ordinary NumPy arrays and the public Python API.
 
+For complete-target preparation checks, exact cost intervals and subsystem
+profiles, continue to [cost and state windows](COST_AND_WINDOWS.md). Existing
+`FiniteControlModel` objects can also be exported for
+[numerical candidate diagnostics](COST_AND_WINDOWS.md#numerical-models-and-candidate-diagnostics).
+
 ## Run the first example
 
-Follow the [0.2.0 source quickstart](../README.md#quick-start), then run
+Follow the [source quickstart](../README.md#quick-start), then run
 these commands from the checkout root:
 
 ```bash

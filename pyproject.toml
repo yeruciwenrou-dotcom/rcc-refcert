@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rcc-refcert"
 dynamic = ["version"]
-description = "Research toolkit for reference-contingent quantum circuit complexity, model audits, certificates, and lower bounds"
+description = "Structure-fair quantum circuit complexity: lower bounds, preparation costs, state windows, and reference certificates"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"

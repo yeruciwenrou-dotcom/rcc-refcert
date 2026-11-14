@@ -37,6 +37,7 @@ from .core import (
     exact,
     json_value,
     keys,
+    read_json,
 )
 from .gain import exclude_budgets, spectral_threshold
 from .states import StateInput
@@ -140,7 +141,7 @@ def _read_workflow(path):
                     or descriptor["sha256"] != hashlib.sha256(data).hexdigest()
                 ):
                     raise BundleFormatError("workflow member digest or size mismatch")
-                payloads[info.filename] = _read_json(data)
+                payloads[info.filename] = read_json(data, document=True)
     request = keys(
         payloads["request.json"], {"original", "effective"}, name="saved request"
     )
@@ -343,7 +344,7 @@ def _check_cost_history(history, *, limits):
 
 def check_workflow_history(history, *, limits=None):
     limits = WorkflowLimits.from_value(limits)
-    json_value(history)
+    json_value(history, document=True, _copy=False)
     if (
         not isinstance(history, dict)
         or history.get("schema") != "rcc-refcert.workflow-result"
@@ -368,23 +369,26 @@ def check_workflow_history(history, *, limits=None):
         raise InputError("history: invalid execution state")
     # Re-expand declarative inputs to check raw/effective object relationships.
     # This does not run any channel or create a new scientific result.
-    controls = history["effective_request"].get("limits")
+    recorded = WorkflowLimits.from_value(history["effective_request"].get("limits"))
+    limits = recorded.restricted_by(limits)
     if history["kind"] == "window_analysis":
         from .windows import normalize_window_request
 
         raw_effective = normalize_window_request(
-            history["original_request"], limits=controls
+            history["original_request"], limits=limits
         )[1]
     elif history["effective_request"].get("mode") == "numerical":
         from .numerical import normalize_numerical_request
 
         raw_effective = normalize_numerical_request(
-            history["original_request"], limits=controls
+            history["original_request"], limits=limits
         )[1]
     else:
         raw_effective = normalize_cost_request(
-            history["original_request"], limits=controls
+            history["original_request"], limits=limits
         )[1]
+    # Runtime ceilings constrain work; they do not rewrite the author's identity.
+    raw_effective["limits"] = recorded.as_dict()
     for key, value in raw_effective.items():
         if key != "gain_certificate" and history["effective_request"].get(key) != value:
             raise InputError(
@@ -436,8 +440,8 @@ def save_workflow_bundle(path, request, result, *, overwrite=False):
         "effective": result["effective_request"],
     }
     members = {
-        "request.json": canonical_bytes(request_data),
-        "history.json": canonical_bytes(result),
+        "request.json": canonical_bytes(request_data, document=True),
+        "history.json": canonical_bytes(result, document=True),
     }
     if any(len(v) > 32 * 1024 * 1024 for v in members.values()):
         raise BundleFormatError("workflow JSON member byte budget exceeded")
@@ -555,9 +559,7 @@ def verify_workflow_bundle(path, *, limits=None, tol=None):
             "workflow verification: use the saved numerical policy; a changed policy is a separately identified analysis"
         )
     recorded = WorkflowLimits.from_value(request["effective"].get("limits"))
-    limits = WorkflowLimits(
-        **{k: min(v, getattr(limits, k)) for k, v in recorded.as_dict().items()}
-    )
+    limits = recorded.restricted_by(limits)
     if manifest["kind"] == "cost_analysis":
         fresh = analyze_cost(request["effective"], limits=limits)
     else:

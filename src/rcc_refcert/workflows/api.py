@@ -22,6 +22,7 @@ from .core import (
     exact_text,
     json_value,
     keys,
+    mapping,
     require_supported,
 )
 from .gain import exclude_budgets, spectral_threshold, verify_gain_certificate
@@ -251,6 +252,7 @@ def _point(
 
 def analyze_cost(request, *, limits=None):
     """Analyze a complete task; a failed candidate is a valid scientific result."""
+    mapping(request, "cost request")
     if isinstance(request, dict) and request.get("mode") == "numerical":
         from .numerical import analyze_numerical_cost
 

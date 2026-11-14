@@ -10,6 +10,7 @@ this change address?
 
 - [ ] Finite numerical input or realization
 - [ ] Fixed-model semidensity, certificate, or terminal-state bound
+- [ ] Preparation-cost interval, candidate witness, or state-window profile
 - [ ] Model-family or uniform-scaling argument
 - [ ] Theorem-facing interpretation
 - [ ] Documentation or public interface only
