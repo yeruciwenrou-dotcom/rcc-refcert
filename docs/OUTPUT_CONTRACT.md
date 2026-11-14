@@ -292,8 +292,8 @@ The `cost analyze` and `window analyze` exit codes describe execution:
 | 3 | Preflight resource limit |
 | 130 | Interrupted execution |
 
-A completed analysis may contain an unsuccessful candidate or an open cost
-interval. Those are scientific results, not execution failures. Saved-result
+A completed analysis may contain an unsuccessful candidate or a cost interval
+whose endpoints differ. Those are scientific results, not execution failures. Saved-result
 comparisons use `rcc-refcert.cost-comparison`, schema version 1, and retain
 whether the full tasks and tolerances match. See the
 [workflow guide](COST_AND_WINDOWS.md#reports-limits-and-revalidation) for

@@ -20,7 +20,7 @@ from .core import (
     mapping,
     read_json,
 )
-from .render import render_workflow_result
+from .render import render_probe, render_workflow_result
 from .templates import load_workflow_template
 
 
@@ -96,6 +96,17 @@ def add_commands(commands):
     ):
         command = sub.add_parser(name, help=help_text, description=help_text)
         command.add_argument("probe_id", help="probe identifier from 'probe list'")
+        if name == "show":
+            command.add_argument(
+                "--format",
+                dest="output_format",
+                choices=("text", "json"),
+                default="text",
+                help="readable summary or complete JSON record (default: text)",
+            )
+            command.add_argument(
+                "--width", type=int, default=80, help="text width, 40–240 columns"
+            )
 
 
 def _output_options(parser):
@@ -166,6 +177,9 @@ def run(arguments):
                 value = list_probes()
             elif arguments.workflow_command == "show":
                 value = load_probe(arguments.probe_id)
+                if arguments.output_format == "text":
+                    print(render_probe(value, width=arguments.width), end="")
+                    return 0
             else:
                 value = export_probe(arguments.probe_id)
             print(json.dumps(value, ensure_ascii=False, indent=2))

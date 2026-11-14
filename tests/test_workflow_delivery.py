@@ -2,6 +2,7 @@
 
 import csv
 import json
+from copy import deepcopy
 from importlib.resources import files
 from pathlib import Path
 
@@ -9,10 +10,12 @@ import pytest
 from jsonschema import Draft202012Validator
 
 from rcc_refcert.bundle import inspect_analysis_bundle, verify_analysis_bundle
+from rcc_refcert.cli import main
 from rcc_refcert.workflows import (
     analyze_cost,
     analyze_windows,
     export_probe,
+    load_probe,
     load_workflow_template,
     render_workflow_result,
     save_workflow_bundle,
@@ -118,3 +121,54 @@ def test_large_exact_parameters_survive_full_execution_and_transfer(tmp_path):
     path = tmp_path / "large.rccbundle"
     save_workflow_bundle(path, request, result)
     assert verify_analysis_bundle(path)["historical_results_supported"] is True
+
+
+@pytest.mark.parametrize(
+    "probe,command",
+    [
+        ("w1-quantum-organization", "window"),
+        ("w2-noise-distribution", "window"),
+        ("w3-cooling-trajectory", "cost"),
+    ],
+)
+def test_probe_cards_keep_complete_machine_records_and_runnable_next_steps(
+    capsys, probe, command
+):
+    assert main(["probe", "show", probe]) == 0
+    card = capsys.readouterr().out
+    assert len(card.splitlines()) < 80
+    assert "Expected results at the default parameters" in card
+    assert f"python -m rcc_refcert {command} analyze probe.json" in card
+    assert "request_template" not in card
+    assert main(["probe", "show", probe, "--format", "json"]) == 0
+    assert json.loads(capsys.readouterr().out) == load_probe(probe)
+    assert main(["probe", "export", probe]) == 0
+    assert json.loads(capsys.readouterr().out) == export_probe(probe)
+
+
+def test_cooling_details_expose_actions_cost_and_windows_without_changing_results():
+    result = analyze_cost(export_probe("w3-cooling-trajectory"))
+    before = deepcopy(result)
+    summary = render_workflow_result(result)
+    detailed = render_workflow_result(result, details=True)
+    assert "Use --details" in summary
+    assert "Step 1: R; cumulative cost 1 atomic slot" in detailed
+    assert "subsystem entropy=" in detailed
+    assert "Total correlation" in detailed
+    assert result == before
+    assert json.loads(render_workflow_result(result, format="json")) == before
+
+
+def test_near_zero_display_preserves_json_and_csv_precision(tmp_path):
+    result = analyze_windows(export_probe("w1-quantum-organization"))
+    quantity = result["profiles"][0]["windows"][0]
+    quantity["entropy_bits"] = -2e-16
+    before = deepcopy(result)
+    assert "subsystem entropy=~0 bits" in render_workflow_result(result)
+    assert json.loads(render_workflow_result(result, format="json")) == before
+    path = tmp_path / "precision.csv"
+    export_window_files(result, csv_path=path)
+    with path.open(newline="") as stream:
+        row = next(csv.DictReader(stream))
+    assert float(row["entropy_bits"]) == -2e-16
+    assert result == before

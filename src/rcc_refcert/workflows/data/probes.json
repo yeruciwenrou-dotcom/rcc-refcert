@@ -28,10 +28,10 @@
     "bundle_requirements": "Save complete effective input, original input, numerical policy and result in schema 2.",
     "trajectory_selection": "All states unless a step selection is supplied.",
     "probe_id": "w1-quantum-organization",
-    "title": "Quantum organization at fixed pure-state spectrum",
+    "title": "Quantum organization at a fixed global spectrum",
     "research_question": "Where is purity organized across subsystems?",
     "distinguishes": "Paired Bell modules and GHZ organization",
-    "known_counterexample": "Both states have the same pure spectrum. Global fidelity may distinguish them; a window is not the only discriminator.",
+    "known_counterexample": "Paired Bell and GHZ states have the same global spectrum at every common mixing value. Complete-state comparisons can also distinguish them.",
     "parameter_defaults": {
       "gamma": 4,
       "mixing": "0"
@@ -2353,7 +2353,8 @@
         "q3",
         "q4"
       ]
-    }
+    },
+    "parameter_guidance": "mixing in [0,1] adds the same uniform noise to both states; gamma sets the comparison scale. Recompute the readouts after changing either parameter."
   },
   {
     "schema": "rcc-refcert.probe",
@@ -2387,7 +2388,7 @@
     "title": "Concentrated and distributed phase noise",
     "research_question": "How is an equal global entropy increase distributed between modules?",
     "distinguishes": "One noisy module versus two partially noisy modules",
-    "known_counterexample": "The cross-13 window has no contrast; equal entropy does not imply identical complete spectra.",
+    "known_counterexample": "The cross-13 window is a null control. Matched global entropy can coexist with different complete spectra and different one-shot information.",
     "parameter_defaults": {
       "gamma": 4,
       "concentrated_probability": "1/2"
@@ -4719,7 +4720,8 @@
         "q3",
         "q4"
       ]
-    }
+    },
+    "parameter_guidance": "concentrated_probability in [0,1/2] sets the noise in one module; the distributed probability is solved to match global entropy. gamma sets the comparison scale."
   },
   {
     "schema": "rcc-refcert.probe",
@@ -4734,7 +4736,7 @@
     ],
     "state_requirements": "Complete normalized density matrices or an exact diagonal process with explicit tensor axes.",
     "required_information": "Full state data; a single observable expectation does not in general determine window entropy.",
-    "reference": "Uniform product support with explicitly declared Gamma.",
+    "reference": "Uniform product support; Gamma=3 from the declared physical action classes.",
     "quantities": [
       "entropy_bits",
       "entropy_deficit_bits",
@@ -4753,7 +4755,7 @@
     "title": "Cooling through local purity and correlation",
     "research_question": "How do compression and refresh redistribute entropy deficit?",
     "distinguishes": "Reversible compression versus bath refresh along one candidate",
-    "known_counterexample": "All states are diagonal: the correlation is classical and is not an entanglement measure.",
+    "known_counterexample": "These diagonal states carry classical correlation. Reversible compression preserves the global spectrum; halt adds cost while preserving the state.",
     "parameter_defaults": {
       "p": "9/10",
       "cycles": 3
@@ -5171,6 +5173,7 @@
         "q2",
         "q3"
       ]
-    }
+    },
+    "parameter_guidance": "p changes the bath model; cycles changes the target construction. Keep the model, full target and tolerance fixed when comparing candidate costs."
   }
 ]

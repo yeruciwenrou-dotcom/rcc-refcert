@@ -197,3 +197,79 @@ def test_other_unresolved_branches_keep_their_original_status(tmp_path, capsys, 
     assert main(["bundle", "verify", str(path), "--format", "json"]) == 1
     capsys.readouterr()
     assert prepare_numeric_state(StateInput.from_dict(state))[0] is None
+
+
+def _partition_request(mode=None):
+    policy = {"mode": "roundoff_only", "tolerance": 1e-10, "repair_budget": 1e-18}
+    if mode is None:
+        matrix = np.zeros((4, 4))
+        matrix[0, 0] = matrix[0, 3] = matrix[3, 0] = matrix[3, 3] = 0.5
+        policy["repair_budget"] = 1e-10
+    else:
+        delta = 1e-6 if mode == "density_failed" else 2.0**-50
+        matrix = np.diag([1 + delta, -delta, 0, 0])
+        if mode == "no_repair":
+            policy = {"mode": "none", "tolerance": 1e-10}
+    state = StateInput.numeric(matrix, [2, 2], ["a", "b"], policy=policy)
+    return request_for(
+        state,
+        [{"id": "a", "keep": ["a"]}],
+        {"left": ["a"], "right": ["b"]},
+    )
+
+
+@pytest.mark.parametrize("mode", ["no_repair", "density_failed", "budget_exceeded"])
+@pytest.mark.parametrize("field", ["global_quantity", "windows", "partition"])
+def test_unresolved_profiles_reject_all_asserted_scientific_values(
+    tmp_path, capsys, mode, field
+):
+    request = _partition_request(mode)
+    result = analyze_windows(request)
+    assert result["decision"] == "numerical_unresolved"
+    normal = analyze_windows(_partition_request())["profiles"][0]
+    asserted = deepcopy(normal[field])
+    path = tmp_path / "unresolved.rccbundle"
+    save_workflow_bundle(path, request, result)
+    original = path.read_bytes()
+    wrong = deepcopy(result)
+    wrong["profiles"][0][field] = asserted
+    with pytest.raises(InputError, match="unresolved state"):
+        save_workflow_bundle(path, request, wrong, overwrite=True)
+    assert path.read_bytes() == original
+    _rehash(
+        path,
+        lambda data: data["history.json"]["profiles"][0].update({field: asserted}),
+    )
+    before = path.read_bytes()
+    for reader in (inspect_analysis_bundle, verify_analysis_bundle):
+        with pytest.raises(InputError, match="unresolved state"):
+            reader(path)
+    for operation in ("inspect", "verify"):
+        assert main(["bundle", operation, str(path), "--format", "json"]) == 2
+        captured = capsys.readouterr()
+        assert "Traceback" not in captured.out + captured.err
+    assert path.read_bytes() == before
+
+
+@pytest.mark.parametrize(
+    "mode", [None, "no_repair", "density_failed", "budget_exceeded"]
+)
+def test_partition_records_keep_normal_and_unresolved_controls(tmp_path, mode):
+    request = _partition_request(mode)
+    result = analyze_windows(request)
+    path = tmp_path / "control.rccbundle"
+    save_workflow_bundle(path, request, result)
+    before = path.read_bytes()
+    assert inspect_analysis_bundle(path)["record_consistency"] == "pass"
+    checked = verify_analysis_bundle(path)
+    assert checked["historical_results_supported"] is True
+    profile = checked["fresh_result"]["profiles"][0]
+    if mode is None:
+        assert checked["fresh_verification"]["outcome"] == "pass"
+        assert profile["partition"]["total_correlation_bits"] == pytest.approx(2)
+    else:
+        assert checked["fresh_verification"]["outcome"] == "inconclusive"
+        assert profile["global_quantity"] is None
+        assert profile["windows"] == []
+        assert profile["partition"] is None
+    assert path.read_bytes() == before

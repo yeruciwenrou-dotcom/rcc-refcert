@@ -8,6 +8,67 @@ import textwrap
 from .core import InputError
 
 
+def render_probe(entry, *, width=80):
+    """Read a probe's scientific purpose before exporting its matrix inputs."""
+    if type(width) is not int or not 40 <= width <= 240:
+        raise InputError("width: choose an integer from 40 to 240")
+    parameters = ", ".join(
+        f"{key}={value}" for key, value in entry["parameter_defaults"].items()
+    )
+    windows = "; ".join(
+        f"{window['id']} ({', '.join(window['keep'])})" for window in entry["windows"]
+    )
+    command = (
+        "cost" if entry["request_template"]["kind"] == "cost_analysis" else "window"
+    )
+    lines = [
+        entry["title"],
+        f"Probe: {entry['probe_id']} (revision {entry['revision']})",
+        "",
+        f"Question: {entry['research_question']}",
+        f"Input: {entry['data_origin']}",
+        f"Reference: {entry['reference']}",
+        f"Default parameters: {parameters}",
+        f"Windows: {windows}",
+        (
+            "Readouts: subsystem entropy and entropy deficit in bits; "
+            "C = deficit / log2(Gamma); total correlation in bits."
+        ),
+        "",
+        "Expected results at the default parameters:",
+    ]
+    for key, value in entry["expected_checks"].items():
+        label = key.replace("_", " ")
+        lines.append(
+            f"  {label[0].upper() + label[1:]}: {json.dumps(value, ensure_ascii=False)}"
+        )
+    lines.extend(
+        [
+            "",
+            f"Comparison: {entry['distinguishes']}",
+            f"Control and interpretation: {entry['known_counterexample']}",
+            f"Parameter changes: {entry['parameter_guidance']}",
+            "",
+            "Run this probe:",
+            f"python -m rcc_refcert probe export {entry['probe_id']} > probe.json",
+            f"python -m rcc_refcert {command} analyze probe.json",
+            "",
+            "Use 'probe show ID --format json' for the complete probe record.",
+        ]
+    )
+    return (
+        "\n".join(
+            textwrap.fill(
+                line, width=width, subsequent_indent="  ", break_on_hyphens=False
+            )
+            if line
+            else ""
+            for line in lines
+        )
+        + "\n"
+    )
+
+
 def _decision_label(value):
     return {
         "certified_optimal": "certified optimum",
@@ -81,15 +142,20 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
                 distance = (
                     c["trace_distance_exact"]
                     if c["evidence"] == "exact_rational"
-                    else c["trace_distance_numeric"]
+                    else (
+                        "unresolved"
+                        if c["trace_distance_numeric"] is None
+                        else f"{c['trace_distance_numeric']:.10g}"
+                    )
                 )
                 status = (
                     ("met" if c["target_satisfied"] else "not met")
                     if c["evidence"] == "exact_rational"
                     else c["numerical_target_status"].replace("_", " ") + " (numerical)"
                 )
+                unit = "slot" if c["slots"] == 1 else "slots"
                 lines.append(
-                    f"  {c['id']}: {c['slots']} slots; trace distance {distance}; target {status}"
+                    f"  {c['id']}: {c['slots']} {unit}; trace distance {distance}; target {status}"
                 )
         if result["epsilon_scan"]:
             lines.append("Tolerance scan:")
@@ -117,6 +183,12 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
                     result["windows"].get("decision", result["windows"].get("status"))
                 )
             )
+            if details and "profiles" in result["windows"]:
+                from .windows import window_report_lines
+
+                lines.extend(window_report_lines(result["windows"], details=False))
+            elif "profiles" in result["windows"]:
+                lines.append("Use --details to read the trajectory window values.")
     else:
         from .windows import window_report_lines
 

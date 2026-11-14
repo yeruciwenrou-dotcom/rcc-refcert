@@ -54,7 +54,7 @@ interpreter that runs the package.
 Declare the reference dimension, the number of distinct physical atomic
 action classes, exact-transcription constants, a reference-domination upper
 constant and their sources. Counting syntax actions alone does not establish
-the physical action count. The initial implementation uses a uniform reference
+the physical action count. The calculator uses a uniform reference
 on the declared ideal support and normalized trace distance. Approximate
 transcription, uncertain support, nonuniform references and readout corrections
 need different contracts and are not accepted here.

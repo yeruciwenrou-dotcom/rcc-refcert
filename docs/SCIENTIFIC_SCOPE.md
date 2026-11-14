@@ -134,12 +134,13 @@ the paired-reset example and the closed intervals in the cost workflow.
 
 ## Preparation-cost intervals and window profiles
 
-For supported exact finite recipes, a verified reference-envelope certificate
+For exact diagonal-preserving finite recipes with diagonal initial states,
+a verified reference-envelope certificate
 and a budget calculation rule out cheaper preparations. Candidate programs
 are then executed against the complete target in its original basis. A
 candidate that meets the trace-distance tolerance supplies an upper bound.
-Equal endpoints establish the optimum in that declared model; an open
-interval records the remaining gap. This unweighted gain calculation is
+Equal endpoints establish the optimum in that declared model; distinct
+endpoints record the remaining optimality gap. This unweighted gain calculation is
 distinct from the code-weighted H.70 certificate route.
 
 Numerically supplied models support candidate execution and trace-distance

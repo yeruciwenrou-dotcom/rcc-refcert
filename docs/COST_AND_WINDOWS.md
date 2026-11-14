@@ -42,6 +42,11 @@ The supplied four-action candidate misses this tolerance. Change `epsilon` to
 **[4,5]**: the supplied upper bound remains five and the exclusion reaches four.
 A completed analysis can therefore report a failed candidate or an open gap.
 
+The exact cost recipes start with a diagonal state and preserve diagonality.
+They evaluate complete targets in their original basis. General matrix models
+use the [numerical candidate workflow](#numerical-models-and-candidate-diagnostics);
+the existing model and reference-certificate APIs also cover quantum CP maps.
+
 Use exact integer, decimal-string or rational-string inputs. For example,
 `"0.95"` and `"19/20"` denote the same exact reset probability; JSON `0.95`
 does not declare that ideal parameter exactly. The preset accepts `qubits` and `p`;
@@ -77,7 +82,7 @@ from the declared physical action classes. Codeword length, reference gain and
 this physical scale are recorded separately. Single-control-block exact
 recipes are supported here; existing multiblock model APIs remain available.
 
-## Cooling and the meaning of an open interval
+## Cooling and the remaining optimality gap
 
 ```bash
 python -m rcc_refcert cost template algorithmic-cooling > cooling.json
@@ -87,7 +92,8 @@ python -m rcc_refcert cost analyze cooling.json --format json --output cooling-r
 The three-qubit model refreshes the two bath qubits at probability `9/10` and
 compresses with the basis permutation exchanging `011` and `100`. The complete
 target is produced by `R(CR)^3H`, with target-qubit probability `3078/3125`.
-The supplied six-action word reaches tolerance `1/50`, giving **[6,6]**.
+At tolerance `1/50`, the gain bound excludes costs below six and the supplied
+six-action word reaches the target, giving **[6,6]**.
 At tolerance `1/100`, the reported interval is **[6,8]**. The lower endpoint
 comes from the verified gain relaxation; the eight-action witness supplies the
 upper endpoint. The software preserves this distinction even when a separate
@@ -137,6 +143,10 @@ python -m rcc_refcert probe export w1-quantum-organization > windows.json
 python -m rcc_refcert window analyze windows.json --bundle windows.rccbundle
 ```
 
+`probe show` displays the question, parameters, expected default results and
+comparison controls. Use `probe show ID --format json` for the complete probe
+record, or `probe export ID` for its executable request.
+
 For a retained subsystem A, the uniform product reference gives
 `deficit_bits = log2(d_A) - S(rho_A)` and
 `rcc_main_term = deficit_bits / log2(Gamma)`. Both units and the source of Gamma
@@ -144,14 +154,27 @@ remain in the result. `keep` names the systems retained by a partial trace.
 Tensor axes follow the input order, with the leftmost axis most significant.
 An empty window has zero deficit; the full window gives the global quantity.
 
+`entropy_bits` is the entropy of the reduced state `rho_A`. The corresponding
+reference-preserving effective state on the full space is
+`rho_A ⊗ I_B/d_B`, whose entropy is `S(rho_A) + log2(d_B)`. Its full-space
+entropy deficit equals the reported subsystem deficit.
+
 | Probe | Physical question | What to inspect |
 |---|---|---|
 | `w1-quantum-organization` | How do paired Bell modules and a GHZ state organize the same global purity? | At Gamma=4, windows 12/13/34 give (1,0,1) versus (1/2,1/2,1/2). |
 | `w2-noise-distribution` | Where is phase noise concentrated when global entropy is held fixed? | Both states have entropy 1 bit and global C=3/2; module values are (1/2,1) versus (3/4,3/4), with the cross window as a null control. |
 | `w3-cooling-trajectory` | How do bath refresh and reversible compression change local structure? | Follow target purity, bath entropy and classical correlation along the same candidate; Gamma=3 comes from its model. |
 
+The values in the table use the default parameters, with Gamma=4 for W1 and
+W2. That Gamma is a declared comparison scale; W3 derives Gamma=3 from its
+physical action classes. W1's common mixing parameter preserves the equality
+of the two global spectra while changing their purity. Recompute the values
+after changing parameters.
+
 The W2 distributed-noise probability is solved numerically, and its root
-residual is saved with the result. All window entropy values are numerical.
+residual is saved with the result. Its two states have matched entropy but
+different spectra, so their one-shot information can differ too. All window
+entropy values are numerical.
 
 Exported requests are complete editable inputs. `export_probe(...,
 parameters={...})` regenerates a parameterized instance and its identity; use
@@ -163,13 +186,29 @@ W3 is a preparation task, so send its request to **`cost analyze`**:
 
 ```bash
 python -m rcc_refcert probe export w3-cooling-trajectory > trajectory.json
-python -m rcc_refcert cost analyze trajectory.json --bundle trajectory.rccbundle
+python -m rcc_refcert cost analyze trajectory.json --details --bundle trajectory.rccbundle
 ```
 
 Its window profiles use the states produced by each candidate, with the step,
 action and cumulative cost recorded together. Set `windows.steps` to a list
 of step numbers to retain a selection. Halt advances charged cost and leaves
 the state unchanged.
+
+With the Python API, read the same stored trajectory directly:
+
+```python
+from rcc_refcert.workflows import analyze_cost, export_probe, render_workflow_result
+
+cooling = analyze_cost(export_probe("w3-cooling-trajectory"))
+print(render_workflow_result(cooling["windows"]))
+```
+
+The eight-action target program defines the complete target; the six-action
+candidate attains the optimum at the default tolerance. Refresh removes entropy
+and resets target–bath correlation, while reversible compression redistributes
+the deficit at a fixed global spectrum. Changing `p` changes the bath model,
+and changing `cycles` changes the target construction. Keep the model, target
+and tolerance fixed when comparing candidate costs.
 
 A declared bipartition A|B reports
 `C_global = C_A + C_B + I(A:B)/g` and a numerical decomposition residual.
@@ -224,6 +263,27 @@ the original input, derived state and perturbation. Entropies use binary64
 logarithms, including for exact probabilities; they are numerical quantities.
 
 ## Numerical models and candidate diagnostics
+
+The complete [numerical cost example](../examples/numerical_cost_workflow.py)
+adapts the two-action model from the [model guide](MODEL_GUIDE.md#a-complete-two-action-model).
+Run it from the checkout with your installed environment:
+
+```bash
+python examples/numerical_cost_workflow.py --bundle numerical-cost.rccbundle
+python -m rcc_refcert bundle verify numerical-cost.rccbundle
+```
+
+Its `make_request()` function constructs the model, exports its matrices,
+declares the reference and atomic costs, supplies the complete target and
+provides two candidate words. Both candidates leave the supplied `I/2` state
+unchanged. Their trace distance from `diag(0.6, 0.4)` is numerically 0.1, within
+the declared tolerance `1/5`; their costs are one and two slots, including halt.
+The result is `numerical_analysis`, with numerical candidate evidence and empty
+rigorous cost endpoints. The saved bundle is independently reverified.
+
+Use this request as a starting point for your own channels, initial state,
+target, action words and resource declarations. The source keeps each part
+explicit so the full task can be checked and shared.
 
 `serialize_numeric_model(model, subsystem_dims=..., subsystem_labels=...,
 reference=..., cost=...)` exports an existing `FiniteControlModel` as data-only
@@ -317,7 +377,8 @@ Bitwise same-version replay is reported separately. Different producer versions
 can still have matching newly computed scientific results.
 
 Stored numerical decisions, candidate status and diagnostics must agree before
-inspection succeeds. Numeric evidence retains empty strict cost endpoints.
+inspection succeeds. A numerically unresolved state has empty global,
+window and partition readouts. Numeric evidence retains empty rigorous cost endpoints.
 The recipient's resource ceilings constrain the first reconstruction as well as
 fresh calculation; the author's saved limits and input identity remain intact.
 

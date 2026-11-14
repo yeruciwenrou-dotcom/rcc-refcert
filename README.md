@@ -6,11 +6,11 @@
 
 `rcc-refcert` is a Python research toolkit for **structure-fair quantum circuit
 complexity**.
-It computes **quantum circuit complexity lower bounds**, checks candidate
-preparations, and analyzes how quantum-state structure is distributed across
-subsystems. Researchers can compare preparation costs in a declared model,
-study changes in a state or process, and share the complete calculation for
-independent verification.
+It analyzes finite-control quantum models, verifies reference certificates,
+and computes **quantum circuit complexity lower bounds** from exact target
+spectra or predeclared measurement counts. Researchers can also compare
+candidate preparations, study how structure is distributed across subsystems,
+and share complete calculations for independent verification.
 
 The toolkit implements selected parts of **Reference-Contingent Complexity
 (RCC)**, introduced in
@@ -26,27 +26,69 @@ complexity. Final-state information relative to the reference bounds the
 cost of every successful preparation history, without reconstructing how the
 state was produced.
 
-The cost and window workflows use the **0.3 source series**. The published
-package and version DOI remain **0.2.0**. Choose the [source quickstart](#quick-start)
-for the full set of workflows below, or [PyPI](#install-from-pypi) for the
-published model, certificate and terminal-state tools.
-
 ## Start here
 
-| Your task | What you obtain | Entry point |
+| What you have | What you can study | Start here |
 |---|---|---|
-| Bound preparation cost and test candidate programs | Exact gain exclusion, complete-target checks and cost intervals | [Cost and window workflows](docs/COST_AND_WINDOWS.md) |
-| Understand state organization | Subsystem entropy deficits, correlation decompositions and cooling trajectories | [State windows and probes](docs/COST_AND_WINDOWS.md#state-windows-and-probes) |
-| Calculate a quantum circuit complexity lower bound | A bound from an exact target spectrum or predeclared measurement counts | [Try a bound](#install-from-pypi) · [Spectra and counts](#target-spectra-and-measured-counts) |
-| Analyze your own finite-control model | Numerical certificate checks, terminal-state bounds, and shareable inputs | [Custom-model workflow](#work-with-your-own-model) |
-| Reverify a shared analysis | Recomputed model, cost or window results, compared with the saved evidence | [Recipient workflow](#reverify-a-shared-analysis) |
-| Reproduce calculations and examples from the RCC paper | Reference-model checks and worked lower bounds, linked to paper equations | [Quick start](#quick-start) · [Paper-to-code map](docs/PAPER_MAP.md) · [Worked example](#end-to-end-rcc-lower-bound-example) |
+| Channels, control rules and a reference state | Reference certificates and the resources of a finite quantum model | [Your own model](#work-with-your-own-model) |
+| An exact target spectrum or predeclared measurement counts | A quantum circuit complexity lower bound in the declared model | [Spectra and counts](#target-spectra-and-measured-counts) |
+| A complete target, a channel model and candidate programs | Target attainment and preparation-cost intervals for exact diagonal recipes | [Cost tasks](#cost-and-window-workflows) |
+| Density matrices and subsystem labels | Entropy deficits, correlations and structure along a preparation | [State windows and probes](docs/COST_AND_WINDOWS.md#state-windows-and-probes) |
+| A shared analysis bundle | Fresh calculations and their support for the saved results | [Reverify an analysis](#reverify-a-shared-analysis) |
+| A calculation from the RCC paper | Its model, equations and reproducible example | [Paper-to-code map](docs/PAPER_MAP.md) · [Worked bound](#end-to-end-rcc-lower-bound-example) |
+
+The 0.3 source series adds preparation-cost intervals and subsystem windows.
+Editable reset and cooling tasks, three research probes and a workflow notebook
+connect these calculations to complete analyses that can be shared and reverified.
 
 For the physical motivation and how the bound works, see
 [Why reference-contingent complexity](#why-reference-contingent-complexity).
 
 You can also [read the reference results](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.2.0/results/reference_report.md)
 without running code, or choose a [Jupyter tutorial](#jupyter-notebook).
+
+## Quick start
+
+Install the **0.3 source series** once, then choose a task below. The published
+package and version DOI remain **0.2.0**; [install from PyPI](#install-from-pypi)
+for its model, certificate and terminal-state tools.
+
+The following commands obtain the source attached to
+[the 0.3 workflow update](https://github.com/yeruciwenrou-dotcom/rcc-refcert/pull/40):
+
+```bash
+git clone https://github.com/yeruciwenrou-dotcom/rcc-refcert.git
+cd rcc-refcert
+git fetch origin pull/40/head
+git checkout --detach FETCH_HEAD
+python3 --version
+python3 quickstart.py --reproduce-only
+```
+
+Python 3.10 or newer is required. On Windows, or where your interpreter is
+named `python`, use `python` in place of `python3`. If you already have this
+source checkout or a source ZIP, run the last two commands in the directory
+containing `quickstart.py`.
+
+For the frozen **0.2.0** examples, add `--branch v0.2.0` to the clone command
+and omit the two pull-request fetch and checkout commands.
+That release includes the model and terminal-state notebooks; the cost and
+window notebook belongs to the 0.3 source series.
+
+The script creates `.venv`, installs the locked verification dependencies,
+checks the frozen reference evidence, and writes fresh results to
+`generated_results/`. Expect three `MATCH` checks. Run `python3 quickstart.py`
+to include the test suite. Later runs reuse the environment and refresh the
+installation when the dependency lock or package metadata changes.
+
+**For the examples below, stay in the checkout directory and use
+`.venv/bin/python`.** On Windows, substitute `.venv\Scripts\python.exe`.
+If you prefer your own active environment, install with
+`python -m pip install .` and use that environment's interpreter throughout.
+The module entry point accepts the same arguments as `rcc-refcert`.
+
+To reproduce a particular source version, check out its full commit or release
+tag before installation.
 
 ## Cost and window workflows
 
@@ -60,7 +102,8 @@ these commands from the checkout. On Windows, replace `.venv/bin/python` with
 .venv/bin/python -m rcc_refcert bundle verify task.rccbundle
 ```
 
-The four-qubit reset task gives a strict **[5,5]** preparation-cost interval:
+This exact recipe starts from a diagonal state and preserves diagonality.
+The four-qubit reset task gives a rigorous **[5,5]** preparation-cost interval:
 every successful program needs at least five atomic slots, and an executed
 five-slot program reaches the target. The model charges halt as one slot.
 Changing the tolerance gives **[4,4]** or **[4,5]**, showing when the evidence
@@ -73,7 +116,7 @@ To examine state organization, export a probe and analyze its windows:
 .venv/bin/python -m rcc_refcert window analyze windows.json --bundle windows.rccbundle
 ```
 
-Paired Bell states and a GHZ state have the same global purity. Their window
+Paired Bell states and a GHZ state have the same global spectrum. Their window
 profiles locate that structure differently across the register. The other
 probes compare phase-noise distributions and follow an algorithmic-cooling
 trajectory. Each probe supplies editable inputs and a reference comparison.
@@ -82,7 +125,8 @@ The [workflow guide](docs/COST_AND_WINDOWS.md) covers changing the target and
 tolerance, cooling, your own matrices, window probes, reports and independent
 revalidation. [RCC_Workflows_Quickstart.ipynb](RCC_Workflows_Quickstart.ipynb)
 provides the same path in a notebook.
-The following PyPI commands reproduce the published 0.2.0 workflows.
+The source installation also provides the model and terminal-state workflows
+below. The next section offers the published package as a separate starting point.
 
 ## Install from PyPI
 
@@ -117,44 +161,8 @@ sufficient route and the nonhalting boundary among those expected results.
 
 The API, CLI, templates, and frozen reference data work outside a source
 checkout. The installed package also includes candidate preparation and bundle
-verification. For the example scripts and notebooks, use the source quickstart
-below.
-
-## Quick start
-
-To run the **0.3 source series**, including all three notebooks, clone the
-development branch:
-
-```bash
-git clone --branch feat/cost-window-workflows https://github.com/yeruciwenrou-dotcom/rcc-refcert.git
-cd rcc-refcert
-python3 --version
-python3 quickstart.py --reproduce-only
-```
-
-Python 3.10 or newer is required. On Windows, or where your interpreter is
-named `python`, use `python` in place of `python3`. You can also select the
-branch on GitHub, choose **Code → Download ZIP**, and run the last two commands
-from the extracted directory containing `quickstart.py`.
-
-For the frozen **0.2.0** examples, use `--branch v0.2.0` in the clone command.
-That release includes the model and terminal-state notebooks; the cost and
-window notebook belongs to the 0.3 source series.
-
-The script creates `.venv`, installs the locked verification dependencies,
-checks the frozen reference evidence, and writes fresh results to
-`generated_results/`. Expect three `MATCH` checks. Run `python3 quickstart.py`
-to include the test suite. Later runs reuse the environment and refresh the
-installation when the dependency lock or package metadata changes.
-
-**For the examples below, stay in the checkout directory and use
-`.venv/bin/python`.** On Windows, substitute `.venv\Scripts\python.exe`.
-If you prefer your own active environment, install with
-`python -m pip install .` and use that environment's interpreter throughout.
-The module entry point accepts the same arguments as `rcc-refcert`.
-
-To reproduce a particular source version, check out its full commit or release
-tag before installation.
+verification. For the example scripts and notebooks, use the
+[source quickstart](#quick-start).
 
 ## Work with your own model
 
@@ -345,7 +353,7 @@ numerical certificate evidence and sampling confidence. A completed zero lower
 bound is a valid result; it does not establish zero preparation cost.
 The [output contract](docs/OUTPUT_CONTRACT.md) explains fields and exit codes.
 
-Exact channel recipes support strict model-specific cost intervals by combining
+Exact diagonal recipes support rigorous model-specific cost intervals by combining
 gain-based exclusion with an executed feasible program. Numerical matrix inputs
 support candidate diagnostics and window profiles, with their numerical evidence
 identified in the result. Window RCC values describe subsystem structure in the
@@ -448,7 +456,7 @@ theorem.
 
 | Area | Available calculations | Guide |
 |---|---|---|
-| Cost and state windows | Exact recipe-based cost intervals, complete program checks, subsystem organization and versioned probes | [Cost and windows](docs/COST_AND_WINDOWS.md) |
+| Cost and state windows | Exact diagonal recipe-based cost intervals, complete program checks, subsystem organization and versioned probes | [Cost and windows](docs/COST_AND_WINDOWS.md) |
 | Finite-control models | Code-weighted trajectories, terminating program semidensities, least fixed points and reference domination | [Model guide](docs/MODEL_GUIDE.md) |
 | Reference certificates | Linear H.3 candidate preparation for stable finite models, independent H.3/H.4 verification, and local gain–cost checks with sufficient code completions | [Custom models](docs/CUSTOM_MODELS.md) |
 | Terminal-state bounds | Exact-spectrum smoothing, fixed-projector counts, certificate binding and scalar cost inversion | [Terminal-state bounds](docs/TERMINAL_BOUNDS.md) |
@@ -480,7 +488,7 @@ contracts, expected evidence and development checks for each kind of change.
 | Path | Contents |
 |---|---|
 | `src/rcc_refcert/` | Model, certificate, bound, cost and window APIs; CLI and evidence formats |
-| `examples/` | Paired-reset, alternating-qubit and cyclic-register workflows |
+| `examples/` | Paired-reset, alternating-qubit, cyclic-register and numerical candidate workflows |
 | `RCC_Quickstart.ipynb`, `RCC_Bounds_Quickstart.ipynb`, `RCC_Workflows_Quickstart.ipynb` | Executable model, bound, cost and window tutorials |
 | `results/` | Frozen reference report and structured data |
 | `generated_results/` | Local verification results generated by quickstart; ignored by Git |

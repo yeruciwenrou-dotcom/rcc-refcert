@@ -420,6 +420,7 @@ def check_window_history(history, *, limits):
             if (
                 profile["global_quantity"] is not None
                 or profile["windows"]
+                or profile["partition"] is not None
                 or history["decision"] != "numerical_unresolved"
             ):
                 raise InputError("history: unresolved state has asserted window values")
@@ -480,6 +481,12 @@ def check_window_history(history, *, limits):
                 raise InputError("history: window deficit or scale is inconsistent")
 
 
+def _window_number(value):
+    if value == 0:
+        return "0"
+    return "~0" if abs(value) < 1e-12 else f"{value:.10g}"
+
+
 def window_report_lines(result, *, details=False):
     from .render import _decision_label
 
@@ -490,9 +497,18 @@ def window_report_lines(result, *, details=False):
         f"Reference: uniform product support; Gamma={ref['gamma_exact']}; g_R={ref['g_bits']:.10g} bits",
         f"Scale source: {ref['source']}",
         "C = entropy deficit / g_R: the state-side RCC main term.",
+        "Subsystem entropy is S(rho_A) on the retained axes.",
     ]
+    records = {record["id"]: record for record in result["effective_request"]["states"]}
     for profile in result["profiles"]:
         lines.append(f"State: {profile['id']}")
+        record = records[profile["id"]]
+        if "step" in record:
+            unit = "slot" if record["slots"] == 1 else "slots"
+            lines.append(
+                f"  Step {record['step']}: {record['action'] or 'initial state'}; "
+                f"cumulative cost {record['slots']} atomic {unit}"
+            )
         if profile["global_quantity"] is None:
             lines.append(
                 "  Numerical input checks unresolved: "
@@ -501,18 +517,19 @@ def window_report_lines(result, *, details=False):
             continue
         for q in [{"id": "global", **profile["global_quantity"]}, *profile["windows"]]:
             lines.append(
-                f"  {q['id']}: entropy={q['entropy_bits']:.10g} bits; deficit={q['entropy_deficit_bits']:.10g} bits; C={q['rcc_main_term']:.10g}"
+                f"  {q['id']}: subsystem entropy={_window_number(q['entropy_bits'])} bits; deficit={_window_number(q['entropy_deficit_bits'])} bits; C={_window_number(q['rcc_main_term'])}"
             )
         if profile["partition"] is not None:
             left = ", ".join(profile["partition"]["left"]["keep"])
             right = ", ".join(profile["partition"]["right"]["keep"])
             lines.append(
-                f"  Total correlation ({left} | {right}): {profile['partition']['total_correlation_bits']:.10g} bits"
+                f"  Total correlation ({left} | {right}): {_window_number(profile['partition']['total_correlation_bits'])} bits"
             )
         if details:
             lines.append(f"  State identity: {profile['state_digest']}")
     lines.append(
-        "Entropies use binary64 logarithms; small signed roundoff can remain near zero. "
+        "Entropies use binary64 logarithms. Values below 1e-12 in magnitude "
+        "display as ~0; JSON and CSV retain the original values. "
         "Mixed-state total correlation includes classical correlation."
     )
     return lines
@@ -570,7 +587,9 @@ def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=Fals
     ax.barh(range(len(rows)), [r["rcc_main_term"] for r in rows], color="#266c85")
     ax.set_yticks(range(len(rows)), [f"{r['state']} / {r['window']}" for r in rows])
     ax.invert_yaxis()
-    ax.set_xlabel("Window RCC main term")
+    ax.set_xlabel(
+        f"Window RCC main term C (Gamma={result['reference']['gamma_exact']})"
+    )
     ax.set_title("State organization by subsystem window")
     destination.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(

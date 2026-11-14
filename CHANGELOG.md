@@ -19,16 +19,18 @@
 - Preserve physical edge directions when transferring numerical multiblock
   models. Numeric-model schema 2 covers rectangular transitions; ambiguous
   schema-1 cross-control models require re-export from the original model.
-- Check saved numerical decisions against their evidence, apply recipient
-  budgets before reconstruction, and retain computed results when bundle
-  delivery fails. Workflow readers and writers share bounded record capacities;
-  unresolved numerical analyses return a partial completion status.
-- Reverify numerical analyses across backends while retaining exact input
-  identities and checking each saved roundoff correction against its own
-  digest and budget. Unresolved correction records retain finite, nonnegative
-  magnitudes consistent with their stated budget outcome. Cost comparisons
-  validate supplied records; trajectory
-  windows preserve the distinction between numerical and resource limits.
+- Validate historical decisions and all derived readouts before accepting a
+  saved analysis. Reverification checks numerical corrections against their
+  saved policy, preserves consistent unresolved results and applies recipient
+  resource limits before reconstruction. Numerical backend differences and
+  bitwise replay are reported separately.
+- Present probes as readable research summaries, with complete records available
+  through `probe show ID --format json`; `probe export` remains the executable
+  request interface. Cost `--details` displays trajectory actions, cumulative
+  cost and window values. Notebook sharing now keeps files in persistent folders.
+- Clarify the full model, certificate, bound and window workflows, including a
+  complete numerical-model example. Text readouts identify subsystem entropy;
+  near-zero formatting leaves JSON and CSV values unchanged.
 
 The existing model, certificate and terminal-state interfaces remain available.
 Scientific reference values are unchanged; their producer metadata identifies
