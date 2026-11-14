@@ -30,6 +30,8 @@ Born weight. The package keeps those two sources of weight separate.
 For a runnable path through candidate preparation, verification, target-state
 bounds, and evidence sharing, follow the [custom-model guide](CUSTOM_MODELS.md).
 The sections below define the model objects and their audit semantics.
+For explicit preparation candidates and subsystem trajectories, see the
+[cost and window guide](COST_AND_WINDOWS.md).
 
 1. Identify the physical origin of the reference and the resources it supplies;
    declare the reference state and transient control spaces.

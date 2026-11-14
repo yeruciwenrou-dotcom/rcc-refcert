@@ -9,7 +9,7 @@
   },
   "producer": {
     "name": "rcc-refcert",
-    "version": "0.2.0"
+    "version": "0.3.0.dev5"
   },
   "schema": "rcc-refcert.reference-suite-freeze",
   "schema_version": 2,

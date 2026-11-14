@@ -1,0 +1,80 @@
+{
+  "schema": "rcc-refcert.workflow-request",
+  "schema_version": 1,
+  "kind": "window_analysis",
+  "states": [
+    {
+      "id": "my-state",
+      "state": {
+        "schema": "rcc-refcert.state",
+        "schema_version": 1,
+        "kind": "density_numeric",
+        "data": [
+          [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ]
+        ],
+        "subsystem_dims": [
+          2
+        ],
+        "subsystem_labels": [
+          "q1"
+        ],
+        "basis_order": "tensor_msb_first",
+        "support": {
+          "kind": "complete_working_support",
+          "source": "declared tensor layout"
+        },
+        "provenance": {
+          "source": "supplied density matrix"
+        },
+        "numeric_policy": {
+          "mode": "roundoff_only",
+          "tolerance": 1e-10,
+          "repair_budget": 1e-10
+        },
+        "content_digest": "a08e87f64efa2b9f3e4c35b86fd0e46d205703f1aac11510e43a23d668656d6f"
+      }
+    }
+  ],
+  "reference": {
+    "kind": "uniform_product_support",
+    "gamma": 4,
+    "source": "declared observation scale"
+  },
+  "windows": [
+    {
+      "id": "q1",
+      "keep": [
+        "q1"
+      ]
+    }
+  ],
+  "partition": null,
+  "limits": {
+    "max_dp_cells": 100000,
+    "max_dp_updates": 1000000,
+    "max_fraction_bits": 65536,
+    "max_candidate_steps": 10000,
+    "max_trajectory_states": 256,
+    "max_windows": 256,
+    "max_matrix_elements": 1048576
+  }
+}

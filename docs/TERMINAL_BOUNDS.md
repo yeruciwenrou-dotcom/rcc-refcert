@@ -9,6 +9,11 @@ model's reference and cost assumptions. The
 explains how reference consistency, faithful transcription and reference
 admissibility qualify the resulting cost bound.
 
+To check a complete preparation program and combine exclusion with a feasible
+upper endpoint, use the [cost workflow](COST_AND_WINDOWS.md#a-complete-cost-task).
+The spectrum and counts routes in this guide provide lower bounds from
+terminal-state evidence.
+
 ## First calculation
 
 Follow the [source quickstart](../README.md#quick-start), then run these
@@ -49,7 +54,7 @@ interpreter that runs the package.
 Declare the reference dimension, the number of distinct physical atomic
 action classes, exact-transcription constants, a reference-domination upper
 constant and their sources. Counting syntax actions alone does not establish
-the physical action count. The initial implementation uses a uniform reference
+the physical action count. The calculator uses a uniform reference
 on the declared ideal support and normalized trace distance. Approximate
 transcription, uncertain support, nonuniform references and readout corrections
 need different contracts and are not accepted here.

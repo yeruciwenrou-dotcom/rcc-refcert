@@ -1,5 +1,10 @@
 # Output contract
 
+Use the command's schema and evidence fields to interpret a result. Package
+versions, JSON result versions and bundle-container versions identify
+different objects. This guide covers the reference checks, terminal-state
+bounds, shared bundles and [cost/window results](#workflow-results).
+
 ## Terminal and JSON modes
 
 The `examples`, `example`, and `reproduce` commands default to reader-facing
@@ -210,11 +215,13 @@ statistical, and replay contract.
 revalidation. `bundle verify` independently checks the saved model and proof,
 then reports fresh numerical evidence and support for historical results. Their
 JSON reports use `rcc-refcert.bundle-inspection` and
-`rcc-refcert.bundle-verification`, each with `schema_version: 1`. These report
+`rcc-refcert.bundle-verification`. Certificate bundles produce reports with
+`schema_version: 1`; cost and window bundles use version 2. These report
 schemas are separate from the analysis-bundle container and bound-record
 schemas.
 
-Stored-history validation requires a nonempty check list. A passing report
+For schema-1 certificate bundles, stored-history validation requires a
+nonempty check list. A passing report
 must contain only passing checks, a finite nonnegative usable constant, and
 finite nonnegative candidate and error diagnostics; its usable constant cannot
 be below its candidate. These three values must have exact finite binary64
@@ -245,3 +252,49 @@ omitted` marker. These are diagnostic summaries; resource comparisons continue
 to use exact integers. A summary cannot be reused as a computation budget.
 Stored analysis controls and scientific records keep
 their exact representations and existing storage limits.
+
+## Workflow results
+
+Cost and window analyses use `rcc-refcert.workflow-result`, schema version 1,
+and bundle container version 2. Text, Markdown and JSON are views of the same
+result. Human-readable labels do not change the JSON decision values.
+
+| Field | Interpretation |
+|---|---|
+| `effective_request` | Complete inputs used for the calculation, including expanded recipes and saved controls |
+| `digests` | Identity of the effective request and, for costs, its model, full target, reference and task |
+| `evidence` | Exact rational cost evidence and/or numerical candidate and entropy evidence |
+| `execution` | Whether the requested computation completed, and any reason it stopped early |
+| `decision` | Scientific conclusion supported by the available evidence |
+| `run_id` | Identity of this execution, kept separate from the task identity |
+
+Cost results place the endpoints, interval and candidate-overhead bounds in
+`cost`. Exact rational evidence supports `certified_optimal` when endpoints
+coincide, `certified_interval` when a gap remains, or `lower_bound_only` when
+no supplied feasible candidate establishes an upper endpoint.
+`numerical_analysis` records numerical candidate diagnostics;
+`evidence_conflict` yields no valid interval. Candidate results retain their
+own legality, distance and target-satisfaction fields.
+
+Window results contain the global quantity, subsystem profiles, reference
+scale and any bipartition decomposition. `window_analysis` denotes an
+evaluated numerical profile; `numerical_unresolved` identifies unresolved
+state-input checks. Exact state probabilities still produce numerical
+logarithmic entropies.
+
+The `cost analyze` and `window analyze` exit codes describe execution:
+
+| Code | Meaning |
+|---:|---|
+| 0 | Analysis completed |
+| 1 | Analysis or requested presentation completed only in part |
+| 2 | Invalid or unsupported input, or an output-file error |
+| 3 | Preflight resource limit |
+| 130 | Interrupted execution |
+
+A completed analysis may contain an unsuccessful candidate or a cost interval
+whose endpoints differ. Those are scientific results, not execution failures. Saved-result
+comparisons use `rcc-refcert.cost-comparison`, schema version 1, and retain
+whether the full tasks and tolerances match. See the
+[workflow guide](COST_AND_WINDOWS.md#reports-limits-and-revalidation) for
+resource behavior, output files and independent revalidation.

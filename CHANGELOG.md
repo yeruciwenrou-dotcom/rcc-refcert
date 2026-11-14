@@ -1,8 +1,40 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 development series
 
-- Improve documentation and navigation.
+- Evaluate preparation-cost intervals for complete targets in declared exact
+  channel models. Verified gain bounds exclude smaller budgets; executed
+  candidate programs supply feasible upper bounds, with halt included in cost.
+- Compare programs and scan accuracy requirements using editable cyclic-reset
+  and algorithmic-cooling tasks. Existing `FiniteControlModel` inputs can also
+  be used for numerical candidate diagnostics.
+- Analyze subsystem entropy deficits and total correlations from state data or
+  a candidate's own trajectory. Three editable probes explore Bell/GHZ
+  organization, phase-noise distribution and cooling.
+- Share complete cost and window analyses in schema-2 bundles for independent
+  recomputation. Existing schema-1 bundles remain readable and verifiable;
+  recipients of schema-2 bundles need the 0.3 workflow reader.
+- Read results as text, JSON or Markdown, and export window values as CSV or
+  optional plots. A task guide and notebook accompany the new workflows.
+- Preserve physical edge directions when transferring numerical multiblock
+  models. Numeric-model schema 2 covers rectangular transitions; ambiguous
+  schema-1 cross-control models require re-export from the original model.
+- Validate historical decisions and all derived readouts before accepting a
+  saved analysis. Reverification checks numerical corrections against their
+  saved policy, preserves consistent unresolved results and applies recipient
+  resource limits before reconstruction. Numerical backend differences and
+  bitwise replay are reported separately.
+- Present probes as readable research summaries, with complete records available
+  through `probe show ID --format json`; `probe export` remains the executable
+  request interface. Cost `--details` displays trajectory actions, cumulative
+  cost and window values. Notebook sharing now keeps files in persistent folders.
+- Clarify the full model, certificate, bound and window workflows, including a
+  complete numerical-model example. Text readouts identify subsystem entropy;
+  near-zero formatting leaves JSON and CSV values unchanged.
+
+The existing model, certificate and terminal-state interfaces remain available.
+Scientific reference values are unchanged; their producer metadata identifies
+the current source build.
 
 ## 0.2.0 (2026-10-25)
 

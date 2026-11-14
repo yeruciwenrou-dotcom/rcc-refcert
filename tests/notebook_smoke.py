@@ -35,7 +35,11 @@ def execute(path: Path) -> None:
 
 
 def main() -> None:
-    for path in (NOTEBOOK, ROOT / "RCC_Bounds_Quickstart.ipynb"):
+    for path in (
+        NOTEBOOK,
+        ROOT / "RCC_Bounds_Quickstart.ipynb",
+        ROOT / "RCC_Workflows_Quickstart.ipynb",
+    ):
         execute(path)
 
 
