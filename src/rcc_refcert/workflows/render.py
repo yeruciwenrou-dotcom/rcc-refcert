@@ -127,7 +127,12 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
     if "execution" in result:
         lines.append(f"Execution: {result['execution']['state']}")
         if result["execution"].get("reason"):
-            lines.append(f"Reason: {result['execution']['reason'].replace('_', ' ')}")
+            reason = result["execution"]["reason"]
+            explanation = {
+                "optional_windows_numerical_evidence_unresolved": "Some trajectory windows remain unresolved under the numerical policy.",
+                "optional_windows_resource_limited": "Trajectory windows reached the resource limit.",
+            }.get(reason, reason.replace("_", " "))
+            lines.append(f"Reason: {explanation}")
         lines.append(f"Run: {result['run_id']}")
     safe = ["".join(max(c, " ") for c in line) for line in lines]
     if format == "markdown":

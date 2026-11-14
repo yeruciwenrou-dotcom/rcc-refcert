@@ -293,6 +293,12 @@ bound if arithmetic or update limits stop further exclusion. Optional window
 limits preserve already established cost endpoints. Execution state and
 scientific decision are separate fields.
 
+Trajectory windows distinguish resource limits from unresolved numerical
+states. A numerical failure identifies the affected state diagnostics;
+increasing the resource budget does not resolve it. If the main cost analysis
+is already partial, it retains its original reason and the window result
+reports its own status separately.
+
 New CLI analysis exits: 0 completed, 1 partial, 2 invalid or unsupported input,
 3 preflight resource limit, 130 interrupted. A fresh run identifier accompanies
 each result or failure. A failed candidate alone does not mean failed execution.

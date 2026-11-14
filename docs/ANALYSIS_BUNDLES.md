@@ -292,6 +292,14 @@ results use a relative and absolute tolerance of `1e-10`. Same-version
 bitwise replay is reported separately, so a change of producer version can
 still yield matching scientific results.
 
+Roundoff-derived states can differ in their last bits across numerical
+backends. Each saved state must match its own content digest, tensor layout
+and numerical policy. Its correction must satisfy the declared density checks
+and repair budget; the saved and fresh corrections are compared in trace norm
+within the smaller of that budget and the state tolerance. Original input
+identities remain exact. This permits supported scientific results alongside
+a same-version bitwise replay mismatch.
+
 Verification uses the saved numerical policy. To study a different policy,
 edit the request and run a new analysis. The original author result and the
 recipient's fresh result retain separate identities. The schema-1 validation

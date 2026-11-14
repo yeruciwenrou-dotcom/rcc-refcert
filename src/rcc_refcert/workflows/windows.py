@@ -23,7 +23,7 @@ from .core import (
     keys,
     text,
 )
-from .states import StateInput, prepare_numeric_state
+from .states import StateInput, check_numeric_diagnostics, prepare_numeric_state
 
 
 def _keep(value, labels):
@@ -350,17 +350,20 @@ def attach_cost_windows(result, *, limits):
     }
     try:
         result["windows"] = analyze_windows(window_request, limits=limits)
-        if len(records) > 256 or result["windows"]["execution"]["state"] != "completed":
+        nested = result["windows"]["execution"]
+        reason = "resource_limited" if len(records) > 256 else nested["reason"]
+        if reason and result["execution"]["state"] == "completed":
+            result["execution"] = {
+                "state": "partial",
+                "reason": f"optional_windows_{reason}",
+            }
+    except (ResourceLimitError, BudgetError) as exc:
+        result["windows"] = {"status": "resource_limited", "reason": str(exc)}
+        if result["execution"]["state"] == "completed":
             result["execution"] = {
                 "state": "partial",
                 "reason": "optional_windows_resource_limited",
             }
-    except (ResourceLimitError, BudgetError) as exc:
-        result["windows"] = {"status": "resource_limited", "reason": str(exc)}
-        result["execution"] = {
-            "state": "partial",
-            "reason": "optional_windows_resource_limited",
-        }
 
 
 def _close(a, b, tolerance=1e-10):
@@ -403,8 +406,16 @@ def check_window_history(history, *, limits):
             or profile["id"] != record["id"]
         ):
             raise InputError("history: window state binding mismatch")
-        if profile["input_diagnostics"].get("original_digest") != state.content_digest:
-            raise InputError("history: numerical diagnostics belong to another state")
+        if state.kind == "density_numeric":
+            check_numeric_diagnostics(
+                state, profile["input_diagnostics"], limits=limits
+            )
+        elif profile["input_diagnostics"] != {
+            "outcome": "pass",
+            "policy": "exact_diagonal",
+            "original_digest": state.content_digest,
+        }:
+            raise InputError("history: exact window diagnostics mismatch")
         if profile["input_diagnostics"]["outcome"] != "pass":
             if (
                 profile["global_quantity"] is not None

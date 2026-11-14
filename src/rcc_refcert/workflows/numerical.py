@@ -628,6 +628,7 @@ def analyze_numerical_cost(request, *, limits=None):
 
 def check_numerical_history(history, *, limits):
     from .api import compose_interval
+    from .states import check_numeric_diagnostics
     from .windows import _close
 
     _, effective, model, target, limits, core = normalize_numerical_request(
@@ -645,9 +646,9 @@ def check_numerical_history(history, *, limits):
         raise InputError("history: numerical evidence cannot assert strict endpoints")
     if len(history["candidates"]) != len(effective["candidates"]):
         raise InputError("history: numerical candidate count mismatch")
-    _, target_check = prepare_numeric_state(target, limits=limits)
-    if not _close(history["diagnostics"]["target"], target_check):
-        raise InputError("history: numerical target diagnostics mismatch")
+    target_check = check_numeric_diagnostics(
+        target, history["diagnostics"]["target"], limits=limits
+    )
     tol = effective["model"]["validation_tolerance"]
     if (
         history["gain_certificate"] is not None
@@ -703,7 +704,9 @@ def check_numerical_history(history, *, limits):
                 "repair_budget": tol,
             }:
                 raise InputError("history: numerical output policy mismatch")
-            _, output_check = prepare_numeric_state(output, limits=limits)
+            output_check = check_numeric_diagnostics(
+                output, saved["output_diagnostics"], limits=limits
+            )
             singular = np.linalg.svd(
                 output.matrix(limits=limits) - target.matrix(limits=limits),
                 compute_uv=False,
@@ -716,7 +719,6 @@ def check_numerical_history(history, *, limits):
             if (
                 saved["comparison_tolerance"] != tol
                 or not _close(saved["distance_singular_values"], singular.tolist())
-                or not _close(saved["output_diagnostics"], output_check)
                 or saved["numerical_target_status"]
                 != _target_status(
                     distance, effective["epsilon"], tol, target_check, output_check

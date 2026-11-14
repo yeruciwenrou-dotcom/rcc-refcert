@@ -320,3 +320,88 @@ def prepare_numeric_state(state, *, limits=None):
         derived_state=derived.as_dict(),
     )
     return repaired, diagnostics
+
+
+def check_numeric_diagnostics(state, saved, *, limits=None):
+    """Check the author's state identity and numerical meaning separately.
+
+    Reconstructing an eigensystem can change the last bits across backends.
+    The saved correction must identify and justify itself; its locally
+    recomputed counterpart is compared in trace norm under the saved policy.
+    """
+    from .windows import _close
+
+    fresh_matrix, fresh = prepare_numeric_state(state, limits=limits)
+    keys(saved, set(fresh), name="history numerical diagnostics")
+    if (
+        saved["original_digest"] != state.content_digest
+        or saved["policy"] != fresh["policy"]
+        or type(saved["repair_applied"]) is not bool
+    ):
+        raise InputError("history: numerical diagnostic identity or policy mismatch")
+    tolerance = state.numeric_policy.get("tolerance", 1e-10)
+    derived_fields = {
+        "derived_state",
+        "derived_digest",
+        "repair_applied",
+        "perturbation_trace_norm_half",
+    }
+    if not _close(
+        {k: v for k, v in saved.items() if k not in derived_fields},
+        {k: v for k, v in fresh.items() if k not in derived_fields},
+        tolerance,
+    ):
+        raise InputError("history: numerical diagnostics mismatch")
+    if "derived_state" not in fresh:
+        if saved["repair_applied"]:
+            raise InputError("history: numerical correction has no derived state")
+        if "perturbation_trace_norm_half" in fresh and not _close(
+            saved["perturbation_trace_norm_half"],
+            fresh["perturbation_trace_norm_half"],
+            tolerance,
+        ):
+            raise InputError("history: unresolved numerical correction mismatch")
+        return fresh
+
+    derived = StateInput.from_dict(saved["derived_state"], limits=limits)
+    if (
+        saved["derived_state"].get("content_digest") != derived.content_digest
+        or saved["derived_digest"] != derived.content_digest
+        or derived.kind != "density_numeric"
+        or derived.subsystem_dims != state.subsystem_dims
+        or derived.subsystem_labels != state.subsystem_labels
+        or derived.basis_order != state.basis_order
+        or derived.support != fresh["derived_state"]["support"]
+        or derived.numeric_policy != state.numeric_policy
+    ):
+        raise InputError("history: derived state identity, layout or policy mismatch")
+    raw = state.matrix(limits=limits)
+    matrix = derived.matrix(limits=limits)
+    perturbation = float(np.linalg.svd(matrix - raw, compute_uv=False).sum() / 2)
+    reported = saved["perturbation_trace_norm_half"]
+    budget = state.numeric_policy["repair_budget"]
+    if (
+        isinstance(reported, bool)
+        or not isinstance(reported, (int, float))
+        or not np.isfinite(reported)
+        or not 0 <= reported <= budget
+        or perturbation > budget
+        or not _close(reported, perturbation, min(tolerance, budget))
+        or saved["repair_applied"] != bool(reported)
+        or saved["repair_applied"] != bool(perturbation)
+    ):
+        raise InputError("history: derived state correction or repair budget mismatch")
+    hermitian = (matrix + matrix.conj().T) / 2
+    if (
+        max(
+            float(np.linalg.norm(matrix - matrix.conj().T, ord="fro")),
+            float(abs(np.trace(matrix) - 1)),
+            max(0.0, -float(np.linalg.eigvalsh(hermitian)[0])),
+        )
+        > tolerance
+    ):
+        raise InputError("history: derived state fails its density checks")
+    difference = float(np.linalg.svd(matrix - fresh_matrix, compute_uv=False).sum() / 2)
+    if difference > min(tolerance, budget):
+        raise InputError("history: derived states disagree under the numerical policy")
+    return fresh

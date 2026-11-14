@@ -24,6 +24,7 @@ from .core import (
     keys,
     mapping,
     require_supported,
+    text,
 )
 from .gain import exclude_budgets, spectral_threshold, verify_gain_certificate
 from .models import ExactModel
@@ -363,13 +364,36 @@ def compare_cost_results(results, *, criterion=None):
         raise InputError("comparison: supply one to 256 cost results")
     rows, groups = [], {}
     for result in results:
+        mapping(result, "comparison result")
         if (
             result.get("schema") != "rcc-refcert.workflow-result"
             or result.get("kind") != "cost_analysis"
+            or type(result.get("schema_version")) is not int
+            or result["schema_version"] != 1
         ):
             raise InputError("comparison: expected cost workflow results")
-        cost = result["cost"]
-        key = (result["digests"]["task_core"], cost["epsilon_exact"])
+        cost = mapping(result.get("cost"), "comparison cost")
+        identity = mapping(result.get("digests"), "comparison digests")
+        core = text(identity.get("task_core"), "comparison task identity")
+        text(result.get("run_id"), "comparison run_id")
+        required = {
+            "lower_bound_slots",
+            "upper_bound_slots",
+            "epsilon_exact",
+        }
+        if not required <= cost.keys():
+            raise InputError("comparison: cost endpoints or tolerance are missing")
+        expected = compose_interval(
+            cost["lower_bound_slots"],
+            cost["upper_bound_slots"],
+            core_digest=core,
+            epsilon=cost["epsilon_exact"],
+        )
+        if any(k not in cost or cost[k] != v for k, v in expected.items()):
+            raise InputError(
+                "comparison: cost interval or task identity is inconsistent"
+            )
+        key = (core, cost["epsilon_exact"])
         groups.setdefault(key, []).append(result)
         rows.append({"run_id": result["run_id"], "task_core_digest": key[0], **cost})
     comparable = len(groups) == 1

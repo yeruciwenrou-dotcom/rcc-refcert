@@ -23,6 +23,10 @@
   budgets before reconstruction, and retain computed results when bundle
   delivery fails. Workflow readers and writers share bounded record capacities;
   unresolved numerical analyses return a partial completion status.
+- Reverify numerical analyses across backends while retaining exact input
+  identities and checking each saved roundoff correction against its own
+  digest and budget. Cost comparisons validate supplied records; trajectory
+  windows preserve the distinction between numerical and resource limits.
 
 The existing model, certificate and terminal-state interfaces remain available.
 Scientific reference values are unchanged; their producer metadata identifies
