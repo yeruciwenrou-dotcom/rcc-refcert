@@ -386,7 +386,14 @@ def check_numeric_diagnostics(state, saved, *, limits=None):
         or not np.isfinite(reported)
         or not 0 <= reported <= budget
         or perturbation > budget
-        or not _close(reported, perturbation, min(tolerance, budget))
+        # This norm describes two saved arrays, rather than a fresh correction.
+        # Check its own floating-point scale, not the much larger repair budget.
+        or abs(reported - perturbation)
+        > min(
+            tolerance,
+            budget,
+            32 * state.dimension * max(np.spacing(reported), np.spacing(perturbation)),
+        )
         or saved["repair_applied"] != bool(reported)
         or saved["repair_applied"] != bool(perturbation)
     ):

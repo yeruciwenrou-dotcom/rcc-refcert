@@ -174,6 +174,7 @@ def test_equivalent_roundoff_record_completes_full_handoff(tmp_path, kind, unifo
         "original_digest",
         "repair_marker",
         "negative_perturbation",
+        "incorrect_perturbation",
         "over_budget",
     ],
 )
@@ -201,6 +202,8 @@ def test_rehashed_derived_record_tampering_is_rejected(tmp_path, kind, change):
             diagnostic["repair_applied"] = not diagnostic["repair_applied"]
         elif change == "negative_perturbation":
             diagnostic["perturbation_trace_norm_half"] = -1e-16
+        elif change == "incorrect_perturbation":
+            diagnostic["perturbation_trace_norm_half"] += 1e-12
         elif change == "over_budget":
             state["data"][0][0][0] += 1e-7
             state["data"][1][1][0] -= 1e-7
