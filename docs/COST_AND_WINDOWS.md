@@ -159,11 +159,16 @@ reference-preserving effective state on the full space is
 `rho_A ⊗ I_B/d_B`, whose entropy is `S(rho_A) + log2(d_B)`. Its full-space
 entropy deficit equals the reported subsystem deficit.
 
+### Choose a probe
+
 | Probe | Physical question | What to inspect |
 |---|---|---|
-| `w1-quantum-organization` | How do paired Bell modules and a GHZ state organize the same global purity? | At Gamma=4, windows 12/13/34 give (1,0,1) versus (1/2,1/2,1/2). |
-| `w2-noise-distribution` | Where is phase noise concentrated when global entropy is held fixed? | Both states have entropy 1 bit and global C=3/2; module values are (1/2,1) versus (3/4,3/4), with the cross window as a null control. |
-| `w3-cooling-trajectory` | How do bath refresh and reversible compression change local structure? | Follow target purity, bath entropy and classical correlation along the same candidate; Gamma=3 comes from its model. |
+| W1 · Quantum organization | How do paired Bell modules and a GHZ state organize the same global purity? | At Gamma=4, windows 12/13/34 give (1,0,1) versus (1/2,1/2,1/2). |
+| W2 · Noise distribution | Where is phase noise concentrated when global entropy is held fixed? | Both states have entropy 1 bit and global C=3/2; module values are (1/2,1) versus (3/4,3/4), with the cross window as a null control. |
+| W3 · Cooling trajectory | How do bath refresh and reversible compression change local structure? | Follow target purity, bath entropy and classical correlation along the same candidate; Gamma=3 comes from its model. |
+
+Use `probe list` to see their command IDs: `w1-quantum-organization`,
+`w2-noise-distribution` and `w3-cooling-trajectory`, respectively.
 
 The values in the table use the default parameters, with Gamma=4 for W1 and
 W2. That Gamma is a declared comparison scale; W3 derives Gamma=3 from its
@@ -181,6 +186,8 @@ parameters={...})` regenerates a parameterized instance and its identity; use
 `mixing` or `gamma` for W1, `concentrated_probability` or `gamma` for W2, and
 `p` or `cycles` for W3. The instance digest identifies the declared probe
 parameters; the separate request digest identifies the actual edited inputs.
+
+### Follow a preparation trajectory
 
 W3 is a preparation task, so send its request to **`cost analyze`**:
 
@@ -209,6 +216,8 @@ and resets target–bath correlation, while reversible compression redistributes
 the deficit at a fixed global spectrum. Changing `p` changes the bath model,
 and changing `cycles` changes the target construction. Keep the model, target
 and tolerance fixed when comparing candidate costs.
+
+### Read correlations and window values
 
 A declared bipartition A|B reports
 `C_global = C_A + C_B + I(A:B)/g` and a numerical decomposition residual.
@@ -314,6 +323,8 @@ trajectories require one compatible control-block layout.
 
 ## Reports, limits and revalidation
 
+### Export reports and plots
+
 Text, JSON and Markdown present the same stored result. Text wraps at 80
 columns by default; `--width 120` changes presentation only. Optional graphics
 and CSV come from saved window quantities:
@@ -330,6 +341,8 @@ Missing optional plotting dependencies preserve the computed scientific result
 and mark the presentation step partial. Output files are exclusive by default;
 `--overwrite` explicitly selects atomic replacement. Inputs and output paths
 must remain distinct.
+
+### Computation budgets
 
 | Budget | Default |
 |---|---:|
@@ -359,6 +372,8 @@ increasing the resource budget does not resolve it. If the main cost analysis
 is already partial, it retains its original reason and the window result
 reports its own status separately.
 
+### Execution status
+
 New CLI analysis exits: 0 completed, 1 partial, 2 invalid or unsupported input,
 3 preflight resource limit, 130 interrupted. A fresh run identifier accompanies
 each result or failure. A failed candidate alone does not mean failed execution.
@@ -366,6 +381,8 @@ An unresolved numerical input or tolerance comparison returns a partial result
 and exit 1. A definite numerical candidate miss remains a completed analysis.
 If bundle saving fails after calculation, the CLI still delivers the scientific
 result, records the delivery error and exits 1.
+
+### Share and reverify a workflow
 
 Workflow bundles use container schema 2. `inspect` checks archive integrity,
 object bindings and stored-result consistency; it does not rerun the physical
