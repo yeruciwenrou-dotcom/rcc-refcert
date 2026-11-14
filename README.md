@@ -306,7 +306,7 @@ print(result.gain_cost.outcome.value)
 ```
 
 The values are `True`, `15/14` numerically, and `"fail"` for the deliberately
-failed local test described above. The model still passes its supplied
+failed local test in the [reference cases](#reference-cases). The model still passes its supplied
 Bellman–Choi and reference-potential certificate checks.
 
 The [model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/9fd559dd8db9a8a08b6725eb9af64e93fe3f10ea/docs/MODEL_GUIDE.md) shows how to build a model with `Action`
