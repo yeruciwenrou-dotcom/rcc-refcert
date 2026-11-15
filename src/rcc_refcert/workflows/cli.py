@@ -27,7 +27,10 @@ from .templates import load_workflow_template
 def add_commands(commands):
     for name, help_text in (
         ("cost", "bound preparation cost and check complete programs"),
-        ("window", "analyze quantum-state windows and correlations"),
+        (
+            "window",
+            "analyze subsystem entropy and correlations in pure and mixed states",
+        ),
     ):
         parent = commands.add_parser(name, help=help_text, description=help_text)
         sub = parent.add_subparsers(dest="workflow_command", required=True)

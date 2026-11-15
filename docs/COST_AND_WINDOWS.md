@@ -1,17 +1,19 @@
-# Preparation cost and state windows
+<a id="preparation-cost-and-state-windows"></a>
+
+# Preparation costs and quantum-state structure
 
 How much does a preparation cost in a specified model, and where is the
 resulting structure stored? The cost workflow bounds the optimum and checks
-candidate programs against a complete target. State windows then reveal how
-information and correlation are distributed across its subsystems. You can
-analyze states directly or follow a preparation step by step, and share either
-calculation for independent revalidation.
+candidate programs against a complete target. Subsystem analysis reveals how
+entropy and correlations are distributed within pure and mixed states. You
+can analyze states directly or follow a preparation step by step, and share
+either calculation for independent revalidation.
 
 | Your question | Start here |
 |---|---|
 | Does a candidate reach my target, and how close is its cost to optimal? | [A complete cost task](#a-complete-cost-task) |
 | How does changing the tolerance affect the result? | [Cost tasks](#a-complete-cost-task) and [candidate comparisons](#candidate-comparisons) |
-| Which subsystem windows reveal a structural difference? | [State windows and probes](#state-windows-and-probes) |
+| Where do entropy and correlations differ between quantum states? | [Subsystem entropy and correlations](#subsystem-entropy-and-correlations) |
 | How do I analyze my own state or model? | [Matrix inputs](#your-own-matrix-and-tensor-labels) and [numerical models](#numerical-models-and-candidate-diagnostics) |
 | How do I save, share and verify the calculation? | [Reports and revalidation](#reports-limits-and-revalidation) |
 
@@ -132,7 +134,17 @@ The comparison API accepts an explicit `criterion={"additive_gap": 1}` or
 to each eligible row. Comparisons read supplied result records; shared evidence
 can be reverified using its complete bundle.
 
-## State windows and probes
+<a id="state-windows-and-probes"></a>
+
+## Subsystem entropy and correlations
+
+A **subsystem window** selects the part of a quantum state to examine. In
+this implementation, it retains a chosen set of tensor factors and traces out
+the rest. The reduced-state entropy and its deficit relative to the uniform
+reference show how structure is distributed within a pure or mixed state;
+bipartitions also resolve the total correlation between their two parts.
+The [scientific scope](SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
+connects these subsystem reductions to RCC's reference-compatible windows.
 
 Start with a probe whose question matches the structure you want to study.
 Each installed probe pairs a physical question with explicit states or a

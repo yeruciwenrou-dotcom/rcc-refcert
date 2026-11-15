@@ -156,7 +156,7 @@ are exact. For a complete bipartition, the decomposition is
 $C_{AB}=C_A+C_B+I(A:B)/g_R$. On mixed states, $I(A:B)$ measures total
 correlation, including classical correlation in the cooling examples.
 
-The [cost and window guide](COST_AND_WINDOWS.md) gives editable reset and
+The [preparation costs and quantum-state structure guide](COST_AND_WINDOWS.md) gives editable reset and
 cooling tasks, state comparisons and trajectory probes. The model's reference,
 transcription and family conditions retain their roles in the universal
 complexity argument.
