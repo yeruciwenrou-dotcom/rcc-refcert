@@ -19,8 +19,8 @@ The toolkit implements selected parts of **Reference-Contingent Complexity
 Understanding the cost of preparing a quantum state requires accounting for
 the resources already supplied by its physical background.
 The same quantum state may be supplied by one physical background and require
-entropy removal and control in another. **Structural fairness** makes this
-distinction explicit: structure stably supplied by the background sets the
+entropy removal and control in another. RCC introduces **structural fairness
+as a physical postulate**: structure stably supplied by the background sets the
 reference zero point, while the operations and resources that generate
 additional target-directed structure are counted. Within an admissible model,
 **RCC** proves a rigorous lower bound on universal optimal quantum circuit
