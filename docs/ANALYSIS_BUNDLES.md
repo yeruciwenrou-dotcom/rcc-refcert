@@ -7,7 +7,7 @@ the calculation without the author's modeling script.
 | Calculation | Bundle contents | Reader version |
 |---|---|---|
 | Model certificates and terminal-state bounds | Model and proof arrays, numerical controls, requests and historical results; container schema 1 | 0.2.0 or later |
-| Preparation costs and state windows | Complete effective requests, exact recipes or numerical inputs, candidates, windows and historical results; container schema 2 | 0.3 source series |
+| Preparation costs and state windows | Complete effective requests, exact recipes or numerical inputs, candidates, windows and historical results; container schema 2 | 0.3.0 or later |
 
 Use a bundle when handing results to a collaborator, preserving a calculation
 for review, or comparing numerical environments. The existing bound record
@@ -17,9 +17,10 @@ the complete model and proof arrays.
 ## Reverify a bundle you received
 
 Use the producer version supplied with the `.rccbundle` file, or a compatible
-later reader. For cost and window bundles, follow the
-[0.3 source quickstart](../README.md#quick-start); the published 0.2.0 reader
-supports schema 1. Replace `received.rccbundle` with your file's path:
+later reader. For cost and window bundles, install version 0.3.0 or later from
+[PyPI](../README.md#install-from-pypi) or the
+[source quickstart](../README.md#quick-start). Replace `received.rccbundle`
+with your file's path:
 
 ```bash
 python -m rcc_refcert bundle inspect received.rccbundle
