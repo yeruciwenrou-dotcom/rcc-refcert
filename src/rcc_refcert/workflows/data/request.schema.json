@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/yeruciwenrou-dotcom/rcc-refcert/request.schema.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "schema_version",
+    "kind"
+  ],
+  "properties": {
+    "schema": {
+      "const": "rcc-refcert.workflow-request"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "kind": {
+      "enum": [
+        "cost_analysis",
+        "window_analysis"
+      ]
+    },
+    "mode": {},
+    "model": {},
+    "target": {},
+    "epsilon": {},
+    "candidates": {},
+    "max_cost": {},
+    "gain_certificate": {},
+    "limits": {},
+    "epsilon_values": {},
+    "trajectory": {},
+    "windows": {},
+    "probe": {},
+    "states": {},
+    "reference": {},
+    "partition": {}
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cost_analysis"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "mode",
+          "model",
+          "target",
+          "epsilon",
+          "candidates",
+          "max_cost"
+        ],
+        "properties": {
+          "mode": {
+            "enum": [
+              "exact",
+              "numerical"
+            ]
+          },
+          "max_cost": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "states",
+          "reference",
+          "windows"
+        ],
+        "properties": {
+          "states": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 256
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 # From model qualification to an RCC lower bound
 
 The paired-reset example gives one minimal, reproducible path from a
-structure-fair physical model to a numerical lower bound on quantum circuit
+structure-fair physical model to a rigorous lower bound on quantum circuit
 complexity $C_{\rm opt}^{(\epsilon)}$. Every state, channel, codeword, cost constant,
 and theorem input is visible in one small construction. Section and equation
 references follow manuscript version 4; see the [paper map](PAPER_MAP.md) for
@@ -89,9 +89,9 @@ semantics and obtains:
 | nonhalting mass | $0$ |
 | transient spectral radius | $0$ |
 | minimum fixed-model constant $C^\star$ in $M_U\preceq C^\star\sigma_R$ | $1$ |
-| supplied H.3 Bellman–Choi certificate | pass, candidate $1$; numerical upper constant includes its error budget |
-| supplied H.4 reference-potential certificate | pass, candidate $1$; numerical upper constant includes its error budget |
-| H.77 aggregate-balance residual | $0$ |
+| supplied Bellman–Choi certificate (H.3) | pass, candidate constant $1$; numerical upper constant includes its error budget |
+| supplied reference-potential certificate (H.4) | pass, candidate constant $1$; numerical upper constant includes its error budget |
+| aggregate-balance residual (H.77) | $0$ |
 
 The declared complete program domain is `0`, `1`. Its exact analytic identity
 $M_U=\sigma_R$ gives the semantic reference constant $C_U=1$ and
@@ -141,17 +141,20 @@ tightness.
 | Analytic model declaration | fixes the physical reference and resource meaning (`RCon`), identifies all admissible histories and their exact prefix-free transcription (`TC`), and identifies the enumerated set as the complete program domain used by `RA` |
 | RCC theorem and explicit witness | the theorem converts the one-bit, one R-structon (`st_R`) endpoint gap and fixed model constants into the lower bound through Section III, Theorem 3.1; Appendix A supplies the canonical inversion; the one-slot target-preparation program supplies the matching upper bound |
 
-## How the H.70 diagnostic relates to the final inference
+<a id="how-the-h70-diagnostic-relates-to-the-final-inference"></a>
+
+## Local gain–cost test and the final bound
 
 Each directed reset has reference gain $2$. With the original one-bit local
-codewords, the sufficient H.70 sum is
+codewords, the code-weighted gain–cost sum (H.70) is
 
 $$
 2^{-1}\times2+2^{-1}\times2=2,
 $$
 
-so that local sufficient route fails. H.76 suggests two-bit codewords and
-reduces its diagnostic sum to $1$. The lower-bound derivation above keeps the
+so that local sufficient route fails. The sufficient prefix-code construction
+(H.76) suggests two-bit codewords and reduces its diagnostic sum to $1$.
+The lower-bound derivation above keeps the
 original one-bit codewords. It uses the exact complete-domain identity
 $M_U=\sigma_R$ and the aggregate H.77 balance of the paired actions, which
 establish the reference condition for this model despite the H.70 failure.

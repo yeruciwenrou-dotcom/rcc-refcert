@@ -9,7 +9,7 @@
   },
   "producer": {
     "name": "rcc-refcert",
-    "version": "0.2.0"
+    "version": "0.3.0.dev5"
   },
   "schema": "rcc-refcert.reference-suite-freeze",
   "schema_version": 2,
@@ -752,7 +752,7 @@
       },
       {
         "case": {
-          "interpretation": "The original local codewords intentionally fail the sufficient condition in Eq. (H.70); Eq. (H.76) supplies a passing re-encoding.",
+          "interpretation": "The original codewords fail the local gain–cost sufficient condition in Eq. (H.70), while the supplied reference certificates pass. The proposed prefix code (H.76) meets the local criterion for a separately re-encoded model.",
           "kind": "diagnostic",
           "name": "multiblock-rectangular",
           "paper_references": [
@@ -762,7 +762,7 @@
             "H.4",
             "H.6"
           ],
-          "purpose": "Exercises direct-sum ordering, unequal block dimensions, rectangular Kraus maps, and nontrivial H.3–H.6 certificates.",
+          "purpose": "Exercises direct-sum ordering, unequal block dimensions, rectangular Kraus maps, reference certificates and local gain–cost tests.",
           "title": "Multiblock rectangular process"
         },
         "checks": {
@@ -1453,7 +1453,7 @@
       },
       {
         "case": {
-          "interpretation": "The full transient spectral radius is one. The least fixed-point semantics remains valid, while the Neumann/linear-inverse route reaches its boundary. Eq. (H.34) therefore awaits the completed semidensity rather than using a finite truncation.",
+          "interpretation": "The full transient spectral radius is one. The least fixed-point semantics remains valid, while the Neumann/linear-inverse route reaches its boundary. The minimum reference-domination constant (H.34) remains unevaluated by this method; a finite truncation alone does not determine it.",
           "kind": "boundary",
           "name": "dark-nonhalting",
           "paper_references": [

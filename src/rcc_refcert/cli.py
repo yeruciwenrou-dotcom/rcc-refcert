@@ -73,7 +73,7 @@ def _add_numerical_arguments(parser: argparse.ArgumentParser) -> None:
         "--max-depth",
         type=_positive_int,
         default=8,
-        help="largest action depth used in the H.1 realization check (default: 8)",
+        help="maximum action depth for checking the model realization identity (default: 8)",
     )
     parser.add_argument(
         "--truncation-steps",
@@ -81,8 +81,8 @@ def _add_numerical_arguments(parser: argparse.ArgumentParser) -> None:
         type=_nonnegative_int,
         default=16,
         help=(
-            "largest number of transient continuations included in the H.2 "
-            "partial sum (default: 16)"
+            "maximum number of transient continuations in the partial sum "
+            "over terminating programs (default: 16)"
         ),
     )
     parser.add_argument(
@@ -107,8 +107,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="rcc-refcert",
         description=(
-            "Construct and audit finite-control RCC semidensities, reference "
-            "certificates, and gain-cost assignments."
+            "Study structure-fair quantum circuit complexity: compute lower "
+            "bounds, check preparation costs, analyze state windows, and "
+            "verify finite-control models and reference certificates."
         ),
     )
     parser.add_argument(
@@ -122,7 +123,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_format_argument(examples)
 
     example = commands.add_parser(
-        "example", help="run one model and all proof objects supplied for it"
+        "example", help="analyze a bundled model and check its supplied certificates"
     )
     example.add_argument("name", choices=case_names(), help="stable case name")
     example.add_argument(
@@ -169,17 +170,31 @@ def build_parser() -> argparse.ArgumentParser:
     )
     template.add_argument("name", choices=("spectrum", "counts", "protocol"))
     template.set_defaults(output_format="json", details=False)
-    for name in ("spectrum", "counts", "prepare-protocol", "replay"):
-        command = bound_commands.add_parser(name)
-        command.add_argument("input", type=Path)
-        command.add_argument("--details", action="store_true")
+    for name, help_text in (
+        ("spectrum", "compute a lower bound from a complete exact spectrum"),
+        ("counts", "compute a lower bound from fixed-projector counts"),
+        ("prepare-protocol", "freeze the measurement protocol before acquisition"),
+        ("replay", "recompute and compare a saved scalar bound record"),
+    ):
+        command = bound_commands.add_parser(name, help=help_text, description=help_text)
+        command.add_argument(
+            "input", type=Path, help="JSON request or saved replay record"
+        )
+        command.add_argument(
+            "--details", action="store_true", help="include calculation diagnostics"
+        )
         _add_format_argument(command)
     bundle = commands.add_parser(
-        "bundle", help="inspect and revalidate complete model/certificate evidence"
+        "bundle", help="inspect or independently reverify a saved analysis"
     )
     bundle_commands = bundle.add_subparsers(dest="bundle_command", required=True)
-    for name in ("inspect", "verify"):
-        command = bundle_commands.add_parser(name)
+    for name, help_text in (
+        ("inspect", "check archive integrity and stored result consistency"),
+        ("verify", "recompute the saved analysis and compare its results"),
+    ):
+        command = bundle_commands.add_parser(
+            name, help=help_text, description=help_text
+        )
         command.add_argument("input", type=Path, help="saved analysis bundle")
         command.add_argument("--output", type=Path, help="save JSON to a new file")
         command.add_argument(
@@ -193,9 +208,12 @@ def build_parser() -> argparse.ArgumentParser:
                 "--tolerance",
                 type=_positive_float,
                 default=None,
-                help="explicitly override the stored error budget",
+                help="override the stored error budget for a schema-1 certificate bundle",
             )
         _add_format_argument(command)
+    from .workflows.cli import add_commands
+
+    add_commands(commands)
     return parser
 
 
@@ -298,6 +316,10 @@ def _run_reproduce(
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     arguments = parser.parse_args(argv)
+    if arguments.command in {"cost", "window", "probe"}:
+        from .workflows.cli import run
+
+        return run(arguments)
     if arguments.command == "bound":
         from .bounds.cli import run
 

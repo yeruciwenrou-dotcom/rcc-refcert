@@ -16,6 +16,30 @@ def _constant(value: str) -> str:
 
 
 def render_bundle_report(report: dict) -> str:
+    if report.get("schema_version") == 2:
+        lines = [
+            "RCC workflow evidence",
+            f"Task: {report['kind']}",
+            f"Stored record consistency: {report['record_consistency']}",
+        ]
+        if report["schema"] == "rcc-refcert.bundle-inspection":
+            lines.extend(
+                [
+                    f"Historical decision: {report['historical_decision']}",
+                    "Physical recomputation: not run",
+                ]
+            )
+        else:
+            from .workflows.render import render_workflow_result
+
+            lines.extend(
+                [
+                    f"Independent recomputation: {report['fresh_verification']['outcome']}",
+                    f"Historical results supported: {report['historical_results_supported']}",
+                    render_workflow_result(report["fresh_result"]).rstrip(),
+                ]
+            )
+        return "\n".join(lines) + "\n"
     lines = [
         "RCC analysis evidence",
         f"Model: {report['model']}",

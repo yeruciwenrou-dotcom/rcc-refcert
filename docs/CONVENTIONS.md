@@ -2,7 +2,10 @@
 
 These conventions determine every numerical result. A change here requires the
 convention tests, the multiblock regression, the negative certificate tests, and
-the frozen report to be rerun.
+the frozen report to be rerun. These sections describe the finite-control
+matrix and certificate kernel. Exact cost recipes use unweighted physical
+channels; their target basis, tensor order, slot costs and window conventions
+are described in [cost and state windows](COST_AND_WINDOWS.md).
 
 ## Spaces, support, and block order
 
@@ -121,7 +124,7 @@ the tested residual matrix as well as its scalar diagnostic. A local tolerance
 check alone does not control the final domination constant: slowly halting
 dynamics can amplify a small local deficit by a large absolute factor.
 
-The H.3 verifier first raises each Choi block by
+The Bellman–Choi verifier (H.3) first raises each Choi block by
 $p_x I_{\rm in}\otimes\sigma_R$ to cover its PSD deficit. It bounds the remaining
 Bellman deficit by $e_x I_{\rm in}\otimes\sigma_R$ and each continuation effect
 by $B_{xy}I_{\rm in}$. A nonnegative correction satisfying
@@ -129,8 +132,8 @@ $d\ge e+Bd$ then gives a corrected CP supersolution. The initial-state load of
 $p+d$, together with the output-domination deficit, bounds the correction to
 the candidate constant.
 
-The H.4 verifier converts local matrix deficits to increases in $a$, $A$, and
-$b$, using lower estimates of the reference and envelope eigenvalues. For the
+The reference-potential verifier (H.4) converts local matrix deficits to increases
+in $a$, $A$, and $b$, using lower estimates of the reference and envelope eigenvalues. For the
 raised coefficients it solves
 
 $$
@@ -148,9 +151,12 @@ If a correction cannot be resolved, or exceeds `tol * max(1, candidate)`, the
 result is `inconclusive` and supplies no usable constant. A passing report
 reserves the accepted budget in its returned upper constant.
 
-### H.6 gain–cost boundaries
+<a id="h6-gaincost-boundaries"></a>
 
-The H.70 threshold is one. Upper gain estimates include branch-map formation
+### Local gain–cost boundaries (H.6)
+
+The local code-weighted gain–cost condition (H.70) has threshold one.
+Upper gain estimates include branch-map formation
 and spectral-residual allowances, scaled by the reference eigenvalue floor.
 A lower estimate above one rejects the local condition; an upper estimate at
 most one accepts it. Overlap with the boundary gives `inconclusive`.
@@ -160,8 +166,8 @@ column admit exact rational gain evaluation on the supplied binary values.
 This preserves resolved equality cases. Scalar gain sums, prefix weights and
 the ceilings in H.76 use rational comparisons, so floating-point logarithms
 cannot shorten a suggested code at a power-of-two boundary. General matrix
-estimates may require a longer sufficient code. Re-encoding leaves the supplied
-model unchanged. A numerical basis change or Kraus mixing can turn a resolved
+estimates may require a longer sufficient code. Computing suggested codewords
+leaves the supplied model unchanged. A numerical basis change or Kraus mixing can turn a resolved
 equality into an inconclusive boundary and increase the suggested integer
 length, while the underlying gain estimates agree within numerical precision.
 

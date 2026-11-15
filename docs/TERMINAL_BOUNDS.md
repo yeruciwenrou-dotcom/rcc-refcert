@@ -9,6 +9,11 @@ model's reference and cost assumptions. The
 explains how reference consistency, faithful transcription and reference
 admissibility qualify the resulting cost bound.
 
+To check a complete preparation program and combine exclusion with a feasible
+upper endpoint, use the [cost workflow](COST_AND_WINDOWS.md#a-complete-cost-task).
+The spectrum and counts routes in this guide provide lower bounds from
+terminal-state evidence.
+
 ## First calculation
 
 Follow the [source quickstart](../README.md#quick-start), then run these
@@ -49,7 +54,7 @@ interpreter that runs the package.
 Declare the reference dimension, the number of distinct physical atomic
 action classes, exact-transcription constants, a reference-domination upper
 constant and their sources. Counting syntax actions alone does not establish
-the physical action count. The initial implementation uses a uniform reference
+the physical action count. The calculator uses a uniform reference
 on the declared ideal support and normalized trace distance. Approximate
 transcription, uncertain support, nonuniform references and readout corrections
 need different contracts and are not accepted here.
@@ -115,8 +120,9 @@ Before collecting data, prepare and preserve an acquisition protocol:
 
 The protocol binds the task, witness ID, projector rank, fixed sample size and
 statistical failure budget. Preserve its full digest with the dataset. The
-calculator supports a predeclared projector, fixed-N iid sampling, ideal
-readout and no leakage. It does not support choosing the projector on the same
+calculator supports a predeclared projector, independent and identically
+distributed sampling with a fixed sample size, ideal readout and no leakage.
+It does not support choosing the projector on the same
 data, optional stopping, correlated samples or post hoc changes to the failure
 budget. Hashes check identity, not the chronology or truth of those premises.
 
@@ -170,18 +176,22 @@ A pure target at zero tolerance has continuous bound $2/3$ and integer
 bound one. Every named target has a constructive one-slot upper witness, but
 the calculator does not infer reachability for arbitrary user targets.
 
-## Connect an H.3 or H.4 proof object
+<a id="connect-an-h3-or-h4-proof-object"></a>
 
-`with_reference_certificate(task, model, certificate, source=...)` verifies
-the supplied `BellmanChoiCertificate` or `ReferencePotentialCertificate` on
-that actual finite-control model. The task model ID must match the model name,
+## Use a reference certificate in a bound calculation
+
+`with_reference_certificate(task, model, certificate, source=...)` checks a
+Bellman–Choi certificate (H.3) or reference-potential certificate (H.4) against
+the supplied finite-control model. These are represented by
+`BellmanChoiCertificate` and `ReferencePotentialCertificate`, respectively.
+The task model ID must match the model name,
 the dimensions must match, and the reference matrix must be the nominal uniform
 state. The returned task records hashes of the actual binary model and proof
 object, the numerical evidence level, tolerance, method and source.
 
-The fixed eight-output model supplies a small runnable example. Build an H.3
-candidate from its linear value map, then let the adapter verify it and bind
-the resulting upper constant to a new spectrum task:
+The fixed eight-output model supplies a small runnable example. Build a
+Bellman–Choi candidate from its linear value map, then let the adapter verify
+it and bind the resulting upper constant to a new spectrum task:
 
 ```python
 from rcc_refcert import BellmanChoiCertificate, linear_value_choi_envelopes

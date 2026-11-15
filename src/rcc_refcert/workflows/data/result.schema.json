@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/yeruciwenrou-dotcom/rcc-refcert/result.schema.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "schema_version",
+    "kind",
+    "run_id",
+    "producer",
+    "original_request",
+    "effective_request",
+    "digests",
+    "execution",
+    "decision",
+    "evidence"
+  ],
+  "properties": {
+    "schema": {
+      "const": "rcc-refcert.workflow-result"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "kind": {
+      "enum": [
+        "cost_analysis",
+        "window_analysis"
+      ]
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "state",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "completed",
+            "partial"
+          ]
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cost_analysis"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "cost",
+          "candidates",
+          "gain_bound",
+          "epsilon_scan"
+        ]
+      },
+      "else": {
+        "required": [
+          "profiles",
+          "reference"
+        ]
+      }
+    }
+  ],
+  "description": "Structural schema; runtime validators enforce exact arithmetic, physical, identity, resource and historical-consistency contracts."
+}

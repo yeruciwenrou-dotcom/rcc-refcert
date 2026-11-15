@@ -92,7 +92,7 @@ CASES: tuple[CaseStudy, ...] = (
         title="Multiblock rectangular process",
         purpose=(
             "Exercises direct-sum ordering, unequal block dimensions, rectangular "
-            "Kraus maps, and nontrivial H.3–H.6 certificates."
+            "Kraus maps, reference certificates and local gain–cost tests."
         ),
         paper_references=("H.1", "H.2", "H.3", "H.4", "H.6"),
         kind=CaseKind.DIAGNOSTIC,
@@ -109,8 +109,10 @@ CASES: tuple[CaseStudy, ...] = (
             (H6_GAIN_COST, CheckOutcome.FAIL),
         ),
         interpretation=(
-            "The original local codewords intentionally fail the sufficient "
-            "condition in Eq. (H.70); Eq. (H.76) supplies a passing re-encoding."
+            "The original codewords fail the local gain–cost sufficient "
+            "condition in Eq. (H.70), while the supplied reference certificates pass. "
+            "The proposed prefix code (H.76) meets the local criterion for "
+            "a separately re-encoded model."
         ),
     ),
     CaseStudy(
@@ -131,8 +133,9 @@ CASES: tuple[CaseStudy, ...] = (
         interpretation=(
             "The full transient spectral radius is one. The least fixed-point "
             "semantics remains valid, while the Neumann/linear-inverse route reaches "
-            "its boundary. Eq. (H.34) therefore awaits the completed semidensity "
-            "rather than using a finite truncation."
+            "its boundary. The minimum reference-domination constant (H.34) "
+            "remains unevaluated by this method; a finite truncation alone "
+            "does not determine it."
         ),
     ),
 )

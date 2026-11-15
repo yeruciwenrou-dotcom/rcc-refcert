@@ -1,0 +1,14 @@
+{
+  "schema": "rcc-refcert.workflow-request",
+  "schema_version": 1,
+  "kind": "cost_analysis",
+  "mode": "exact",
+  "model": {"preset": "cyclic_reset", "parameters": {"qubits": 4, "p": "19/20"}},
+  "target": "preset_default",
+  "epsilon": "1/10",
+  "candidates": "preset_defaults",
+  "max_cost": 32,
+  "trajectory": false,
+  "epsilon_values": [],
+  "limits": {"max_dp_cells": 100000, "max_dp_updates": 1000000, "max_fraction_bits": 65536, "max_candidate_steps": 10000, "max_trajectory_states": 256, "max_windows": 256, "max_matrix_elements": 1048576}
+}

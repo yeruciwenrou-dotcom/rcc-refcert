@@ -1,5 +1,10 @@
 # Output contract
 
+Use the command's schema and evidence fields to interpret a result. Package
+versions, JSON result versions and bundle-container versions identify
+different objects. This guide covers the reference checks, terminal-state
+bounds, shared bundles and [cost/window results](#workflow-results).
+
 ## Terminal and JSON modes
 
 The `examples`, `example`, and `reproduce` commands default to reader-facing
@@ -79,8 +84,9 @@ inconclusive, or was not applicable.
 ## Outcomes and expectations
 
 Finite-control checks report `outcome` and `evidence` separately. A bundled case also records
-`expected_outcome` and `matches_expectation`. This is how an intentional H.70
-failure remains machine-distinguishable from an unexpected regression.
+`expected_outcome` and `matches_expectation`. This is how an intentional
+failure of the local gain–cost test (H.70) remains machine-distinguishable
+from an unexpected regression.
 
 The complete case or suite result is summarized by
 `matches_reference_expectations`. Consumers should use that field for the
@@ -93,7 +99,8 @@ JSON represents unavailable or non-finite scalars as `null`; fields such as
 Tolerances and residuals are carried either in the run parameters or alongside
 their individual check.
 
-H.3 and H.4 reports carry these fields in both summary and detailed JSON:
+Bellman–Choi (H.3) and reference-potential (H.4) certificate reports carry
+these fields in both summary and detailed JSON:
 
 | field | meaning |
 |---|---|
@@ -109,7 +116,7 @@ while this final check remains `inconclusive`. Consumers must inspect `outcome`
 and use `constant` for a passing bound. See [CONVENTIONS.md](CONVENTIONS.md)
 for the propagation method and its numerical evidence level.
 
-H.34 reports `constant_estimate`, `constant_error_estimate`,
+The minimum reference-domination calculation (H.34) reports `constant_estimate`, `constant_error_estimate`,
 `constant_upper_bound`, `reference_rank`, `reference_condition_number`, and
 `message`. `constant` is the accepted point estimate, retained for API
 compatibility; it is `null` when the checks are unresolved. An evaluated
@@ -121,7 +128,7 @@ If a small positive eigenvalue leaves support unresolved, `constant`,
 `support_compatible`, and `constant_is_infinite` are all `null`. An infinite
 constant requires a positive-mass witness in an established exact kernel.
 
-H.2 reports `output_valid`, `assembly_error_estimate`, and
+The linear fixed-point calculation (H.2) reports `output_valid`, `assembly_error_estimate`, and
 `output_error_estimate` alongside its solve diagnostics. Matrix assembly,
 formation of `I-T`, the solve, and output multiplication enter the propagated
 error estimate. An unresolved solve, invalid output, or output-error estimate
@@ -140,7 +147,8 @@ as full rank, this check returns `inconclusive`, with `constant` and
 `support_compatible` both `null`. Omitting the input error or setting it to zero
 retains the support diagnostics for the supplied matrix.
 
-H.6 reports `current_outcome` and `suggested_outcome` for each syntax state.
+The local gain–cost analysis (H.6) reports `current_outcome` and
+`suggested_outcome` for each syntax state.
 Their `*_condition_satisfied` flags are true only for `pass`; a false flag can
 mean `fail` or `inconclusive`. Gain and weighted-sum estimates are accompanied
 by `reference_gain_upper`, `current_weighted_sum_upper`, and
@@ -200,7 +208,7 @@ A completed zero bound exits 0; rejected inputs, unsupported contracts,
 resource limits, replay mismatches, and partial calculations exit 2.
 Deterministic spectrum records have no sampling confidence. Counts records
 state the one-sided coverage under the declared sampling model. All process
-bounds remain conditional on declared model premises. See
+bounds use the declared model premises. See
 [Terminal-state bounds](TERMINAL_BOUNDS.md) for the complete input, arithmetic,
 statistical, and replay contract.
 
@@ -210,11 +218,13 @@ statistical, and replay contract.
 revalidation. `bundle verify` independently checks the saved model and proof,
 then reports fresh numerical evidence and support for historical results. Their
 JSON reports use `rcc-refcert.bundle-inspection` and
-`rcc-refcert.bundle-verification`, each with `schema_version: 1`. These report
+`rcc-refcert.bundle-verification`. Certificate bundles produce reports with
+`schema_version: 1`; cost and window bundles use version 2. These report
 schemas are separate from the analysis-bundle container and bound-record
 schemas.
 
-Stored-history validation requires a nonempty check list. A passing report
+For schema-1 certificate bundles, stored-history validation requires a
+nonempty check list. A passing report
 must contain only passing checks, a finite nonnegative usable constant, and
 finite nonnegative candidate and error diagnostics; its usable constant cannot
 be below its candidate. These three values must have exact finite binary64
@@ -245,3 +255,49 @@ omitted` marker. These are diagnostic summaries; resource comparisons continue
 to use exact integers. A summary cannot be reused as a computation budget.
 Stored analysis controls and scientific records keep
 their exact representations and existing storage limits.
+
+## Workflow results
+
+Cost and window analyses use `rcc-refcert.workflow-result`, schema version 1,
+and bundle container version 2. Text, Markdown and JSON are views of the same
+result. Human-readable labels do not change the JSON decision values.
+
+| Field | Interpretation |
+|---|---|
+| `effective_request` | Complete inputs used for the calculation, including expanded recipes and saved controls |
+| `digests` | Identity of the effective request and, for costs, its model, full target, reference and task |
+| `evidence` | Exact rational cost evidence and/or numerical candidate and entropy evidence |
+| `execution` | Whether the requested computation completed, and any reason it stopped early |
+| `decision` | Scientific conclusion supported by the available evidence |
+| `run_id` | Identity of this execution, kept separate from the task identity |
+
+Cost results place the endpoints, interval and candidate-overhead bounds in
+`cost`. Exact rational evidence supports `certified_optimal` when endpoints
+coincide, `certified_interval` when a gap remains, or `lower_bound_only` when
+no supplied feasible candidate establishes an upper endpoint.
+`numerical_analysis` records numerical candidate diagnostics;
+`evidence_conflict` yields no valid interval. Candidate results retain their
+own legality, distance and target-satisfaction fields.
+
+Window results contain the global quantity, subsystem profiles, reference
+scale and any bipartition decomposition. `window_analysis` denotes an
+evaluated numerical profile; `numerical_unresolved` identifies unresolved
+state-input checks. Exact state probabilities still produce numerical
+logarithmic entropies.
+
+The `cost analyze` and `window analyze` exit codes describe execution:
+
+| Code | Meaning |
+|---:|---|
+| 0 | Analysis completed |
+| 1 | Analysis or requested presentation completed only in part |
+| 2 | Invalid or unsupported input, or an output-file error |
+| 3 | Preflight resource limit |
+| 130 | Interrupted execution |
+
+A completed analysis may contain an unsuccessful candidate or a cost interval
+whose endpoints differ. Those are scientific results, not execution failures. Saved-result
+comparisons use `rcc-refcert.cost-comparison`, schema version 1, and retain
+whether the full tasks and tolerances match. See the
+[workflow guide](COST_AND_WINDOWS.md#reports-limits-and-revalidation) for
+resource behavior, output files and independent revalidation.

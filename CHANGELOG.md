@@ -1,16 +1,64 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 development series
 
-- Improve documentation and navigation.
+Preparation-cost and subsystem-window workflows extend the existing model,
+certificate and terminal-state tools. The main additions are complete-target
+cost comparisons, editable state probes and shared workflow evidence.
+
+### Preparation costs
+
+- Evaluate preparation-cost intervals for complete targets in declared exact
+  channel models. Verified gain bounds exclude smaller budgets; executed
+  candidate programs supply feasible upper bounds, with halt included in cost.
+- Compare programs and scan accuracy requirements using editable cyclic-reset
+  and algorithmic-cooling tasks. Existing `FiniteControlModel` inputs can also
+  be used for numerical candidate diagnostics.
+
+### State windows and research probes
+
+- Analyze subsystem entropy deficits and total correlations from state data or
+  a candidate program's trajectory. Three editable probes explore the
+  organization of paired Bell and GHZ states, phase-noise distribution and
+  cooling.
+- Read results as text, JSON or Markdown, and export window values as CSV or
+  optional plots. A task guide and notebook accompany the new workflows.
+- Present probes as readable research summaries, with complete records available
+  through `probe show ID --format json`; `probe export` supplies the executable
+  request. Cost `--details` displays trajectory actions, cumulative cost and
+  window values. Window reports display each trajectory field when supplied.
+- Clarify reduced-state entropy and the full model, certificate, bound and
+  window workflows, with a complete numerical-model example. Near-zero text
+  formatting preserves JSON and CSV values; notebook sharing keeps files in
+  persistent folders.
+
+### Sharing and compatibility
+
+- Share complete cost and window analyses in schema-2 bundles for independent
+  recomputation. Existing schema-1 bundles remain readable and verifiable;
+  recipients of schema-2 bundles need the 0.3 workflow reader.
+- Preserve physical edge directions when transferring numerical multiblock
+  models. Numeric-model schema 2 covers rectangular transitions; ambiguous
+  schema-1 cross-control models require re-export from the original model.
+- Validate historical decisions and all derived readouts before accepting a
+  saved analysis. Reverification checks numerical corrections against their
+  saved policy, preserves consistent unresolved results and applies recipient
+  resource limits before reconstruction. Numerical backend differences and
+  bitwise replay are reported separately.
+
+The existing model, certificate and terminal-state interfaces remain available.
+Scientific reference values are unchanged; their producer metadata identifies
+the current source build.
 
 ## 0.2.0 (2026-10-25)
 
-- Prepare linear H.3 candidates for custom finite models, with explicit
+- Prepare numerical Bellman–Choi certificate candidates (H.3) for custom
+  finite-control models using the linear construction, with explicit
   diagnostics for unsupported, unresolved and resource-limited calculations.
   Candidates still require independent certificate verification.
-- Apply one resource preflight to direct H.3/H.4 verification, task binding
-  and complete-evidence import.
+- Apply one resource preflight to direct Bellman–Choi (H.3) and
+  reference-potential (H.4) certificate verification, task binding and
+  complete-evidence import.
 - Keep extreme resource refusals and diagnostic JSON serializable with bounded
   integer summaries, preserving exact budget comparisons and exception values.
 - Save original model matrices, proof objects, numerical controls and bound
@@ -22,8 +70,8 @@
 - Reject contradictory historical verification summaries before inspecting or
   reverifying a bundle, while retaining consistent failed and inconclusive
   analyses for diagnosis. Check the binary64 relationship between the usable
-  constant, candidate and reserved error, and bind H.3 candidates to their
-  saved proof objects. Record an explicitly supplied source revision in
+  constant, candidate constant and reserved error, and bind H.3 certificate
+  candidates to their saved proof objects. Record an explicitly supplied source revision in
   fresh bundle-verification reports as well as exported bundles.
 - Add alternating damping/pumping and cyclic noisy-reset workflows, guides,
   and notebook steps for complete evidence transfer. The alternating example
@@ -45,8 +93,9 @@ fresh model/certificate revalidation and a separately labeled scalar comparison.
 
 - Align the guides and paired-reset result with RCC manuscript version 4,
   including Eq. (III.1) and the audit-record requirements in Appendix D.6.
-- Add a runnable H.3 certificate-to-bound example to the terminal-state guide
-  and notebook, showing the propagated upper constant and numerical evidence.
+- Add a runnable Bellman–Choi (H.3) certificate-to-bound example to the
+  terminal-state guide and notebook, showing the propagated upper constant
+  and numerical evidence.
 - Clarify reference-dependent resource accounting, model-qualification scope
   and expected reference-check outcomes.
 
@@ -56,12 +105,14 @@ with that release.
 
 ## 0.1.2 (2026-09-12)
 
-- Add conditional terminal-state cost bounds from complete exact spectra and
-  predeclared fixed-projector counts, with conservative scalar enclosures.
+- Add terminal-state cost bounds from complete exact spectra and predeclared
+  fixed-projector counts under declared model premises, with conservative
+  scalar enclosures.
 - Add task-bound acquisition protocols, lossless JSON inputs, saved records,
   same-version replay, installed templates and a guided bounds notebook.
-- Connect H.3/H.4 proof objects through fresh numerical verification and exact
-  preservation of the propagated upper constant. Include an eight-output
+- Connect Bellman–Choi (H.3) and reference-potential (H.4) certificates through
+  fresh numerical verification and exact preservation of the propagated
+  upper constant. Include an eight-output
   finite model with constructive one-slot witnesses.
 - Refresh quickstart installations when the dynamic version changes. Require
   paired JSON/Markdown evidence at canonical report locations for both absolute
@@ -79,10 +130,12 @@ copies update only their producer version.
 ## 0.1.1 (2026-09-06)
 
 - Fixed-point audits propagate matrix-assembly and solve errors to the output
-  and reference-scaled constant. Unresolved precision returns `inconclusive`;
-  H.34 estimates are distinguished from certificate upper constants.
-- H.34 returns `inconclusive` when positive input uncertainty leaves reference
-  support unresolved, including finite and infinite nominal constants.
+  and reference-scaled constant. Unresolved precision returns `inconclusive`.
+  Estimates of fixed-model reference domination (H.34) are distinguished
+  from certificate upper constants.
+- Fixed-model reference-domination checks return `inconclusive` when positive
+  input uncertainty leaves reference support unresolved, including finite and
+  infinite nominal constants.
 - Model audits consistently use the caller's tolerance. Empty Kraus branches
   and codewords outside the supported numerical weight range are rejected.
 - Explicit enumeration and dense matrix construction check configurable
