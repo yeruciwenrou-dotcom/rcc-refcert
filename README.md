@@ -9,7 +9,7 @@ complexity**.
 It analyzes finite-control quantum models, verifies reference certificates,
 and computes **quantum circuit complexity lower bounds** from exact target
 spectra or predeclared measurement counts. Researchers can also compare
-candidate preparations, analyze subsystem entropy and correlations in pure
+candidate preparations, resolve complexity profiles across subsystems of pure
 and mixed states, and share complete calculations for independent verification.
 
 The toolkit implements selected parts of **Reference-Contingent Complexity
@@ -39,7 +39,7 @@ state was produced.
 | [Prepare and verify reference certificates](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/CUSTOM_MODELS.md) | Prepare numerical certificate candidates for stable finite-control models and independently verify reference certificates. Check local gain–cost conditions and prefix-code completions. |
 | [Calculate terminal-state bounds](#target-spectra-and-measured-counts) | Turn exact target spectra or predeclared projector counts into complexity lower bounds, with spectrum smoothing, certificate binding and scalar cost inversion. |
 | [Compare preparation costs](#cost-and-window-workflows) | Check candidate programs and scan tolerances; obtain rigorous cost intervals for exact diagonal recipes or numerical candidate diagnostics for matrix models. |
-| [Analyze subsystem structure](#compare-state-organization) | Probe structure in pure and mixed states through reduced-state entropy, entropy deficits and total correlations; compare states or follow preparation trajectories with three editable research probes. |
+| [Resolve subsystem complexity](#compare-subsystem-complexity) | Compare window RCC values in pure and mixed states under a common reference and control scale; resolve local and correlation contributions or follow preparation trajectories with three editable research probes. |
 | [Share and reverify calculations](#reverify-a-shared-analysis) | Save complete inputs for model, certificate, cost and subsystem calculations; recompute them independently and compare fresh evidence with historical results. |
 | [Reproduce paper calculations](#reference-cases) | Run frozen reference cases, inspect prefix-encoding constructions and follow a worked RCC lower bound from its model to a matching preparation. |
 
@@ -49,7 +49,7 @@ subsystem profiles also export to CSV and optional plots.
 
 > **New in 0.3.0**
 >
-> Preparation-cost intervals and subsystem analysis extend the model,
+> Preparation-cost intervals and subsystem complexity profiles extend the model,
 > certificate and terminal-state tools. Editable reset, cooling and state
 > comparisons can be saved and independently reverified.
 > [Read the changes and compatibility notes](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/CHANGELOG.md#030-2026-11-15).
@@ -63,8 +63,8 @@ subsystem profiles also export to CSV and optional plots.
 Python 3.10 or newer is required. Choose the installation for your task:
 
 - **[PyPI package](#install-from-pypi):** all Python and command-line
-  capabilities above, including preparation costs, subsystem entropy and
-  correlations, and shared evidence, without a source checkout.
+  capabilities above, including preparation costs, subsystem complexity
+  profiles, and shared evidence, without a source checkout.
 - **Source checkout:** the same toolkit, plus the example scripts, three
   notebooks and verification suite.
 
@@ -134,7 +134,7 @@ sufficient route and the nonhalting boundary among those expected results.
 
 The API, CLI, templates, and frozen reference data work outside a source
 checkout. The installed package also includes reference-certificate candidate
-preparation, preparation-cost analysis, subsystem analysis, and bundle
+preparation, preparation-cost analysis, subsystem complexity profiles, and bundle
 verification. For the example scripts and notebooks, use the
 [source quickstart](#quick-start).
 
@@ -208,8 +208,9 @@ describes the counts alone. These templates and commands are available directly
 from the installed package.
 
 <a id="cost-and-window-workflows"></a>
+<a id="preparation-costs-and-subsystem-structure"></a>
 
-### Preparation costs and subsystem structure
+### Preparation costs and complexity profiles
 
 Use the environment created by the [source quickstart](#quick-start), then run
 these commands from the checkout. On Windows, replace `.venv/bin/python` with
@@ -228,12 +229,18 @@ five-slot program reaches the target. The model charges halt as one slot.
 Changing the tolerance gives **[4,4]** or **[4,5]**, showing when the evidence
 determines the optimum and when a gap remains.
 
-#### Compare state organization
+<a id="compare-state-organization"></a>
 
-To compare entropy and correlations within pure or mixed states, choose the
-subsystems to examine. Each selected subsystem is a **subsystem window**:
-the analysis traces out the remaining systems and evaluates the reduced state
-relative to the declared reference and control scale.
+#### Compare subsystem complexity
+
+To resolve complexity across a pure or mixed state, choose the subsystems to
+examine. Each selected subsystem is a **subsystem window**: the analysis traces
+out the remaining systems and evaluates the reduced state relative to the
+declared reference and control scale. For the uniform product reference, the
+window RCC value is $C_{R,A}=[\log_2 d_A-S(\rho_A)]/g_R$. The control bandwidth
+$g_R=\log_2\Gamma_R$ converts the entropy deficit into a complexity reading in
+R-structons ($\mathrm{st}_R$). A bipartition separates its local and correlation
+contributions.
 
 Start by exporting an editable state-comparison probe:
 
@@ -243,11 +250,12 @@ Start by exporting an editable state-comparison probe:
 ```
 
 The default probe compares paired Bell states with a GHZ state. Both are pure,
-with identical global spectra and zero global entropy. Their reduced-state
-entropies differ across the selected windows, revealing different correlation
-structures within the pure states. The other probes compare phase-noise
-distributions and follow an algorithmic-cooling trajectory. Each probe supplies
-editable inputs and a reference comparison.
+with identical global spectra and the same global RCC value. At the common
+scale $\Gamma_R=4$, windows 12, 13 and 34 give $(1,0,1) \mathrm{st}_R$ for the
+Bell pairs and $(1/2,1/2,1/2) \mathrm{st}_R$ for GHZ. Their different reduced-state
+entropies thus resolve different complexity profiles. The other probes follow
+how phase-noise distribution and algorithmic cooling change these profiles.
+Each probe supplies editable inputs and a reference comparison.
 
 The [workflow guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/COST_AND_WINDOWS.md) covers changing the target and
 tolerance, cooling, your own matrices, subsystem comparisons, reports and
@@ -300,7 +308,7 @@ Choose a notebook for the task you want to explore:
 |---|---|
 | [Models and certificates](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/RCC_Quickstart.ipynb) | Analyze finite-control models, verify reference certificates and reproduce paper calculations. |
 | [Terminal-state bounds](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/RCC_Bounds_Quickstart.ipynb) | Calculate bounds from exact spectra or fixed-projector counts, then save and replay the result. |
-| [Preparation costs and quantum-state structure](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Workflows_Quickstart.ipynb) | Compare preparation costs, explore subsystem structure and cooling, and share complete evidence. |
+| [Preparation costs and complexity profiles](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Workflows_Quickstart.ipynb) | Compare preparation costs, resolve subsystem complexity and cooling trajectories, and share complete evidence. |
 
 Select **Python (rcc-refcert)** as the kernel. Run all three commands with the
 same interpreter; on Windows, use `.venv\Scripts\python.exe`. These dependencies
@@ -329,7 +337,7 @@ target-state calculations, the [bounds guide](https://github.com/yeruciwenrou-do
 `bound_from_spectrum`, `bound_from_counts`, `prepare_protocol`,
 `with_reference_certificate`, `validate_record` and `replay_record`.
 
-For preparation costs, subsystem entropy and correlations, import from
+For preparation costs and subsystem complexity profiles, import from
 `rcc_refcert.workflows`.
 The [workflow guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/COST_AND_WINDOWS.md) introduces
 `analyze_cost`, `compare_cost_results`, `analyze_windows`, `export_probe` and
@@ -387,11 +395,15 @@ histories carries this bound to $C_{\rm opt}^{(\epsilon)}$.
 
 For the unbiased reference $\sigma_R=\Pi_R/d_R$, the state-side RCC value is
 $C_R(\rho)=[\log_2 d_R-S(\rho)]/\log_2\Gamma_R$, where $\Gamma_R$ counts
-distinct physical action classes per atomic slot. It gives the bandwidth-scaled
-entropy deficit and the linear leading term of the lower bound under the
-paper's regularity conditions. The full one-shot bound also retains spectral
+distinct physical action classes per atomic slot. The reference sets the
+structural zero point, and the control bandwidth $g_R=\log_2\Gamma_R$ sets the
+resource scale. The entropy deficit divided by this bandwidth is a complexity
+reading in R-structons
+($\mathrm{st}_R$), with $1 \mathrm{st}_R=g_R$ bits. It is the linear leading term
+of the lower bound under the paper's regularity conditions. The full one-shot
+bound also retains spectral
 skew, smoothing loss, and transcription and reference overheads. The
-[scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
+[scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
 gives their precise relation and units.
 
 With the model qualifications established and the measurement protocol fixed
@@ -410,7 +422,7 @@ fixed model.
 
 The package exposes the model inputs, numerical certificate checks, and
 scalar cost inversion that make such examples reproducible. The
-[scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/SCIENTIFIC_SCOPE.md)
+[scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/SCIENTIFIC_SCOPE.md)
 explains the evidence each calculation supplies; the
 [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/PAPER_MAP.md)
 connects the implementation to the full model construction and lower-bound
@@ -485,7 +497,7 @@ locates the implemented objects and equations.
 Finite-control matrix and certificate checks report `pass`, `fail`, `inconclusive` or
 `not_applicable`, with an explicit evidence level, currently `numerical`.
 These outcomes describe finite-input and fixed-model checks. The
-[scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/SCIENTIFIC_SCOPE.md) connects them to the RCC theorem
+[scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/SCIENTIFIC_SCOPE.md) connects them to the RCC theorem
 and its physical, transcription and family-uniformity requirements.
 
 Terminal-state records distinguish the scalar calculation's enclosure,
@@ -496,8 +508,9 @@ The [output contract](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0
 Exact diagonal recipes support rigorous model-specific cost intervals by combining
 gain-based exclusion with an executed feasible program. Numerical matrix inputs
 support candidate diagnostics and window profiles, with their numerical evidence
-identified in the result. Window RCC values describe subsystem structure in the
-declared reference scale; the full one-shot cost bound also uses the model and
+identified in the result. Window RCC values resolve state-side complexity across
+subsystems in the declared reference and resource scale; the full one-shot cost
+bound also uses the model and
 accuracy corrections in the [RCC explanation](#how-the-final-state-gives-a-lower-bound).
 
 The explicit matrix and path algorithms target small finite models. Resource
@@ -508,7 +521,7 @@ describes limits and certificate error budgets.
 
 ## Further reading
 
-- [Scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/SCIENTIFIC_SCOPE.md): what each calculation establishes and how it connects to RCC.
+- [Scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/SCIENTIFIC_SCOPE.md): what each calculation establishes and how it connects to RCC.
 - [Paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/PAPER_MAP.md): implemented objects, equations and worked examples.
 - [Conventions](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/CONVENTIONS.md): numerical, tensor and exact-input conventions.
 - [Output contract](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/OUTPUT_CONTRACT.md): result fields, evidence levels and exit codes.

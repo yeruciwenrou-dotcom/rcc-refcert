@@ -29,7 +29,7 @@ def add_commands(commands):
         ("cost", "bound preparation cost and check complete programs"),
         (
             "window",
-            "analyze subsystem entropy and correlations in pure and mixed states",
+            "resolve complexity profiles across subsystems of pure and mixed states",
         ),
     ):
         parent = commands.add_parser(name, help=help_text, description=help_text)

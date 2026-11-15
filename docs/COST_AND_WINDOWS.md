@@ -1,19 +1,21 @@
 <a id="preparation-cost-and-state-windows"></a>
+<a id="preparation-costs-and-quantum-state-structure"></a>
 
-# Preparation costs and quantum-state structure
+# Preparation costs and complexity profiles
 
-How much does a preparation cost in a specified model, and where is the
-resulting structure stored? The cost workflow bounds the optimum and checks
-candidate programs against a complete target. Subsystem analysis reveals how
-entropy and correlations are distributed within pure and mixed states. You
-can analyze states directly or follow a preparation step by step, and share
-either calculation for independent revalidation.
+How much does a preparation cost in a specified model, and how does complexity
+vary across its subsystems? The cost workflow bounds the optimum and checks
+candidate programs against a complete target. The window workflow resolves
+state-side RCC complexity in pure and mixed states using a common reference
+and control bandwidth. Entropy deficits and correlations supply the information
+for these calibrated readings. You can analyze states directly or follow a
+preparation step by step, and share either calculation for independent revalidation.
 
 | Your question | Start here |
 |---|---|
 | Does a candidate reach my target, and how close is its cost to optimal? | [A complete cost task](#a-complete-cost-task) |
 | How does changing the tolerance affect the result? | [Cost tasks](#a-complete-cost-task) and [candidate comparisons](#candidate-comparisons) |
-| Where do entropy and correlations differ between quantum states? | [Subsystem entropy and correlations](#subsystem-entropy-and-correlations) |
+| How do complexity profiles differ across subsystems or between states? | [Subsystem complexity profiles](#subsystem-complexity-profiles) |
 | How do I analyze my own state or model? | [Matrix inputs](#your-own-matrix-and-tensor-labels) and [numerical models](#numerical-models-and-candidate-diagnostics) |
 | How do I save, share and verify the calculation? | [Reports and revalidation](#reports-limits-and-revalidation) |
 
@@ -135,18 +137,29 @@ to each eligible row. Comparisons read supplied result records; shared evidence
 can be reverified using its complete bundle.
 
 <a id="state-windows-and-probes"></a>
+<a id="subsystem-entropy-and-correlations"></a>
 
-## Subsystem entropy and correlations
+## Subsystem complexity profiles
 
 A **subsystem window** selects the part of a quantum state to examine. In
 this implementation, it retains a chosen set of tensor factors and traces out
-the rest. The reduced-state entropy and its deficit relative to the uniform
-reference show how structure is distributed within a pure or mixed state;
-bipartitions also resolve the total correlation between their two parts.
+the rest. The workflow evaluates the reduced state's RCC complexity using
+the same reference and resource scale as the full state. For the uniform
+product reference,
+
+$$
+C_{R,A}=\frac{\log_2 d_A-S(\rho_A)}{g_R},\qquad g_R=\log_2\Gamma_R.
+$$
+
+The entropy deficit supplies the information numerator; the control bandwidth
+converts it to a complexity reading in R-structons, with
+$1 \mathrm{st}_R=g_R$ bits. Keeping the reference and bandwidth fixed makes
+these readings comparable across subsystems and preparation steps. Bipartitions
+also resolve local and correlation contributions to this state-side complexity.
 The [scientific scope](SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
 connects these subsystem reductions to RCC's reference-compatible windows.
 
-Start with a probe whose question matches the structure you want to study.
+Start with a probe whose question matches the complexity profile you want to study.
 Each installed probe pairs a physical question with explicit states or a
 preparation, selected windows and comparison controls. Export its request to
 inspect the assumptions, change parameters or use the same windows on your
@@ -165,7 +178,7 @@ record, or `probe export ID` for its executable request.
 
 For a retained subsystem A, the uniform product reference gives
 `deficit_bits = log2(d_A) - S(rho_A)` and
-`rcc_main_term = deficit_bits / log2(Gamma)`. Both units and the source of Gamma
+`rcc_main_term = deficit_bits / log2(Gamma)`, in `st_R`. Both units and the source of Gamma
 remain in the result. `keep` names the systems retained by a partial trace.
 Tensor axes follow the input order, with the leftmost axis most significant.
 An empty window has zero deficit; the full window gives the global quantity.
@@ -179,9 +192,9 @@ entropy deficit equals the reported subsystem deficit.
 
 | Probe | Physical question | What to inspect |
 |---|---|---|
-| W1 · Quantum organization | How do paired Bell modules and a GHZ state organize the same global purity? | At Gamma=4, windows 12/13/34 give (1,0,1) versus (1/2,1/2,1/2). |
-| W2 · Noise distribution | Where is phase noise concentrated when global entropy is held fixed? | Both states have entropy 1 bit and global C=3/2; module values are (1/2,1) versus (3/4,3/4), with the cross window as a null control. |
-| W3 · Cooling trajectory | How do bath refresh and reversible compression change local structure? | Follow target purity, bath entropy and classical correlation along the same candidate; Gamma=3 comes from its model. |
+| W1 · Quantum organization | How do paired Bell modules and a GHZ state differ in subsystem complexity at the same global RCC value? | At Gamma=4, windows 12/13/34 give (1,0,1) versus (1/2,1/2,1/2) st_R. |
+| W2 · Noise distribution | How does phase-noise distribution change subsystem complexity at a fixed global RCC value? | Both states have entropy 1 bit and global C=3/2 st_R; module values are (1/2,1) versus (3/4,3/4) st_R, with the cross window as a null control. |
+| W3 · Cooling trajectory | How do bath refresh and reversible compression change local and correlation contributions to complexity? | Follow target and bath RCC values and the scaled correlation along the same candidate; Gamma=3 comes from its model. |
 
 Use `probe list` to see their command IDs: `w1-quantum-organization`,
 `w2-noise-distribution` and `w3-cooling-trajectory`, respectively.
@@ -228,19 +241,26 @@ print(render_workflow_result(cooling["windows"]))
 
 The eight-action target program defines the complete target; the six-action
 candidate attains the optimum at the default tolerance. Refresh removes entropy
-and resets target–bath correlation, while reversible compression redistributes
-the deficit at a fixed global spectrum. Changing `p` changes the bath model,
+and resets target–bath correlation, changing the RCC profile; reversible
+compression redistributes local and correlation contributions at a fixed global
+RCC value. Changing `p` changes the bath model,
 and changing `cycles` changes the target construction. Keep the model, target
 and tolerance fixed when comparing candidate costs.
 
-### Read correlations and window values
+### Read local and correlation contributions
 
 A declared bipartition A|B reports
 `C_global = C_A + C_B + I(A:B)/g` and a numerical decomposition residual.
-For mixed states, I is total correlation. Overlapping windows do not sum to
-the global quantity. Global entropy and window entropy provide different
-information; known full spectra do not automatically acquire a stronger
-global Dmax bound through windowing.
+All three contributions are in `st_R`: `I(A:B)` is in bits, and division by
+the same control bandwidth gives its contribution to complexity. For mixed
+states, I is total correlation; for a pure bipartite state, it equals twice
+the reduced-state entropy. This identity resolves state-side RCC complexity.
+A full finite-accuracy preparation-cost bound additionally uses the model
+inputs and one-shot corrections described in the
+[scientific scope](SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost).
+Overlapping windows do not sum to the global quantity. Windows resolve
+subsystem complexity even when global spectra coincide; a known full spectrum
+already fixes its global Dmax bound.
 
 ## Your own matrix and tensor labels
 
