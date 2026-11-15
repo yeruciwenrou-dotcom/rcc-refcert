@@ -39,7 +39,7 @@ state was produced.
 | [Prepare and verify reference certificates](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/72aab43e9ddb6dab3db3f5c633ae0b0c45f51ceb/docs/CUSTOM_MODELS.md) | Prepare numerical certificate candidates for stable finite-control models and independently verify reference certificates. Check local gain–cost conditions and prefix-code completions. |
 | [Calculate terminal-state bounds](#target-spectra-and-measured-counts) | Turn exact target spectra or predeclared projector counts into complexity lower bounds, with spectrum smoothing, certificate binding and scalar cost inversion. |
 | [Compare preparation costs](#cost-and-window-workflows) | Check candidate programs and scan tolerances; obtain rigorous cost intervals for exact diagonal recipes or numerical candidate diagnostics for matrix models. |
-| [Explore subsystem windows](#compare-state-organization) | Compute reduced-state entropy, entropy deficits and total correlations; compare states or follow preparation trajectories with three editable research probes. |
+| [Explore subsystem windows](#compare-state-organization) | Probe structure in pure and mixed states through reduced-state entropy, entropy deficits and total correlations; compare states or follow preparation trajectories with three editable research probes. |
 | [Share and reverify calculations](#reverify-a-shared-analysis) | Save complete model, certificate, cost or window inputs; recompute them independently and compare fresh evidence with historical results. |
 | [Reproduce paper calculations](#reference-cases) | Run frozen reference cases, inspect prefix-encoding constructions and follow a worked RCC lower bound from its model to a matching preparation. |
 
@@ -234,10 +234,12 @@ To examine state organization, export a probe and analyze its windows:
 .venv/bin/python -m rcc_refcert window analyze windows.json --bundle windows.rccbundle
 ```
 
-Paired Bell states and a GHZ state have the same global spectrum. Their window
-profiles locate that structure differently across the register. The other
-probes compare phase-noise distributions and follow an algorithmic-cooling
-trajectory. Each probe supplies editable inputs and a reference comparison.
+The default probe compares paired Bell states with a GHZ state. Both are pure,
+with identical global spectra and zero global entropy. Their reduced-state
+entropies differ across the selected windows, revealing different correlation
+structures within the pure states. The other probes compare phase-noise
+distributions and follow an algorithmic-cooling trajectory. Each probe supplies
+editable inputs and a reference comparison.
 
 The [workflow guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/72aab43e9ddb6dab3db3f5c633ae0b0c45f51ceb/docs/COST_AND_WINDOWS.md) covers changing the target and
 tolerance, cooling, your own matrices, window probes, reports and independent
