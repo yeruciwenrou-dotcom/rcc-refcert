@@ -2,198 +2,158 @@
 
 ## 0.3.0 (2026-11-15)
 
-Preparation-cost comparisons and subsystem complexity profiles extend the model,
-certificate and terminal-state tools. The main additions are complete-target
-cost comparisons, editable state probes and shared workflow evidence.
+This release adds preparation-cost intervals and subsystem RCC complexity
+profiles. It also extends the existing evidence-sharing tools to these new
+workflows.
 
-### Preparation costs
+### New research capabilities
 
-- Evaluate preparation-cost intervals for complete targets in declared exact
-  channel models. Verified gain bounds exclude smaller budgets; executed
-  candidate programs supply feasible upper bounds, with halt included in cost.
-- Compare programs and scan accuracy requirements using editable cyclic-reset
-  and algorithmic-cooling tasks. Existing `FiniteControlModel` inputs can also
-  be used for numerical candidate diagnostics.
+- **Bound the optimal preparation cost.** For exact diagonal-preserving models,
+  combine a rigorous lower bound with the cost of a successful candidate
+  program. Compare candidates for the same target and scan the allowed error.
+  The reset and cooling examples show both matching bounds and open gaps;
+  the cost includes the halt operation.
+- **Compare subsystem complexity in pure and mixed states.** Use window RCC
+  under a common reference and control bandwidth to compare states, separate
+  local and correlation contributions, or follow a preparation step by step.
+- **Adapt complete research examples.** Editable reset and cooling tasks and
+  three state probes connect physical questions to calculations. The new
+  workflow notebook, readable reports, CSV exports and optional plots support
+  comparison and reuse. Matrix models can also be supplied for numerical
+  candidate diagnostics.
+- **Share and reverify the new workflows.** Save cost and window requests,
+  inputs and results in complete analysis bundles. A recipient can recompute
+  them and compare fresh evidence with the saved results, including numerical
+  diagnostics and unresolved outcomes.
 
-### State windows and research probes
+Start with the [cost and window guide](docs/COST_AND_WINDOWS.md) or the
+[workflow notebook](RCC_Workflows_Quickstart.ipynb).
 
-- Compare subsystem RCC complexity from state data or a candidate program's
-  trajectory, using a common reference and control bandwidth. Three editable
-  probes compare the complexity profiles of paired Bell and GHZ states,
-  phase-noise distributions and cooling trajectories; entropy deficits and
-  mutual information supply the local and correlation contributions.
-- Read results as text, JSON or Markdown, and export window values as CSV or
-  optional plots. A task guide and notebook accompany the new workflows.
-- Present probes as readable research summaries, with complete records available
-  through `probe show ID --format json`; `probe export` supplies the executable
-  request. Cost `--details` displays trajectory actions, cumulative cost and
-  window values. Window reports display each trajectory field when supplied.
-- Clarify reduced-state entropy and the full model, certificate, bound and
-  window workflows, with a complete numerical-model example. Near-zero text
-  formatting preserves JSON and CSV values; notebook sharing keeps files in
-  persistent folders.
+### Compatibility
 
-### Sharing and compatibility
+- Existing model, reference-certificate and terminal-state interfaces remain
+  available. Existing model/certificate bundles (container schema 1) remain
+  readable and verifiable.
+- New cost/window bundles use container schema 2. Recipients need **0.3.0 or
+  later**; see the [recipient guide](docs/ANALYSIS_BUNDLES.md).
+- **Early development exports only:** numerical models with transitions between
+  control blocks must be re-exported from the original `FiniteControlModel`
+  if they use the ambiguous schema-1 format from the first development build.
+  The numerical-model format is separate from the bundle container;
+  [migration details](docs/COST_AND_WINDOWS.md#numerical-models-and-candidate-diagnostics)
+  explain the distinction.
 
-- Share complete cost and window analyses in schema-2 bundles for independent
-  recomputation. Existing schema-1 bundles remain readable and verifiable;
-  recipients of schema-2 bundles need version 0.3.0 or later.
-- Preserve physical edge directions when transferring numerical multiblock
-  models. Numeric-model schema 2 covers rectangular transitions; ambiguous
-  schema-1 cross-control models require re-export from the original model.
-- Validate historical decisions and all derived readouts before accepting a
-  saved analysis. Reverification checks numerical corrections against their
-  saved policy, preserves consistent unresolved results and applies recipient
-  resource limits before reconstruction. Numerical backend differences and
-  bitwise replay are reported separately.
-
-The existing model, certificate and terminal-state interfaces remain available.
-Scientific reference values are unchanged; their producer metadata identifies
-version 0.3.0.
+The existing terminal-state bound route and frozen reference values retain
+their meaning. The new cost workflow uses additional model and candidate
+information to bound the preparation optimum. Reference-file producer metadata
+now identifies version 0.3.0.
 
 ## 0.2.0 (2026-10-25)
 
-- Prepare numerical Bellman–Choi certificate candidates (H.3) for custom
-  finite-control models using the linear construction, with explicit
-  diagnostics for unsupported, unresolved and resource-limited calculations.
-  Candidates still require independent certificate verification.
-- Apply one resource preflight to direct Bellman–Choi (H.3) and
-  reference-potential (H.4) certificate verification, task binding and
-  complete-evidence import.
-- Keep extreme resource refusals and diagnostic JSON serializable with bounded
-  integer summaries, preserving exact budget comparisons and exception values.
-- Save original model matrices, proof objects, numerical controls and bound
-  requests in a versioned analysis bundle. Inspect or revalidate it through
-  the Python API and `rcc-refcert bundle` commands.
-- Compare freshly verified constants with historical results. Recomputed
-  bounds use the original counts protocol and statistical event, retaining
-  historical records alongside the new numerical evidence.
-- Reject contradictory historical verification summaries before inspecting or
-  reverifying a bundle, while retaining consistent failed and inconclusive
-  analyses for diagnosis. Check the binary64 relationship between the usable
-  constant, candidate constant and reserved error, and bind H.3 certificate
-  candidates to their saved proof objects. Record an explicitly supplied source revision in
-  fresh bundle-verification reports as well as exported bundles.
-- Add alternating damping/pumping and cyclic noisy-reset workflows, guides,
-  and notebook steps for complete evidence transfer. The alternating example
-  accepts channel probabilities and recalculates its analytic comparison;
-  both scripts preserve existing bundles and give recovery hints for file errors.
-- Show fresh and historical constants together in verification reports,
-  explaining why a passing new check may leave an older result unsupported
-  even when its integer lower bound is unchanged.
-- Explain the relation between the
-  state-side RCC leading term, full one-shot lower bound and process optimum;
-  document the external measurement definition required by counts records.
+This release connects custom-model certificate preparation, terminal-state
+bounds and complete evidence sharing.
 
-The frozen reference calculations and bound-record v2 contract retain their
-numerical meaning. Same-version scalar replay remains exact; use the original
-package version to replay older records. Complete bundles additionally support
-fresh model/certificate revalidation and a separately labeled scalar comparison.
+### Added
+
+- **Certificate preparation.** Construct numerical Bellman–Choi (H.3)
+  candidates for custom finite-control models, then verify them independently.
+  Report unsupported, unresolved and resource-limited attempts explicitly.
+- **Complete analysis bundles.** Save original model matrices, proof objects,
+  numerical controls and bound requests. Inspect or reverify the bundle through
+  the Python API or `rcc-refcert bundle` commands.
+- **Fresh-versus-saved evidence.** Show recomputed constants beside historical
+  results and explain whether the earlier result is still supported. Counts
+  retain their original acquisition protocol and statistical event.
+- **Editable examples.** Add alternating damping/pumping and cyclic noisy-reset
+  workflows, guides and notebook steps for adapting and sharing calculations.
+
+### Reliability and compatibility
+
+- Apply resource checks before certificate verification, task binding and
+  bundle import; keep diagnostics usable even for extreme resource requests.
+- Check saved verification summaries against their proof objects and numerical
+  controls. Preserve consistent failed or inconclusive results for diagnosis.
+- Preserve existing output files and provide recovery hints for file errors.
+  Explain the state-side RCC term, the full one-shot lower bound and the
+  preparation optimum as distinct quantities.
+
+Frozen reference values and bound-record v2 retain their numerical meaning.
+Use the original package version for exact scalar replay of an older record;
+complete bundles also support fresh model/certificate verification.
 
 ## 0.1.3 (2026-09-15)
 
-- Align the guides and paired-reset result with RCC manuscript version 4,
-  including Eq. (III.1) and the audit-record requirements in Appendix D.6.
+Align the guides and worked examples with RCC manuscript version 4.
+
+- Update the paired-reset explanation for Eq. (III.1) and the audit-record
+  requirements in Appendix D.6.
 - Add a runnable Bellman–Choi (H.3) certificate-to-bound example to the
-  terminal-state guide and notebook, showing the propagated upper constant
-  and numerical evidence.
-- Clarify reference-dependent resource accounting, model-qualification scope
-  and expected reference-check outcomes.
+  terminal-state guide and notebook.
+- Clarify reference-dependent resource accounting, model qualifications and
+  expected reference-check outcomes.
 
 Numerical algorithms, calculated bounds and record schemas are unchanged.
-Records retain same-version scalar replay; use 0.1.2 to replay records saved
-with that release.
+Use 0.1.2 for exact scalar replay of records produced by that release.
 
 ## 0.1.2 (2026-09-12)
 
-- Add terminal-state cost bounds from complete exact spectra and predeclared
-  fixed-projector counts under declared model premises, with conservative
-  scalar enclosures.
-- Add task-bound acquisition protocols, lossless JSON inputs, saved records,
-  same-version replay, installed templates and a guided bounds notebook.
-- Connect Bellman–Choi (H.3) and reference-potential (H.4) certificates through
-  fresh numerical verification and exact preservation of the propagated
-  upper constant. Include an eight-output
-  finite model with constructive one-slot witnesses.
-- Refresh quickstart installations when the dynamic version changes. Require
-  paired JSON/Markdown evidence at canonical report locations for both absolute
-  and relative paths; custom Markdown-only reports remain supported.
-- Hash certificate matrices with a versioned numeric representation and check
-  the adapter's matrix budget before verification. Preserve earlier declarations.
-- Stop truncated program sums after the final requested halting term, avoiding
-  an unused continuation that could trigger underflow.
-- Read serialized scalar endpoints under a separate bounded decimal contract,
-  preserving record generation and replay for extreme accepted exact inputs.
+Add terminal-state complexity bounds from target spectra and measurement counts.
 
-Existing reference numbers and expected outcomes are unchanged. Reference
-copies update only their producer version.
+### Added
+
+- Calculate cost lower bounds from complete exact spectra or predeclared
+  fixed-projector counts, with conservative scalar enclosures.
+- Bind counts to acquisition protocols; provide lossless JSON inputs, saved
+  records, same-version replay, installed templates and a bounds notebook.
+- Connect verified Bellman–Choi (H.3) and reference-potential (H.4)
+  certificates to the bound calculator. Include an eight-output finite model
+  with constructive one-slot witnesses.
+
+### Reliability
+
+- Refresh quickstart installations when the package version changes and keep
+  canonical JSON/Markdown reports paired.
+- Bind certificate matrices to records with a versioned numeric format and
+  check matrix budgets before verification.
+- Avoid an unused continuation after the last requested halting term, and
+  preserve record generation and replay for extreme accepted exact inputs.
+
+Existing reference values and expected outcomes are unchanged; reference
+copies update their producer version.
 
 ## 0.1.1 (2026-09-06)
 
-- Fixed-point audits propagate matrix-assembly and solve errors to the output
-  and reference-scaled constant. Unresolved precision returns `inconclusive`.
-  Estimates of fixed-model reference domination (H.34) are distinguished
-  from certificate upper constants.
-- Fixed-model reference-domination checks return `inconclusive` when positive
-  input uncertainty leaves reference support unresolved, including finite and
-  infinite nominal constants.
-- Model audits consistently use the caller's tolerance. Empty Kraus branches
-  and codewords outside the supported numerical weight range are rejected.
-- Explicit enumeration and dense matrix construction check configurable
-  resource budgets before beginning expensive work.
+Improve numerical error accounting, support diagnostics and resource checks.
 
-The reference cases retain their numerical results and expected outcomes.
+- Propagate matrix-assembly and solve errors into fixed-point audit results
+  and reference-scaled constants. Distinguish fixed-model domination estimates
+  from certificate upper bounds.
+- Return `inconclusive` when precision or reference support is unresolved,
+  rather than reporting a usable constant.
+- Apply the caller's tolerance consistently; reject empty Kraus branches and
+  codewords outside the supported numerical weight range.
+- Check resource budgets before explicit enumeration or dense matrix assembly.
+
+Reference values and expected outcomes are unchanged.
 
 ## 0.1.0 (2026-09-06)
 
-Initial release of `rcc-refcert`, a Python research toolkit for finite-control
-models and reference certificates in structure-fair quantum circuit complexity.
-The implementation follows manuscript version 4; see the
-[paper-to-code map](docs/PAPER_MAP.md) for its relation to the public paper.
+Initial release: finite-control models and reference certificates for
+structure-fair quantum circuit complexity.
 
-### Models and certificates
+- Define prefix-controlled quantum processes and compute code-weighted sums
+  of terminating outputs, including models with nonhalting sectors.
+- Check reference domination, verify Bellman–Choi and reference-potential
+  certificates, and analyze local gain–cost conditions and prefix codes.
+- Construct custom models through the Python API. Explore three reference
+  cases and a paired-reset example with a one-slot RCC lower bound attained
+  by an explicit preparation.
+- Use readable reports and versioned JSON, frozen reference evidence, a guided
+  notebook and a one-command quickstart. Reports identify numerical evidence,
+  tolerances and unresolved checks.
+- Install from a wheel or source distribution with Python 3.10–3.14;
+  entry points are verified on Linux, Windows and macOS.
 
-- Define prefix-controlled quantum processes and compute their terminating
-  program semidensities, with explicit treatment of nonhalting sectors.
-- Check fixed-model reference domination, verify Bellman–Choi and
-  reference-potential certificates, and analyze reference gain–cost assignments
-  and sufficient prefix-code completions.
-- Construct and audit new finite-control models through the public Python API.
-
-### Examples and reproducibility
-
-- Three reference cases cover a closed-form construction, a multiblock model
-  with an intentional sufficient-route failure, and a recurrent nonhalting
-  boundary.
-- A complete paired-reset example connects a declared model and its reference
-  certificate to an RCC lower bound of one slot, attained by an explicit
-  one-slot preparation.
-- The `examples`, `example`, and `reproduce` commands provide readable reports
-  and versioned JSON. Packaged reference results support reproducibility checks
-  from both source checkouts and installed distributions.
-- A guided Jupyter notebook and model guide support a first run and the
-  construction of new research inputs.
-
-### Results and numerical conventions
-
-- Reports identify check outcomes, evidence levels, numerical tolerances, and
-  agreement with reference expectations.
-- Certificate reports separate candidate constants from usable upper bounds
-  that include numerical error corrections. Unresolved checks return
-  `inconclusive` with no usable constant; valid certificates can remain
-  unresolved for slowly halting dynamics.
-- Gain–cost checks account for numerical uncertainty at the Kraft boundary,
-  and suggested prefix codes use upper gain estimates. Unresolved linear
-  outputs retain finite-depth evidence and return no domination constant.
-- The [output contract](docs/OUTPUT_CONTRACT.md) and
-  [numerical conventions](docs/CONVENTIONS.md) describe result fields, support
-  diagnostics, and precision requirements.
-
-### Installation
-
-- Supports Python 3.10–3.14, with verified entry points on Linux, Windows, and
-  macOS.
-- A one-command quickstart creates an isolated environment with locked
-  verification dependencies, runs the test suite, and reproduces the reference
-  results. Fresh output is written separately from the reference files.
-- Wheel and source distributions include the reference evidence and CLI.
+The [paper-to-code map](docs/PAPER_MAP.md) locates the implemented objects.
+The [output contract](docs/OUTPUT_CONTRACT.md) and
+[numerical conventions](docs/CONVENTIONS.md) describe how to read the results.

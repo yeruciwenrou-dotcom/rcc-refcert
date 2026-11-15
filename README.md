@@ -56,9 +56,13 @@ subsystem profiles also export to CSV and optional plots.
 
 > **New in 0.3.0**
 >
-> Preparation-cost intervals and subsystem complexity profiles extend the model,
-> certificate and terminal-state tools. Editable reset, cooling and state
-> comparisons can be saved and independently reverified.
+> - **Preparation-cost intervals:** bound the optimum, compare candidate
+>   programs and scan the allowed error in exact diagonal-preserving models.
+> - **Subsystem complexity profiles:** use window RCC to compare pure and mixed
+>   states or follow a preparation trajectory.
+> - **Shared workflow evidence:** extend complete analysis bundles to the new
+>   cost and window calculations for independent recomputation.
+>
 > [Read the changes and compatibility notes](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/CHANGELOG.md#030-2026-11-15).
 
 - [Install and run the examples](#quick-start)

@@ -5,10 +5,10 @@
 
 How much does a preparation cost in a specified model, and how does complexity
 vary across its subsystems? The cost workflow bounds the optimum and checks
-candidate programs against a complete target. The window workflow resolves
-state-side RCC complexity in pure and mixed states using a common reference
-and control bandwidth. Entropy deficits and correlations supply the information
-for these calibrated readings. You can analyze states directly or follow a
+candidate programs against a complete target. The window workflow computes
+subsystem RCC complexity profiles in pure and mixed states using a common
+reference and control bandwidth. Entropy deficits and correlations supply the
+information for these calibrated readings. You can analyze states directly or follow a
 preparation step by step, and share either calculation for independent revalidation.
 
 | Your question | Start here |
@@ -155,7 +155,7 @@ The entropy deficit supplies the information numerator; the control bandwidth
 converts it to a complexity reading in R-structons, with
 $1 \mathrm{st}_R=g_R$ bits. Keeping the reference and bandwidth fixed makes
 these readings comparable across subsystems and preparation steps. Bipartitions
-also resolve local and correlation contributions to this state-side complexity.
+also separate local and correlation contributions to this state-side complexity.
 The [scientific scope](SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
 connects these subsystem reductions to RCC's reference-compatible windows.
 
@@ -254,13 +254,14 @@ A declared bipartition A|B reports
 All three contributions are in `st_R`: `I(A:B)` is in bits, and division by
 the same control bandwidth gives its contribution to complexity. For mixed
 states, I is total correlation; for a pure bipartite state, it equals twice
-the reduced-state entropy. This identity resolves state-side RCC complexity.
+the reduced-state entropy. This identity separates the local and correlation
+contributions to state-side RCC complexity.
 A full finite-accuracy preparation-cost bound additionally uses the model
 inputs and one-shot corrections described in the
 [scientific scope](SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost).
-Overlapping windows do not sum to the global quantity. Windows resolve
-subsystem complexity even when global spectra coincide; a known full spectrum
-already fixes its global Dmax bound.
+Overlapping windows do not sum to the global quantity. Windows distinguish
+subsystem complexity profiles even when global spectra coincide; a known full
+spectrum already fixes its global Dmax bound.
 
 ## Your own matrix and tensor labels
 

@@ -24,9 +24,9 @@ abstract: >-
   profiles.
   Researchers can construct quantum-process models, verify supplied proof
   objects, and calculate lower bounds from exact spectra or predeclared
-  fixed-projector counts. Exact diagonal-preserving channel recipes combine
-  verified reference-envelope exclusions with complete candidate execution
-  to bound preparation costs in a declared model. Window RCC compares subsystem
+  fixed-projector counts. For exact diagonal-preserving models, the toolkit
+  combines rigorous lower bounds with the costs of successful candidate
+  programs to bound the optimal preparation cost. Window RCC compares subsystem
   complexity in pure and mixed states, analyzes local and correlation
   contributions under a common reference and control bandwidth, and follows
   these quantities along a preparation.

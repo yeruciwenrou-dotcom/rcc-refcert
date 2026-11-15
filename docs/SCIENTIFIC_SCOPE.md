@@ -43,7 +43,7 @@ complexity lower bound in that model's atomic resource units.
 
 The preparation-cost workflow combines exact reference-envelope exclusions
 with executed candidate programs to bound a complete target's cost in a
-declared finite model. The window workflow resolves state-side RCC complexity
+declared finite model. The window workflow evaluates state-side RCC complexity
 across subsystems, either directly from states or along a candidate's trajectory.
 Entropy deficits supply information relative to the reference; division by the
 control bandwidth expresses it in complexity units. These calculations connect
@@ -130,7 +130,7 @@ and survives taking the infimum of their costs.
 At a fixed uniform reference and tolerance, identical target spectra yield
 the same global information bound. In particular, all pure targets share
 this state-side value, while their optimal preparation costs can differ.
-The paper's reference-compatible windows resolve complexity at a chosen
+The paper's reference-compatible windows describe RCC complexity at a chosen
 observation resolution (Section V and Appendix E). They retain the reference
 and resource scale while changing the accessible object. The window workflow
 implements explicit
