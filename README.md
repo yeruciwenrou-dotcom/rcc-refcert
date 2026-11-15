@@ -6,9 +6,9 @@
 
 `rcc-refcert` is a Python research toolkit for **structure-fair quantum circuit
 complexity**.
-It analyzes finite-control quantum models, verifies reference certificates,
-and computes **quantum circuit complexity lower bounds** from exact target
-spectra or predeclared measurement counts. Researchers can also compare
+Build and analyze your own finite-control quantum models, verify reference
+certificates, and compute **quantum circuit complexity lower bounds** from exact
+target spectra or predeclared measurement counts. You can also compare
 candidate preparations, use window RCC to compare subsystem complexity in pure
 and mixed states, and share complete calculations for independent verification.
 
