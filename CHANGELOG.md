@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 development series
+## 0.3.0 (2026-11-15)
 
 Preparation-cost and subsystem-window workflows extend the existing model,
 certificate and terminal-state tools. The main additions are complete-target
@@ -36,7 +36,7 @@ cost comparisons, editable state probes and shared workflow evidence.
 
 - Share complete cost and window analyses in schema-2 bundles for independent
   recomputation. Existing schema-1 bundles remain readable and verifiable;
-  recipients of schema-2 bundles need the 0.3 workflow reader.
+  recipients of schema-2 bundles need version 0.3.0 or later.
 - Preserve physical edge directions when transferring numerical multiblock
   models. Numeric-model schema 2 covers rectangular transitions; ambiguous
   schema-1 cross-control models require re-export from the original model.
@@ -48,7 +48,7 @@ cost comparisons, editable state probes and shared workflow evidence.
 
 The existing model, certificate and terminal-state interfaces remain available.
 Scientific reference values are unchanged; their producer metadata identifies
-the current source build.
+version 0.3.0.
 
 ## 0.2.0 (2026-10-25)
 

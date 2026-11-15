@@ -1,0 +1,61 @@
+{
+  "title": "rcc-refcert: a Python research toolkit for structure-fair quantum circuit complexity",
+  "upload_type": "software",
+  "version": "0.3.0",
+  "publication_date": "2026-11-15",
+  "creators": [
+    {
+      "name": "Liu, HongZheng",
+      "orcid": "0009-0002-2238-9187"
+    },
+    {
+      "name": "Tian, YiNuo",
+      "orcid": "0009-0005-8088-9894"
+    },
+    {
+      "name": "Wu, Zhiyue",
+      "orcid": "0009-0003-4765-2049"
+    }
+  ],
+  "description": "<p><strong>rcc-refcert</strong> is a Python research toolkit for <strong>structure-fair quantum circuit complexity</strong>. It analyzes finite-control quantum models, verifies reference certificates and computes quantum circuit complexity lower bounds from exact target spectra or predeclared measurement counts. Researchers can also compare candidate preparations, probe structure within pure and mixed states, and share complete calculations for independent verification.</p>\n<p>The toolkit implements selected parts of <strong>Reference-Contingent Complexity (RCC)</strong>, introduced in <a href=\"https://arxiv.org/abs/2509.18205\"><em>Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound</em></a>.</p>\n<p><a href=\"https://github.com/yeruciwenrou-dotcom/rcc-refcert\">Code and guides</a> &middot; <a href=\"https://pypi.org/project/rcc-refcert/0.3.0/\">Install from PyPI</a> &middot; <a href=\"https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/PAPER_MAP.md\">Paper-to-code map</a></p>\n<p>Understanding the cost of preparing a quantum state requires accounting for the resources already supplied by its physical background. The same state may be supplied by one background and require entropy removal and control in another. <strong>Structural fairness</strong> makes this distinction explicit: structure stably supplied by the background sets the reference zero point, while the operations and resources that generate additional target-directed structure are counted. Within an admissible model, RCC proves a <strong>rigorous lower bound on universal optimal quantum circuit complexity</strong>. Final-state information relative to the reference bounds the cost of every successful preparation history, without reconstructing how the state was produced.</p>\n<p><strong>Build and verify a model</strong></p>\n<p>Supply quantum channels, a reference state, control rules and resource assignments. The toolkit computes terminating program semidensities, prepares Bellman&ndash;Choi certificate candidates for stable finite models, and independently verifies Bellman&ndash;Choi and reference-potential proof objects. Complete exact spectra or predeclared fixed-projector counts then support terminal-state lower-bound calculations. The <a href=\"https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/CUSTOM_MODELS.md\">custom-model guide</a> provides editable examples; the <a href=\"https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/END_TO_END_EXAMPLE.md\">paired-reset example</a> follows a pure-qubit preparation from a one-slot lower bound to a matching reset.</p>\n<p><strong>Evaluate a preparation</strong></p>\n<p>Compare candidate programs against a complete target and scan the required accuracy. For diagonal initial states and exact diagonal-preserving channel recipes, verified gain bounds exclude smaller budgets and executed candidates supply feasible upper endpoints. The four-qubit reset task gives <strong>[5,5] atomic slots</strong>, including halt. Changing the tolerance gives [4,4] or [4,5], showing when the optimum is determined and when a gap remains. Algorithmic-cooling tasks provide a second physical example; numerical matrix models support candidate and trace-distance diagnostics.</p>\n<p><strong>Probe structure within a state</strong></p>\n<p><strong>Subsystem windows probe the internal structure of pure states as well as mixed states.</strong> Paired Bell states and a GHZ state are both pure, with the same global spectrum and zero global entropy, yet their reduced states have different entropy and correlation profiles. Window RCC resolves these differences across selected subsystems. Three editable probes study state organization, phase-noise distribution and the evolution of local structure during cooling. Each supplies a physical question, explicit inputs, selected windows and comparison controls. See the <a href=\"https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/COST_AND_WINDOWS.md\">cost and window guide</a>.</p>\n<p><strong>Run and share a calculation</strong></p>\n<p>With Python 3.10 or later, install this version and run the reset task in a new working directory:</p>\n<pre><code>python -m pip install \"rcc-refcert==0.3.0\"\npython -m rcc_refcert cost template cyclic-reset &gt; task.json\npython -m rcc_refcert cost analyze task.json --bundle task.rccbundle</code></pre>\n<p>The saved bundle contains the inputs and original results. Another researcher can recompute the analysis independently:</p>\n<pre><code>python -m rcc_refcert bundle verify task.rccbundle</code></pre>\n<p>Python and command-line interfaces, three Jupyter tutorials and worked examples support first calculations and custom research tasks. Reports support text, JSON and Markdown; window profiles also export to CSV and optional plots. Run <code>python -m rcc_refcert reproduce --check</code> to reproduce the three bundled reference checks. The <a href=\"https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/ANALYSIS_BUNDLES.md\">recipient guide</a> explains shared evidence and compatibility.</p>\n<p><strong>Interpreting the results</strong></p>\n<p>Exact recipe-based cost intervals refer to the declared model, complete target, tolerance and atomic cost. Matrix checks and numerical candidate diagnostics retain their numerical evidence level. Window values describe the state-side RCC main term; a full finite-accuracy cost bound also uses the model inputs and one-shot corrections. The <a href=\"https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/SCIENTIFIC_SCOPE.md\">scientific scope</a> connects these calculations to the paper's physical and analytic framework.</p>\n<p><strong>Version 0.3.0</strong> adds preparation-cost intervals, subsystem windows and independently verifiable workflow bundles to the model, certificate and terminal-state tools. See the <a href=\"https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/CHANGELOG.md#030-2026-11-15\">changelog</a> for changes and compatibility notes.</p>",
+  "keywords": [
+    "quantum circuit complexity",
+    "structure-fairness",
+    "reference-contingent complexity",
+    "quantum information",
+    "reference certificates",
+    "quantum state preparation",
+    "quantum computing",
+    "algorithmic information theory",
+    "quantum channels"
+  ],
+  "license": "mit",
+  "access_right": "open",
+  "language": "eng",
+  "related_identifiers": [
+    {
+      "identifier": "10.48550/arXiv.2509.18205",
+      "scheme": "doi",
+      "relation": "isSupplementTo",
+      "resource_type": "publication-preprint"
+    }
+  ],
+  "subjects": [
+    {
+      "term": "Quantum physics",
+      "identifier": "http://data.europa.eu/8mn/euroscivoc/bfd5c444-49dd-4da9-9ad8-d242f724f036",
+      "scheme": "url"
+    },
+    {
+      "term": "Quantum computers",
+      "identifier": "http://data.europa.eu/8mn/euroscivoc/1de32ce8-df3d-4ba6-b298-eb425e87c67b",
+      "scheme": "url"
+    },
+    {
+      "term": "Information Theory",
+      "identifier": "http://id.nlm.nih.gov/mesh/D007257",
+      "scheme": "url"
+    }
+  ],
+  "notes": "<p>If you use this software in your research, please cite the software version used and the associated <a href=\"https://arxiv.org/abs/2509.18205\">RCC paper</a>.</p>"
+}

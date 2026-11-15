@@ -1,5 +1,6 @@
 include CHANGELOG.md
 include CITATION.cff
+include .zenodo.json
 include CONTRIBUTING.md
 include RCC_Quickstart.ipynb
 include quickstart.py

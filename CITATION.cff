@@ -2,40 +2,30 @@ cff-version: 1.2.0
 message: "Cite the software version used and the associated RCC paper."
 title: "rcc-refcert: a Python research toolkit for structure-fair quantum circuit complexity"
 type: software
-version: 0.2.0
-doi: 10.5281/zenodo.23625478
-date-released: 2026-10-25
+version: 0.3.0
+url: "https://github.com/yeruciwenrou-dotcom/rcc-refcert/releases/tag/v0.3.0"
+date-released: 2026-11-15
 license: MIT
 repository-code: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 abstract: >-
   rcc-refcert is a Python research toolkit for structure-fair quantum circuit
   complexity. Reference-Contingent Complexity (RCC) makes the physical reference
-  dependence of complexity explicit and uses structural fairness to organize
-  background resources, allowed quantum processes, and generation costs into
-  coherent physical models. The RCC paper proves a rigorous lower bound on
+  dependence of complexity explicit and proves a rigorous lower bound on
   universal optimal quantum circuit complexity within an admissible model.
-  The toolkit implements finite-control models, reference certificates and
-  terminal-state bounds from this framework.
-  Researchers can construct prefix-controlled quantum-process models, compute
-  terminating program semidensities, and check Bellman-Choi, reference-potential,
-  fixed-model domination, and reference gain-cost conditions. Complete exact
-  spectra and predeclared fixed-projector counts provide quantum circuit
-  complexity lower bounds in the declared model's atomic resource slots. Freshly verified H.3/H.4 proof
-  objects can supply the reference-domination constant; versioned records
-  preserve calculation inputs, evidence levels and same-version scalar replay.
-  Stable finite models support linear H.3 candidate preparation followed by
-  independent verification. Complete analysis bundles retain model and proof
-  arrays for fresh numerical checks and comparison with historical results.
-  Three bundled reference cases cover closed-form, multiblock, and nonhalting
-  behavior. A worked paired-reset model prepares a pure qubit from the maximally mixed
-  state: its rigorous RCC lower bound is one primitive slot, attained by a
-  single reset. The package provides a Python API, command-line tools, two
-  Jupyter tutorials, and versioned
-  reports. Matrix checks provide reproducible numerical evidence for declared
-  finite models, with explicit pass, fail, inconclusive, and not-applicable
-  outcomes. Terminal-state records distinguish scalar enclosures, numerical
-  certificate evidence and sampling coverage. The accompanying paper supplies
-  the physical and analytic premises of the general RCC framework.
+  The toolkit implements finite-control models, reference certificates,
+  terminal-state bounds, preparation-cost intervals and subsystem windows.
+  Researchers can construct quantum-process models, verify supplied proof
+  objects, and calculate lower bounds from exact spectra or predeclared
+  fixed-projector counts. Exact diagonal-preserving channel recipes combine
+  verified reference-envelope exclusions with complete candidate execution
+  to bound preparation costs in a declared model. State windows probe
+  internal structure in pure and mixed states through reduced-state entropy
+  deficits and total correlations, across subsystems or along a preparation.
+  Numerical model inputs support candidate diagnostics with their evidence
+  level retained. Complete analysis bundles preserve inputs and historical
+  results for independent recomputation. Python and command-line interfaces,
+  three Jupyter tutorials, editable probes and reproducible reference cases
+  connect these calculations to the RCC paper and to new research tasks.
 keywords:
   - quantum circuit complexity
   - structure-fairness

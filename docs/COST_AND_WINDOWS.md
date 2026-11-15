@@ -15,15 +15,14 @@ calculation for independent revalidation.
 | How do I analyze my own state or model? | [Matrix inputs](#your-own-matrix-and-tensor-labels) and [numerical models](#numerical-models-and-candidate-diagnostics) |
 | How do I save, share and verify the calculation? | [Reports and revalidation](#reports-limits-and-revalidation) |
 
-Use the **0.3 source series** with Python 3.10 or later. Follow the
-[source quickstart](../README.md#quick-start), then activate its environment
-or substitute that environment's Python path in the commands below. The
-published 0.2.0 package provides the model, certificate and terminal-bound
-workflows.
+Use **rcc-refcert 0.3.0 or later** with Python 3.10 or later. Install from
+[PyPI](../README.md#install-from-pypi) or follow the
+[source quickstart](../README.md#quick-start), then activate that environment
+or substitute its Python path in the commands below.
 
 ## A complete cost task
 
-Run in a new directory with the environment where you installed this checkout:
+Run in a new directory with the environment where you installed the package:
 
 ```bash
 python -m rcc_refcert cost template cyclic-reset > task.json
