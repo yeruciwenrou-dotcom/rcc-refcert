@@ -1,4 +1,4 @@
-"""Subsystem entropy deficits with explicit axes, references and state policies."""
+"""Subsystem RCC complexity with explicit axes, references and resource scales."""
 
 from __future__ import annotations
 
@@ -492,12 +492,12 @@ def window_report_lines(result, *, details=False):
 
     ref = result["reference"]
     lines = [
-        "RCC state windows",
+        "RCC subsystem complexity profiles",
         f"Decision: {_decision_label(result['decision'])}",
         f"Reference: uniform product support; Gamma={ref['gamma_exact']}; g_R={ref['g_bits']:.10g} bits",
         f"Scale source: {ref['source']}",
-        "C = entropy deficit / g_R: the state-side RCC main term.",
-        "Subsystem entropy is S(rho_A) on the retained axes.",
+        "C = entropy deficit / g_R: state-side complexity in st_R (1 st_R = g_R bits).",
+        "The information numerator is log2(d_A) - S(rho_A); entropies are in bits.",
     ]
     records = {record["id"]: record for record in result["effective_request"]["states"]}
     for profile in result["profiles"]:
@@ -524,13 +524,13 @@ def window_report_lines(result, *, details=False):
             continue
         for q in [{"id": "global", **profile["global_quantity"]}, *profile["windows"]]:
             lines.append(
-                f"  {q['id']}: subsystem entropy={_window_number(q['entropy_bits'])} bits; deficit={_window_number(q['entropy_deficit_bits'])} bits; C={_window_number(q['rcc_main_term'])}"
+                f"  {q['id']}: C={_window_number(q['rcc_main_term'])} st_R; subsystem entropy={_window_number(q['entropy_bits'])} bits; deficit={_window_number(q['entropy_deficit_bits'])} bits"
             )
         if profile["partition"] is not None:
             left = ", ".join(profile["partition"]["left"]["keep"])
             right = ", ".join(profile["partition"]["right"]["keep"])
             lines.append(
-                f"  Total correlation ({left} | {right}): {_window_number(profile['partition']['total_correlation_bits'])} bits"
+                f"  Correlation contribution ({left} | {right}): {_window_number(profile['partition']['total_correlation_scaled'])} st_R; Total correlation: {_window_number(profile['partition']['total_correlation_bits'])} bits"
             )
         if details:
             lines.append(f"  State identity: {profile['state_digest']}")
@@ -595,9 +595,9 @@ def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=Fals
     ax.set_yticks(range(len(rows)), [f"{r['state']} / {r['window']}" for r in rows])
     ax.invert_yaxis()
     ax.set_xlabel(
-        f"Window RCC main term C (Gamma={result['reference']['gamma_exact']})"
+        f"Window RCC complexity C [st_R] (Gamma={result['reference']['gamma_exact']})"
     )
-    ax.set_title("State organization by subsystem window")
+    ax.set_title("Complexity profiles across subsystems")
     destination.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(
         prefix=".rcc-plot-", suffix=destination.suffix, dir=destination.parent

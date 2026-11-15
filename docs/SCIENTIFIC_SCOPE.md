@@ -43,10 +43,11 @@ complexity lower bound in that model's atomic resource units.
 
 The preparation-cost workflow combines exact reference-envelope exclusions
 with executed candidate programs to bound a complete target's cost in a
-declared finite model. The window workflow analyzes subsystem entropy
-deficits and correlations, either directly from states or along a candidate's
-trajectory. These calculations make model costs and internal state
-organization available as separate, complementary research outputs.
+declared finite model. The window workflow resolves state-side RCC complexity
+across subsystems, either directly from states or along a candidate's trajectory.
+Entropy deficits supply information relative to the reference; division by the
+control bandwidth expresses it in complexity units. These calculations connect
+optimal preparation costs with complexity profiles at a chosen subsystem resolution.
 
 The implementation fixes program-semidensity and certificate conventions and
 reproduces selected constructions from Appendices F and H of RCC manuscript
@@ -82,9 +83,13 @@ $$
 Here $\Gamma_R$ counts operationally distinct physical actions in one declared
 atomic slot, including the applicable addressing and resource semantics.
 It is determined by the control interface. A count of syntax labels or the
-Hilbert-space dimension alone does not determine it. One R-structon
-($\mathrm{st}_R$) represents $g_R$ bits of state-side information; preparation
-cost is counted in atomic resource slots.
+Hilbert-space dimension alone does not determine it. The reference fixes the
+structural zero point, and $g_R$ calibrates information against the model's
+atomic resource scale. Thus $C_R$ is a state-side complexity reading in
+R-structons ($\mathrm{st}_R$), with $1 \mathrm{st}_R=g_R$ bits; preparation cost
+is counted in atomic resource slots. "State-side" identifies where the reading
+is obtained. Its complexity meaning comes from this physical calibration and
+its relation to the process optimum through the RCC theorem.
 
 Under the exact-transcription hypotheses of Theorem 3.1, the common lower
 bound for every admissible successful history is
@@ -125,8 +130,10 @@ and survives taking the infimum of their costs.
 At a fixed uniform reference and tolerance, identical target spectra yield
 the same global information bound. In particular, all pure targets share
 this state-side value, while their optimal preparation costs can differ.
-The paper's reference-compatible windows resolve task-relevant internal
-structure (Section V and Appendix E). The window workflow implements explicit
+The paper's reference-compatible windows resolve complexity at a chosen
+observation resolution (Section V and Appendix E). They retain the reference
+and resource scale while changing the accessible object. The window workflow
+implements explicit
 subsystem reductions with a uniform product reference. The terminal-state
 bound routes use the declared global support or one predeclared projector.
 An exact optimum additionally needs a matching feasible preparation, as in
@@ -149,14 +156,20 @@ numerical status and supply no strict feasible upper endpoint. The exact
 recipe route and the numerical route therefore expose different evidence.
 
 For a subsystem $A$, the window workflow evaluates
-$C_A=(\log_2 d_A-S(\rho_A))/g_R$. This is the state-side RCC main term; the
+$C_{R,A}=(\log_2 d_A-S(\rho_A))/g_R$, in $\mathrm{st}_R$.
+This is the state-side complexity reading and RCC main term; the
 full finite-accuracy cost bound also uses the one-shot corrections and model
 inputs above. Entropies are numerical, including when the input probabilities
 are exact. For a complete bipartition, the decomposition is
-$C_{AB}=C_A+C_B+I(A:B)/g_R$. On mixed states, $I(A:B)$ measures total
-correlation, including classical correlation in the cooling examples.
+$C_{R,AB}=C_{R,A}+C_{R,B}+I(A:B)/g_R$. The same bandwidth converts the
+mutual information into a correlation contribution to complexity, in the same
+units as the local terms. On mixed states, $I(A:B)$ measures total correlation,
+including classical correlation in the cooling examples; on pure bipartite
+states it equals twice the reduced-state entropy. This identity decomposes
+state-side RCC complexity; the optimum over full preparation histories is
+bounded using the model and one-shot terms above.
 
-The [preparation costs and quantum-state structure guide](COST_AND_WINDOWS.md) gives editable reset and
+The [preparation costs and complexity profiles guide](COST_AND_WINDOWS.md) gives editable reset and
 cooling tasks, state comparisons and trajectory probes. The model's reference,
 transcription and family conditions retain their roles in the universal
 complexity argument.

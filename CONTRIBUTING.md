@@ -12,7 +12,7 @@ reliability, or help readers reproduce and understand the results.
 The terminal-state interfaces also support exact-spectrum and fixed-projector
 calculations with explicit model assumptions, sampling contracts, and replay.
 Cost and window workflows add complete-target candidate checks, exact
-finite-model cost intervals and subsystem structure probes.
+finite-model cost intervals and subsystem complexity probes.
 
 Contributions can address one layer at a time:
 
@@ -22,7 +22,7 @@ Contributions can address one layer at a time:
   gain–cost encodings, negative witnesses, or family-scaling diagnostics;
 - **terminal-state bounds:** spectrum or measurement-based methods, cost
   inversion, and connections to finite-control reference certificates;
-- **preparation costs and subsystem structure:** exact model recipes, candidate
+- **preparation costs and complexity profiles:** exact model recipes, candidate
   witnesses, subsystem comparisons, trajectories and research probes;
 - **numerical reliability:** interval bounds, exact arithmetic, conditioning
   diagnostics, solver integrations, or independent realizations;
@@ -65,10 +65,12 @@ claim also needs its uniform analytic, physical, and transcription arguments;
 scalar replay does not discharge those obligations.
 
 Exact recipe-based cost intervals retain their model, target, tolerance and
-cost-unit identities. Numerical candidate diagnostics and window entropies
-retain their numerical evidence level. A window RCC main term and a complete
-finite-accuracy cost bound answer different questions; document their relation
-where a change uses both.
+cost-unit identities. Window RCC values express state-side complexity in the declared reference and
+control scale; entropy and correlation measurements supply their information
+inputs. Numerical candidate diagnostics and window calculations retain their
+numerical evidence level. A complete finite-accuracy cost bound additionally
+uses the one-shot corrections and model inputs; document that relation where
+a change uses both.
 
 ## Adding a model or certificate
 

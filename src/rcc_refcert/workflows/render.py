@@ -35,8 +35,9 @@ def render_probe(entry, *, width=80):
         f"Default parameters: {parameters}",
         f"Windows: {windows}",
         (
-            "Readouts: subsystem entropy and entropy deficit in bits; "
-            "C = deficit / log2(Gamma); total correlation in bits."
+            "Readouts: state-side complexity C = deficit / log2(Gamma) in st_R; "
+            "correlation contribution I(A:B) / log2(Gamma) in st_R. "
+            "Entropy, deficit and total correlation are also reported in bits."
         ),
         "",
         "Expected results at the default parameters:",

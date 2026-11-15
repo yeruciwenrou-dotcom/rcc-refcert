@@ -7,7 +7,7 @@ the calculation without the author's modeling script.
 | Calculation | Bundle contents | Reader version |
 |---|---|---|
 | Model certificates and terminal-state bounds | Model and proof arrays, numerical controls, requests and historical results; container schema 1 | 0.2.0 or later |
-| Preparation costs, subsystem entropy and correlations | Complete effective requests, exact recipes or numerical inputs, candidates, windows and historical results; container schema 2 | 0.3.0 or later |
+| Preparation costs and subsystem complexity profiles | Complete effective requests, exact recipes or numerical inputs, candidates, windows and historical results; container schema 2 | 0.3.0 or later |
 
 Use a bundle when handing results to a collaborator, preserving a calculation
 for review, or comparing numerical environments. The existing bound record

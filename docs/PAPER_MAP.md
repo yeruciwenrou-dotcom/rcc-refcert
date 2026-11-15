@@ -22,7 +22,7 @@ taken over all admissible successful preparation histories in a chosen model.
 | Appendix H | identifies finite-control semidensities, characterizes fixed-size domination by H.3, and supplies H.4/H.6 sufficient constructions | implements H.1–H.6 realization, fixed-point, domination, certificate, and gain–cost checks |
 | Section III and Appendix A | derive the RCC lower bound from the complete model hypotheses | evaluates uniform-reference exact-spectrum smoothing and canonical cost inversion under declared model inputs; the paired-reset example also verifies a matching one-slot preparation |
 | Section IV and Appendices B–D | convert terminal-state evidence, support treatment, calibration, and multiple audit paths into one-sided RCC lower-bound certificates | implements the fixed-projector, fixed-N Hoeffding route and scalar result records for ideal support and readout; support uncertainty, readout/leakage corrections, and multi-path synthesis remain outside the implementation |
-| Section II.D, Section V and Appendix E | define the state-side RCC value and reference-compatible observation windows | evaluates entropy deficits on explicit subsystems with a uniform product reference, including state comparisons and candidate trajectories |
+| Section II.D, Section V and Appendix E | define the state-side RCC value and reference-compatible observation windows | evaluates state-side RCC complexity in explicit subsystems using a uniform product reference and declared control bandwidth, including local/correlation contributions and candidate trajectories |
 
 The code therefore provides executable evidence for a qualified finite model.
 The RCC theorem additionally depends on the physical and analytic premises
