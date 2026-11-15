@@ -14,14 +14,17 @@ abstract: >-
   dependence of complexity explicit and proves a rigorous lower bound on
   universal optimal quantum circuit complexity within an admissible model.
   The toolkit implements finite-control models, reference certificates,
-  terminal-state bounds, preparation-cost intervals and subsystem windows.
+  terminal-state bounds, preparation-cost intervals and subsystem complexity
+  profiles.
   Researchers can construct quantum-process models, verify supplied proof
   objects, and calculate lower bounds from exact spectra or predeclared
   fixed-projector counts. Exact diagonal-preserving channel recipes combine
   verified reference-envelope exclusions with complete candidate execution
-  to bound preparation costs in a declared model. State windows probe
-  internal structure in pure and mixed states through reduced-state entropy
-  deficits and total correlations, across subsystems or along a preparation.
+  to bound preparation costs in a declared model. Subsystem windows resolve
+  state-side RCC complexity in pure and mixed states under a common reference
+  and control bandwidth. Entropy deficits and mutual information, divided by
+  that bandwidth, give local and correlation contributions in R-structons,
+  across subsystems or along a preparation.
   Numerical model inputs support candidate diagnostics with their evidence
   level retained. Complete analysis bundles preserve inputs and historical
   results for independent recomputation. Python and command-line interfaces,
@@ -37,6 +40,8 @@ keywords:
   - quantum channels
   - reference certificates
   - algorithmic information theory
+  - quantum complexity
+  - theoretical physics
 authors:
   - family-names: Liu
     given-names: HongZheng

@@ -266,7 +266,7 @@ result. Human-readable labels do not change the JSON decision values.
 |---|---|
 | `effective_request` | Complete inputs used for the calculation, including expanded recipes and saved controls |
 | `digests` | Identity of the effective request and, for costs, its model, full target, reference and task |
-| `evidence` | Exact rational cost evidence and/or numerical candidate and entropy evidence |
+| `evidence` | Exact rational cost evidence and/or numerical candidate and window-readout evidence |
 | `execution` | Whether the requested computation completed, and any reason it stopped early |
 | `decision` | Scientific conclusion supported by the available evidence |
 | `run_id` | Identity of this execution, kept separate from the task identity |
@@ -279,7 +279,7 @@ no supplied feasible candidate establishes an upper endpoint.
 `evidence_conflict` yields no valid interval. Candidate results retain their
 own legality, distance and target-satisfaction fields.
 
-Window results contain the global quantity, subsystem profiles, reference
+Window results contain global and subsystem RCC complexity, the reference
 scale and any bipartition decomposition. `window_analysis` denotes an
 evaluated numerical profile; `numerical_unresolved` identifies unresolved
 state-input checks. Exact state probabilities still produce numerical
