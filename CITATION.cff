@@ -11,8 +11,8 @@ repository-code: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 abstract: >-
   rcc-refcert is a Python research toolkit for structure-fair quantum
   circuit complexity. Reference-Contingent Complexity (RCC) introduces
-  structural fairness as a physical postulate, accounting for the background
-  structure and resources used to prepare a state. Optimal quantum circuit
+  structural fairness as a physical postulate, providing a common basis for
+  resource accounting across physical backgrounds. Optimal quantum circuit
   complexity is the global minimum cost over all allowed preparation
   circuits and is generally difficult to compute. RCC provides a rigorous,
   auditable lower bound: measurements of the final state can rule out every

@@ -16,11 +16,17 @@ The toolkit implements selected parts of **Reference-Contingent Complexity
 (RCC)**, introduced in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
 
+## Structural fairness
+
 The same quantum state can be supplied by one physical background but require
-entropy removal and control in another. RCC introduces **structural fairness
-as a physical postulate**: structure already supplied by the background sets
-the complexity zero point, and the resources used to generate additional
-structure are counted.
+entropy removal and control in another. Without a common principle for
+resource accounting, this asymmetry makes physical preparation costs difficult
+to compare. RCC therefore introduces **structural fairness as a physical
+postulate**: structure already supplied by the background sets the complexity
+zero point, and the resources used to generate additional structure are
+counted.
+
+## Auditable complexity lower bounds
 
 Optimal quantum circuit complexity is the global minimum cost over all allowed
 preparation circuits and is generally difficult to compute. RCC provides a
@@ -38,7 +44,7 @@ history or finding the optimal circuit.
 |---|---|
 | [Analyze finite-control models](#work-with-your-own-model) | Construct quantum channels and control rules; compute code-weighted sums of terminating outputs (program semidensities), least fixed points and reference domination. |
 | [Prepare and verify reference certificates](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CUSTOM_MODELS.md) | Prepare numerical certificate candidates for stable finite-control models and independently verify reference certificates. Check local gain–cost conditions and prefix-code completions. |
-| [Calculate terminal-state bounds](#target-spectra-and-measured-counts) | Turn exact target spectra or predeclared projector counts into complexity lower bounds, with spectrum smoothing, certificate binding and scalar cost inversion. |
+| [Calculate terminal-state bounds](#target-spectra-and-measured-counts) | Turn exact target spectra or predeclared projector counts into independently checkable quantum circuit complexity lower bounds. |
 | [Compare preparation costs](#cost-and-window-workflows) | Check candidate programs and scan tolerances; obtain rigorous cost intervals for exact diagonal recipes or numerical candidate diagnostics for matrix models. |
 | [Use window RCC](#compare-subsystem-complexity) | Compare subsystem complexity in pure and mixed states under a common reference and control bandwidth; analyze local and correlation contributions or follow preparation trajectories with editable research probes. |
 | [Share and reverify calculations](#reverify-a-shared-analysis) | Save complete inputs for model, certificate, cost and subsystem calculations; recompute them independently and compare fresh evidence with historical results. |
