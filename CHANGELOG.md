@@ -2,7 +2,7 @@
 
 ## 0.3.0 (2026-11-15)
 
-Preparation-cost and subsystem-window workflows extend the existing model,
+Preparation-cost comparisons and subsystem complexity profiles extend the model,
 certificate and terminal-state tools. The main additions are complete-target
 cost comparisons, editable state probes and shared workflow evidence.
 
@@ -17,10 +17,11 @@ cost comparisons, editable state probes and shared workflow evidence.
 
 ### State windows and research probes
 
-- Analyze subsystem entropy deficits and total correlations from state data or
-  a candidate program's trajectory. Three editable probes explore the
-  organization of paired Bell and GHZ states, phase-noise distribution and
-  cooling.
+- Resolve subsystem RCC complexity from state data or a candidate program's
+  trajectory, using a common reference and control bandwidth. Three editable
+  probes compare the complexity profiles of paired Bell and GHZ states,
+  phase-noise distributions and cooling trajectories; entropy deficits and
+  mutual information supply the local and correlation contributions.
 - Read results as text, JSON or Markdown, and export window values as CSV or
   optional plots. A task guide and notebook accompany the new workflows.
 - Present probes as readable research summaries, with complete records available
