@@ -22,7 +22,7 @@ Contributions can address one layer at a time:
   gain–cost encodings, negative witnesses, or family-scaling diagnostics;
 - **terminal-state bounds:** spectrum or measurement-based methods, cost
   inversion, and connections to finite-control reference certificates;
-- **preparation costs and state windows:** exact model recipes, candidate
+- **preparation costs and subsystem structure:** exact model recipes, candidate
   witnesses, subsystem comparisons, trajectories and research probes;
 - **numerical reliability:** interval bounds, exact arithmetic, conditioning
   diagnostics, solver integrations, or independent realizations;

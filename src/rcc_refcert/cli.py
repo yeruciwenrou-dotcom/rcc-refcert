@@ -108,7 +108,8 @@ def build_parser() -> argparse.ArgumentParser:
         prog="rcc-refcert",
         description=(
             "Study structure-fair quantum circuit complexity: compute lower "
-            "bounds, check preparation costs, analyze state windows, and "
+            "bounds, check preparation costs, analyze subsystem entropy and "
+            "correlations, and "
             "verify finite-control models and reference certificates."
         ),
     )

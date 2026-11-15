@@ -9,8 +9,8 @@ complexity**.
 It analyzes finite-control quantum models, verifies reference certificates,
 and computes **quantum circuit complexity lower bounds** from exact target
 spectra or predeclared measurement counts. Researchers can also compare
-candidate preparations, study how structure is distributed across subsystems,
-and share complete calculations for independent verification.
+candidate preparations, analyze subsystem entropy and correlations in pure
+and mixed states, and share complete calculations for independent verification.
 
 The toolkit implements selected parts of **Reference-Contingent Complexity
 (RCC)**, introduced in
@@ -39,17 +39,17 @@ state was produced.
 | [Prepare and verify reference certificates](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/CUSTOM_MODELS.md) | Prepare numerical certificate candidates for stable finite-control models and independently verify reference certificates. Check local gain–cost conditions and prefix-code completions. |
 | [Calculate terminal-state bounds](#target-spectra-and-measured-counts) | Turn exact target spectra or predeclared projector counts into complexity lower bounds, with spectrum smoothing, certificate binding and scalar cost inversion. |
 | [Compare preparation costs](#cost-and-window-workflows) | Check candidate programs and scan tolerances; obtain rigorous cost intervals for exact diagonal recipes or numerical candidate diagnostics for matrix models. |
-| [Explore subsystem windows](#compare-state-organization) | Probe structure in pure and mixed states through reduced-state entropy, entropy deficits and total correlations; compare states or follow preparation trajectories with three editable research probes. |
-| [Share and reverify calculations](#reverify-a-shared-analysis) | Save complete model, certificate, cost or window inputs; recompute them independently and compare fresh evidence with historical results. |
+| [Analyze subsystem structure](#compare-state-organization) | Probe structure in pure and mixed states through reduced-state entropy, entropy deficits and total correlations; compare states or follow preparation trajectories with three editable research probes. |
+| [Share and reverify calculations](#reverify-a-shared-analysis) | Save complete inputs for model, certificate, cost and subsystem calculations; recompute them independently and compare fresh evidence with historical results. |
 | [Reproduce paper calculations](#reference-cases) | Run frozen reference cases, inspect prefix-encoding constructions and follow a worked RCC lower bound from its model to a matching preparation. |
 
 Use the command line, [Python API](#python-api) or [Jupyter notebooks](#jupyter-notebook).
-Cost and window reports support text, JSON and Markdown; window profiles also
-export to CSV and optional plots.
+Preparation-cost and subsystem reports support text, JSON and Markdown;
+subsystem profiles also export to CSV and optional plots.
 
 > **New in 0.3.0**
 >
-> Preparation-cost intervals and subsystem windows extend the model,
+> Preparation-cost intervals and subsystem analysis extend the model,
 > certificate and terminal-state tools. Editable reset, cooling and state
 > comparisons can be saved and independently reverified.
 > [Read the changes and compatibility notes](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/CHANGELOG.md#030-2026-11-15).
@@ -63,8 +63,8 @@ export to CSV and optional plots.
 Python 3.10 or newer is required. Choose the installation for your task:
 
 - **[PyPI package](#install-from-pypi):** all Python and command-line
-  capabilities above, including preparation costs, state windows and shared
-  evidence, without a source checkout.
+  capabilities above, including preparation costs, subsystem entropy and
+  correlations, and shared evidence, without a source checkout.
 - **Source checkout:** the same toolkit, plus the example scripts, three
   notebooks and verification suite.
 
@@ -134,8 +134,8 @@ sufficient route and the nonhalting boundary among those expected results.
 
 The API, CLI, templates, and frozen reference data work outside a source
 checkout. The installed package also includes reference-certificate candidate
-preparation, cost and window workflows, and bundle verification.
-For the example scripts and notebooks, use the
+preparation, preparation-cost analysis, subsystem analysis, and bundle
+verification. For the example scripts and notebooks, use the
 [source quickstart](#quick-start).
 
 ## Research workflows
@@ -161,7 +161,7 @@ verification passes even though the local gain–cost sufficient test fails.
 The second uses a **reference-potential certificate (H.4)** for a four-qubit
 register, then computes bounds from an exact spectrum and synthetic counts.
 Both bound paths for this register return **two primitive slots**. The
-[complete cost workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/COST_AND_WINDOWS.md#a-complete-cost-task) independently
+[complete cost workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/COST_AND_WINDOWS.md#a-complete-cost-task) independently
 verifies the five-slot optimum with gain exclusion and a matching program.
 
 Each command saves a bundle containing the model, certificate and results.
@@ -207,7 +207,9 @@ The cost bound depends on the declared model premises; sampling coverage
 describes the counts alone. These templates and commands are available directly
 from the installed package.
 
-### Cost and window workflows
+<a id="cost-and-window-workflows"></a>
+
+### Preparation costs and subsystem structure
 
 Use the environment created by the [source quickstart](#quick-start), then run
 these commands from the checkout. On Windows, replace `.venv/bin/python` with
@@ -228,7 +230,12 @@ determines the optimum and when a gap remains.
 
 #### Compare state organization
 
-To examine state organization, export a probe and analyze its windows:
+To compare entropy and correlations within pure or mixed states, choose the
+subsystems to examine. Each selected subsystem is a **subsystem window**:
+the analysis traces out the remaining systems and evaluates the reduced state
+relative to the declared reference and control scale.
+
+Start by exporting an editable state-comparison probe:
 
 ```bash
 .venv/bin/python -m rcc_refcert probe export w1-quantum-organization > windows.json
@@ -242,9 +249,9 @@ structures within the pure states. The other probes compare phase-noise
 distributions and follow an algorithmic-cooling trajectory. Each probe supplies
 editable inputs and a reference comparison.
 
-The [workflow guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/COST_AND_WINDOWS.md) covers changing the target and
-tolerance, cooling, your own matrices, window probes, reports and independent
-revalidation. [RCC_Workflows_Quickstart.ipynb](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/RCC_Workflows_Quickstart.ipynb)
+The [workflow guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/COST_AND_WINDOWS.md) covers changing the target and
+tolerance, cooling, your own matrices, subsystem comparisons, reports and
+independent revalidation. [RCC_Workflows_Quickstart.ipynb](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Workflows_Quickstart.ipynb)
 provides the same path in a notebook.
 
 ### Reverify a shared analysis
@@ -293,7 +300,7 @@ Choose a notebook for the task you want to explore:
 |---|---|
 | [Models and certificates](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/RCC_Quickstart.ipynb) | Analyze finite-control models, verify reference certificates and reproduce paper calculations. |
 | [Terminal-state bounds](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/RCC_Bounds_Quickstart.ipynb) | Calculate bounds from exact spectra or fixed-projector counts, then save and replay the result. |
-| [Preparation costs and windows](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/RCC_Workflows_Quickstart.ipynb) | Compare preparation costs, explore subsystem structure and cooling, and share complete evidence. |
+| [Preparation costs and quantum-state structure](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Workflows_Quickstart.ipynb) | Compare preparation costs, explore subsystem structure and cooling, and share complete evidence. |
 
 Select **Python (rcc-refcert)** as the kernel. Run all three commands with the
 same interpreter; on Windows, use `.venv\Scripts\python.exe`. These dependencies
@@ -322,8 +329,9 @@ target-state calculations, the [bounds guide](https://github.com/yeruciwenrou-do
 `bound_from_spectrum`, `bound_from_counts`, `prepare_protocol`,
 `with_reference_certificate`, `validate_record` and `replay_record`.
 
-For preparation costs and state windows, import from `rcc_refcert.workflows`.
-The [workflow guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/docs/COST_AND_WINDOWS.md) introduces
+For preparation costs, subsystem entropy and correlations, import from
+`rcc_refcert.workflows`.
+The [workflow guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/COST_AND_WINDOWS.md) introduces
 `analyze_cost`, `compare_cost_results`, `analyze_windows`, `export_probe` and
 `save_workflow_bundle` with executable examples.
 
