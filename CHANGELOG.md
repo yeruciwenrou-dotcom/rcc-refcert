@@ -17,7 +17,7 @@ cost comparisons, editable state probes and shared workflow evidence.
 
 ### State windows and research probes
 
-- Resolve subsystem RCC complexity from state data or a candidate program's
+- Compare subsystem RCC complexity from state data or a candidate program's
   trajectory, using a common reference and control bandwidth. Three editable
   probes compare the complexity profiles of paired Bell and GHZ states,
   phase-noise distributions and cooling trajectories; entropy deficits and

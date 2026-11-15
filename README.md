@@ -9,7 +9,7 @@ complexity**.
 It analyzes finite-control quantum models, verifies reference certificates,
 and computes **quantum circuit complexity lower bounds** from exact target
 spectra or predeclared measurement counts. Researchers can also compare
-candidate preparations, resolve complexity profiles across subsystems of pure
+candidate preparations, use window RCC to compare subsystem complexity in pure
 and mixed states, and share complete calculations for independent verification.
 
 The toolkit implements selected parts of **Reference-Contingent Complexity
@@ -39,7 +39,7 @@ state was produced.
 | [Prepare and verify reference certificates](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CUSTOM_MODELS.md) | Prepare numerical certificate candidates for stable finite-control models and independently verify reference certificates. Check local gain–cost conditions and prefix-code completions. |
 | [Calculate terminal-state bounds](#target-spectra-and-measured-counts) | Turn exact target spectra or predeclared projector counts into complexity lower bounds, with spectrum smoothing, certificate binding and scalar cost inversion. |
 | [Compare preparation costs](#cost-and-window-workflows) | Check candidate programs and scan tolerances; obtain rigorous cost intervals for exact diagonal recipes or numerical candidate diagnostics for matrix models. |
-| [Resolve subsystem complexity](#compare-subsystem-complexity) | Compare window RCC values in pure and mixed states under a common reference and control scale; resolve local and correlation contributions or follow preparation trajectories with three editable research probes. |
+| [Use window RCC](#compare-subsystem-complexity) | Compare subsystem complexity in pure and mixed states under a common reference and control bandwidth; analyze local and correlation contributions or follow preparation trajectories with editable research probes. |
 | [Share and reverify calculations](#reverify-a-shared-analysis) | Save complete inputs for model, certificate, cost and subsystem calculations; recompute them independently and compare fresh evidence with historical results. |
 | [Reproduce paper calculations](#reference-cases) | Run frozen reference cases, inspect prefix-encoding constructions and follow a worked RCC lower bound from its model to a matching preparation. |
 
@@ -233,8 +233,8 @@ determines the optimum and when a gap remains.
 
 #### Compare subsystem complexity
 
-To resolve complexity across a pure or mixed state, choose the subsystems to
-examine. Each selected subsystem is a **subsystem window**: the analysis traces
+To compare subsystem complexity in a pure or mixed state, choose the subsystems
+to examine. Each selected subsystem is a **subsystem window**: the analysis traces
 out the remaining systems and evaluates the reduced state relative to the
 declared reference and control scale. For the uniform product reference, the
 window RCC value is $C_{R,A}=[\log_2 d_A-S(\rho_A)]/g_R$. The control bandwidth
@@ -253,7 +253,7 @@ The default probe compares paired Bell states with a GHZ state. Both are pure,
 with identical global spectra and the same global RCC value. At the common
 scale $\Gamma_R=4$, windows 12, 13 and 34 give $(1,0,1) \mathrm{st}_R$ for the
 Bell pairs and $(1/2,1/2,1/2) \mathrm{st}_R$ for GHZ. Their different reduced-state
-entropies thus resolve different complexity profiles. The other probes follow
+entropies thus give different complexity profiles at the same control bandwidth. The other probes follow
 how phase-noise distribution and algorithmic cooling change these profiles.
 Each probe supplies editable inputs and a reference comparison.
 
@@ -308,7 +308,7 @@ Choose a notebook for the task you want to explore:
 |---|---|
 | [Models and certificates](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Quickstart.ipynb) | Analyze finite-control models, verify reference certificates and reproduce paper calculations. |
 | [Terminal-state bounds](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Bounds_Quickstart.ipynb) | Calculate bounds from exact spectra or fixed-projector counts, then save and replay the result. |
-| [Preparation costs and complexity profiles](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Workflows_Quickstart.ipynb) | Compare preparation costs, resolve subsystem complexity and cooling trajectories, and share complete evidence. |
+| [Preparation costs and complexity profiles](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Workflows_Quickstart.ipynb) | Compare preparation costs, use window RCC to study states and cooling trajectories, and share complete evidence. |
 
 Select **Python (rcc-refcert)** as the kernel. Run all three commands with the
 same interpreter; on Windows, use `.venv\Scripts\python.exe`. These dependencies
@@ -501,7 +501,7 @@ The [output contract](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/ma
 Exact diagonal recipes support rigorous model-specific cost intervals by combining
 gain-based exclusion with an executed feasible program. Numerical matrix inputs
 support candidate diagnostics and window profiles, with their numerical evidence
-identified in the result. Window RCC values resolve state-side complexity across
+identified in the result. Window RCC compares state-side complexity across
 subsystems in the declared reference and resource scale; the full one-shot cost
 bound also uses the model and
 accuracy corrections in the [RCC explanation](#how-the-final-state-gives-a-lower-bound).
