@@ -81,7 +81,8 @@ convention risk, or mathematical boundary. Document:
 - the expected outcomes, including designed route failures or boundaries;
 - the test that would fail under the most plausible incorrect implementation.
 
-An expected H.70 failure rejects the chosen local sufficient criterion; it
+An expected failure of the local gain–cost test (H.70) rejects the chosen
+sufficient criterion; it
 does not refute reference admissibility of the original model.
 An `inconclusive` result records an unresolved numerical condition. Check
 the other certificate routes for the original model; adopting suggested
@@ -108,7 +109,7 @@ endpoint of a calculator enclosure is not a physical upper bound on cost.
 
 Measurement changes must keep the task, projector, fixed sample size, failure
 budget, and acquisition digest consistent. New sampling or readout models need
-their own justified contracts. The H.3/H.4 adapter must verify the supplied
+their own justified contracts. The reference-certificate adapter must verify the supplied
 proof object on the actual model and use the returned upper constant, while
 retaining the numerical evidence level and the external model premises.
 

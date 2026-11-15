@@ -73,7 +73,7 @@ def _add_numerical_arguments(parser: argparse.ArgumentParser) -> None:
         "--max-depth",
         type=_positive_int,
         default=8,
-        help="largest action depth used in the H.1 realization check (default: 8)",
+        help="maximum action depth for checking the model realization identity (default: 8)",
     )
     parser.add_argument(
         "--truncation-steps",
@@ -81,8 +81,8 @@ def _add_numerical_arguments(parser: argparse.ArgumentParser) -> None:
         type=_nonnegative_int,
         default=16,
         help=(
-            "largest number of transient continuations included in the H.2 "
-            "partial sum (default: 16)"
+            "maximum number of transient continuations in the partial sum "
+            "over terminating programs (default: 16)"
         ),
     )
     parser.add_argument(
@@ -123,7 +123,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_format_argument(examples)
 
     example = commands.add_parser(
-        "example", help="run one model and all proof objects supplied for it"
+        "example", help="analyze a bundled model and check its supplied certificates"
     )
     example.add_argument("name", choices=case_names(), help="stable case name")
     example.add_argument(

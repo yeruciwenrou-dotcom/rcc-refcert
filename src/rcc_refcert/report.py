@@ -193,9 +193,14 @@ def _case_section(result: CaseAnalysis) -> list[str]:
         lines.extend(
             [
                 "",
-                "### H.6 code-length diagnostic",
+                "### Local gain–cost and prefix-code diagnostic (H.6)",
                 "",
-                "| syntax | current H.70 sum | current route | H.76 sum | suggested codewords |",
+                (
+                    "Each sum weights the local reference gains by the codeword probabilities. "
+                    "The sufficient condition requires a sum no greater than one at each syntax state."
+                ),
+                "",
+                "| syntax | current weighted sum (H.70) | current route | proposed weighted sum (H.76) | suggested codewords |",
                 "|---|---:|---|---:|---|",
             ]
         )
@@ -275,7 +280,7 @@ def build_reference_report(suite: ReferenceSuite) -> str:
             "## Reading the outcomes",
             "",
             "- `pass` means that a stated finite numerical condition holds at the displayed tolerance.",
-            "- `fail (expected)` marks the designed cost shortfall along a sufficient route.",
+            "- `fail (expected)` marks an intentional failure of the local gain–cost sufficient condition.",
             "- `inconclusive (expected)` marks a quantity left open by the current numerical route.",
             "- `not applicable (expected)` marks a mathematical boundary where that calculation is unavailable.",
             "- Matrix and certificate outcomes use floating-point numerical evidence at the displayed tolerance.",
@@ -328,9 +333,9 @@ def build_reference_report(suite: ReferenceSuite) -> str:
             ),
             f"- Global-reset fixed-size constants: {constants}.",
             "",
-            "### Global-reset H.6 diagnostic",
+            "### Global-reset gain–cost diagnostic (H.6)",
             "",
-            "| model | current H.70 sum | current route | H.76 sum | suggested halt length |",
+            "| model | current weighted sum (H.70) | current route | proposed weighted sum (H.76) | suggested halt length |",
             "|---|---:|---|---:|---:|",
         ]
     )
@@ -357,8 +362,9 @@ def build_reference_report(suite: ReferenceSuite) -> str:
                 "statements for the declared processes and supplied proof objects. They make "
                 "the Appendix F/H constructions inspectable. The RCC paper supplies the physical "
                 "reference-consistency, faithful-transcription (`TC`), and uniform model-family "
-                "arguments used by the lower bound. An H.70 failure identifies a cost shortfall "
-                "along that sufficient gain–cost route."
+                "arguments used by the lower bound. A local gain–cost failure (H.70) "
+                "identifies codewords that do not meet that sufficient condition; "
+                "other reference-certificate routes remain available."
             ),
             "",
         ]

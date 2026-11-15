@@ -50,7 +50,7 @@ body:
     id: claim_boundary
     attributes:
       label: Claim boundary
-      description: Identify the accompanying analytic or physical obligations, such as RCon, TC, family uniformity, or theorem-level interpretation.
+      description: Describe the physical and analytic assumptions needed for the proposed result, such as reference consistency, faithful transcription, or uniformity across a model family.
     validations:
       required: true
   - type: textarea

@@ -211,7 +211,8 @@ a new witness after viewing data, changing the sample rule, or substituting
 different measurements.
 
 The example counts are synthetic. For experimental results, acquisition
-chronology, fixed-N iid sampling, ideal readout, support assumptions, and the
+chronology, independent and identically distributed sampling with a fixed
+sample size, ideal readout, support assumptions, and the
 physical meaning of the witness remain external obligations. Storing their
 declarations does not establish them.
 The embedded protocol carries a witness ID and rank. Preserve the actual
@@ -223,7 +224,8 @@ and proof arrays do not include the experimental measurement operator.
 The `rcc-refcert.analysis-bundle` format has its own schema version, independent
 of the bound-record schema. A bundle is a ZIP container with a JSON manifest
 and numerical array payloads. It carries data rather than executable Python.
-The loader reconstructs only the supported finite model and H.3/H.4 types.
+The loader reconstructs the supported finite model, Bellman–Choi certificates
+(H.3), and reference-potential certificates (H.4).
 
 Stored-history checks also compare the reported outcome with its individual
 checks. A saved `pass` requires passing checks, finite nonnegative binary64

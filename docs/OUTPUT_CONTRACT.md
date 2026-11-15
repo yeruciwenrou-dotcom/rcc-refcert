@@ -84,8 +84,9 @@ inconclusive, or was not applicable.
 ## Outcomes and expectations
 
 Finite-control checks report `outcome` and `evidence` separately. A bundled case also records
-`expected_outcome` and `matches_expectation`. This is how an intentional H.70
-failure remains machine-distinguishable from an unexpected regression.
+`expected_outcome` and `matches_expectation`. This is how an intentional
+failure of the local gain–cost test (H.70) remains machine-distinguishable
+from an unexpected regression.
 
 The complete case or suite result is summarized by
 `matches_reference_expectations`. Consumers should use that field for the
@@ -98,7 +99,8 @@ JSON represents unavailable or non-finite scalars as `null`; fields such as
 Tolerances and residuals are carried either in the run parameters or alongside
 their individual check.
 
-H.3 and H.4 reports carry these fields in both summary and detailed JSON:
+Bellman–Choi (H.3) and reference-potential (H.4) certificate reports carry
+these fields in both summary and detailed JSON:
 
 | field | meaning |
 |---|---|
@@ -114,7 +116,7 @@ while this final check remains `inconclusive`. Consumers must inspect `outcome`
 and use `constant` for a passing bound. See [CONVENTIONS.md](CONVENTIONS.md)
 for the propagation method and its numerical evidence level.
 
-H.34 reports `constant_estimate`, `constant_error_estimate`,
+The minimum reference-domination calculation (H.34) reports `constant_estimate`, `constant_error_estimate`,
 `constant_upper_bound`, `reference_rank`, `reference_condition_number`, and
 `message`. `constant` is the accepted point estimate, retained for API
 compatibility; it is `null` when the checks are unresolved. An evaluated
@@ -126,7 +128,7 @@ If a small positive eigenvalue leaves support unresolved, `constant`,
 `support_compatible`, and `constant_is_infinite` are all `null`. An infinite
 constant requires a positive-mass witness in an established exact kernel.
 
-H.2 reports `output_valid`, `assembly_error_estimate`, and
+The linear fixed-point calculation (H.2) reports `output_valid`, `assembly_error_estimate`, and
 `output_error_estimate` alongside its solve diagnostics. Matrix assembly,
 formation of `I-T`, the solve, and output multiplication enter the propagated
 error estimate. An unresolved solve, invalid output, or output-error estimate
@@ -145,7 +147,8 @@ as full rank, this check returns `inconclusive`, with `constant` and
 `support_compatible` both `null`. Omitting the input error or setting it to zero
 retains the support diagnostics for the supplied matrix.
 
-H.6 reports `current_outcome` and `suggested_outcome` for each syntax state.
+The local gain–cost analysis (H.6) reports `current_outcome` and
+`suggested_outcome` for each syntax state.
 Their `*_condition_satisfied` flags are true only for `pass`; a false flag can
 mean `fail` or `inconclusive`. Gain and weighted-sum estimates are accompanied
 by `reference_gain_upper`, `current_weighted_sum_upper`, and
@@ -205,7 +208,7 @@ A completed zero bound exits 0; rejected inputs, unsupported contracts,
 resource limits, replay mismatches, and partial calculations exit 2.
 Deterministic spectrum records have no sampling confidence. Counts records
 state the one-sided coverage under the declared sampling model. All process
-bounds remain conditional on declared model premises. See
+bounds use the declared model premises. See
 [Terminal-state bounds](TERMINAL_BOUNDS.md) for the complete input, arithmetic,
 statistical, and replay contract.
 

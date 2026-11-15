@@ -92,6 +92,8 @@ python -m rcc_refcert cost analyze cooling.json --format json --output cooling-r
 The three-qubit model refreshes the two bath qubits at probability `9/10` and
 compresses with the basis permutation exchanging `011` and `100`. The complete
 target is produced by `R(CR)^3H`, with target-qubit probability `3078/3125`.
+Here, R denotes bath refresh, C reversible compression, and H halt.
+
 At tolerance `1/50`, the gain bound excludes costs below six and the supplied
 six-action word reaches the target, giving **[6,6]**.
 At tolerance `1/100`, the reported interval is **[6,8]**. The lower endpoint
@@ -102,9 +104,10 @@ small-program enumeration can establish a sharper optimum.
 The information/transcription route is available through
 [`bound`](TERMINAL_BOUNDS.md) and the certificate examples. For example, the cyclic-reset
 example still returns two slots along that route. The gain-budget method does
-not replace the physical scale by the logarithm of a local gain. H.70 checks
-code-weighted sufficient inequalities; its failure does not invalidate an
-independently verified unweighted gain certificate.
+not replace the physical scale by the logarithm of a local gain. The
+code-weighted gain–cost test (H.70) checks a sufficient local condition; its
+failure does not invalidate an independently verified unweighted gain
+certificate.
 
 ## Candidate comparisons
 
@@ -119,8 +122,10 @@ tolerance. Models, target directions, support, tensor axes and costs are bound
 to the task identity. Equal spectra alone do not identify equal targets.
 Different tasks are displayed separately.
 
-`U-L` bounds the best supplied candidate's additive overhead relative to the
-optimum; `U/L` gives a multiplicative bound when `L>0`. A zero lower bound has
+For a reported interval `[L,U]`, L is the lower bound and U is the cost of the
+best supplied feasible candidate. `U-L` bounds that candidate's additive
+overhead relative to the optimum; `U/L` gives a multiplicative bound when `L>0`.
+A zero lower bound has
 no multiplicative ratio. A missing upper bound is not a proof of
 unreachability. `L>U` is an evidence conflict and produces no valid interval.
 The comparison API accepts an explicit `criterion={"additive_gap": 1}` or
@@ -346,7 +351,7 @@ must remain distinct.
 
 | Budget | Default |
 |---|---:|
-| DP cells / updates | 100,000 / 1,000,000 |
+| Dynamic programming (DP) cells / updates | 100,000 / 1,000,000 |
 | Rational numerator or denominator bits | 65,536 |
 | Total candidate actions | 10,000 |
 | Saved trajectory states / window evaluations | 256 / 256 |
@@ -374,8 +379,8 @@ reports its own status separately.
 
 ### Execution status
 
-New CLI analysis exits: 0 completed, 1 partial, 2 invalid or unsupported input,
-3 preflight resource limit, 130 interrupted. A fresh run identifier accompanies
+Cost and window analysis exits: 0 completed, 1 partial, 2 invalid or unsupported
+input, 3 preflight resource limit, 130 interrupted. A fresh run identifier accompanies
 each result or failure. A failed candidate alone does not mean failed execution.
 An unresolved numerical input or tolerance comparison returns a partial result
 and exit 1. A definite numerical candidate miss remains a completed analysis.

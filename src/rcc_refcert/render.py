@@ -642,7 +642,7 @@ def format_case(result: CaseAnalysis, *, detailed: bool = False) -> str:
             f"{syntax.syntax_state}: {_format_number(syntax.current_weighted_sum)}"
             for syntax in result.gain_cost.syntax_reports
         )
-        details[H6_GAIN_COST] = f"current H.70 sums {sums}"
+        details[H6_GAIN_COST] = f"current weighted gain sums (H.70) {sums}"
         if result.gain_cost.constant is None:
             details[H6_GAIN_COST] += "; no usable constant for current codewords"
 
@@ -722,7 +722,7 @@ def format_case(result: CaseAnalysis, *, detailed: bool = False) -> str:
                     for action in syntax.actions
                 )
                 lines.append(
-                    f"  H.76 {syntax.syntax_state}: sum "
+                    f"  {syntax.syntax_state}: proposed weighted gain sum (H.76) "
                     f"{_format_number(syntax.suggested_weighted_sum)}; {suggestions}"
                 )
 

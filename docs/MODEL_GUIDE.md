@@ -43,10 +43,11 @@ For explicit preparation candidates and subsystem trajectories, see the
 7. For a supported terminal-state task, combine the model declaration with an
    exact target spectrum or a predeclared fixed-projector acquisition protocol.
 
-H.70 is sufficient for the chosen envelope construction. Its failure can
-coexist with a passing global H.3 or H.4 certificate for the original model.
-If you adopt H.76 codewords, recheck the resulting model and its transcription
-calibration: the new code weights change the program prior.
+The local code-weighted gain–cost test (H.70) is sufficient for the chosen
+envelope construction. Its failure can coexist with a passing Bellman–Choi or
+reference-potential certificate (H.3/H.4) for the original model. If you adopt
+the suggested prefix code (H.76), recheck the resulting model and its
+transcription calibration: the new code weights change the program prior.
 
 ## A complete two-action model
 
@@ -142,9 +143,10 @@ Terminal-state tasks additionally require the uniform reference on that support.
 2. compares path enumeration with block-map realization through `max_depth`;
 3. computes the partial semidensity through `max_transient_steps` continuation
    steps;
-4. attempts the full-space linear fixed point;
-5. evaluates H.34 when the linear output is valid and its propagated error
-   estimate meets the requested precision, then checks the reference scaling.
+4. attempts the full-space linear fixed point (H.2);
+5. evaluates the minimum reference-domination constant (H.34) when the linear
+   output is valid and its propagated error estimate meets the requested
+   precision, then checks the reference scaling.
 
 ```python
 result = audit_model(
@@ -222,9 +224,9 @@ exceeds its budget.
 
 The verifier functions accept explicit mathematical candidates:
 
-- `verify_bellman_choi(model, certificate)` for H.3;
-- `verify_reference_potential(model, certificate)` for H.4;
-- `analyze_reference_gain_cost(model, theta)` for H.6.
+- `verify_bellman_choi(model, certificate)` for Bellman–Choi certificates (H.3);
+- `verify_reference_potential(model, certificate)` for reference-potential certificates (H.4);
+- `analyze_reference_gain_cost(model, theta)` for local gain–cost analysis (H.6).
 
 Candidates may be derived analytically or produced by a separate optimizer.
 The bundled factories in `rcc_refcert.examples` show proof objects for both the
