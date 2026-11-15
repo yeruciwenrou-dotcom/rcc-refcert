@@ -2,7 +2,7 @@
 
 [![arXiv: 2509.18205](https://raw.githubusercontent.com/yeruciwenrou-dotcom/rcc-refcert/main/docs/assets/arxiv.svg)](https://arxiv.org/abs/2509.18205)
 [![PyPI](https://img.shields.io/pypi/v/rcc-refcert.svg?label=PyPI)](https://pypi.org/project/rcc-refcert/)
-[![Software archive DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22544967-darkgreen)](https://doi.org/10.5281/zenodo.22544967)
+[![Software 0.3.0 DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.24248347-darkgreen)](https://doi.org/10.5281/zenodo.24248347)
 
 `rcc-refcert` is a Python research toolkit for **structure-fair quantum circuit
 complexity**.
@@ -519,7 +519,7 @@ For development setup, tests, formatting and package builds, follow
 ## Citation and license
 
 Cite the software version used and the associated RCC paper.
-[`CITATION.cff`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/516c7b5e87acba3acfde512f9d6bd09862d88ece/CITATION.cff) provides both citation records. The
+[`CITATION.cff`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/CITATION.cff) provides both citation records. The
 [all-versions DOI](https://doi.org/10.5281/zenodo.22544967) identifies the
 software archive across releases.
 
@@ -527,7 +527,7 @@ For a calculation made with version 0.3.0, a copyable citation is:
 
 > Liu, HongZheng; Tian, YiNuo; and Wu, Zhiyue. *rcc-refcert: a Python research
 > toolkit for structure-fair quantum circuit complexity*. Version 0.3.0,
-> 2026. https://github.com/yeruciwenrou-dotcom/rcc-refcert/releases/tag/v0.3.0
+> 2026. https://doi.org/10.5281/zenodo.24248347
 
 The GitHub **Cite this repository** button follows the paper preference in
 `CITATION.cff`; include the software version citation as well when reporting a
