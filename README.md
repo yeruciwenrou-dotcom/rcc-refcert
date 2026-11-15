@@ -16,21 +16,17 @@ The toolkit implements selected parts of **Reference-Contingent Complexity
 (RCC)**, introduced in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
 
-Understanding the cost of preparing a quantum state requires accounting for
-the resources already supplied by its physical background.
-The same quantum state may be supplied by one physical background and require
-entropy removal and control in another. **Structural fairness** makes this
-distinction explicit: structure stably supplied by the background sets the
-reference zero point, while the operations and resources that generate
-additional target-directed structure are counted. Within an admissible model,
-**RCC** proves a rigorous lower bound on universal optimal quantum circuit
-complexity.
+The same quantum state can be supplied by one physical background but require
+entropy removal and control in another. RCC introduces **structural fairness
+as a physical postulate**: structure already supplied by the background sets
+the complexity zero point, and the resources used to generate additional
+structure are counted.
 
-RCC makes these lower bounds **auditable**: predeclared final-state tests,
-with error calibration and finite-sample control, yield independently
-verifiable one-sided complexity certificates.
-At the stated confidence level, a certificate rules out all admissible
-preparations below its cost threshold, without reconstructing the generation
+Optimal quantum circuit complexity is the global minimum cost over all allowed
+preparation circuits and is generally difficult to compute. RCC provides a
+**rigorous, auditable lower bound**: measurements of the final state can rule
+out every preparation below a certified cost threshold. Researchers can
+independently verify this evidence without reconstructing the generation
 history or finding the optimal circuit.
 
 <a id="start-here"></a>
