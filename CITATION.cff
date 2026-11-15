@@ -13,6 +13,12 @@ abstract: >-
   complexity. Reference-Contingent Complexity (RCC) makes the physical reference
   dependence of complexity explicit and proves a rigorous lower bound on
   universal optimal quantum circuit complexity within an admissible model.
+  RCC makes these lower bounds auditable: predeclared final-state tests,
+  with error calibration and finite-sample control, yield independently
+  verifiable one-sided complexity certificates. At the stated confidence
+  level, a certificate rules out all admissible preparations below its cost
+  threshold, without reconstructing the generation history or finding the
+  optimal circuit.
   The toolkit implements finite-control models, reference certificates,
   terminal-state bounds, preparation-cost intervals and subsystem complexity
   profiles.

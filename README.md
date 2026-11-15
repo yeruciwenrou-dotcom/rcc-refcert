@@ -24,9 +24,14 @@ distinction explicit: structure stably supplied by the background sets the
 reference zero point, while the operations and resources that generate
 additional target-directed structure are counted. Within an admissible model,
 **RCC** proves a rigorous lower bound on universal optimal quantum circuit
-complexity. Final-state information relative to the reference bounds the
-cost of every successful preparation history, without reconstructing how the
-state was produced.
+complexity.
+
+RCC makes these lower bounds **auditable**: predeclared final-state tests,
+with error calibration and finite-sample control, yield independently
+verifiable one-sided complexity certificates.
+At the stated confidence level, a certificate rules out all admissible
+preparations below its cost threshold, without reconstructing the generation
+history or finding the optimal circuit.
 
 <a id="start-here"></a>
 <a id="what-this-repository-implements"></a>
