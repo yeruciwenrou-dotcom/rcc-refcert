@@ -16,6 +16,8 @@ The toolkit implements selected parts of **Reference-Contingent Complexity
 (RCC)**, introduced in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
 
+Understanding the cost of preparing a quantum state requires accounting for
+the resources already supplied by its physical background.
 The same quantum state may be supplied by one physical background and require
 entropy removal and control in another. **Structural fairness** makes this
 distinction explicit: structure stably supplied by the background sets the
