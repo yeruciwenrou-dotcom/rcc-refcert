@@ -569,8 +569,8 @@ software archive across releases.
 
 For a calculation made with version 0.3.0, a copyable citation is:
 
-> Liu, HongZheng; Tian, YiNuo; and Wu, Zhiyue. *rcc-refcert: a Python research
-> toolkit for structure-fair quantum circuit complexity*. Version 0.3.0,
+> Liu, HongZheng; Tian, YiNuo; and Wu, Zhiyue. *RCC RefCert: A Research Toolkit
+> for Structure-Fair Quantum Circuit Complexity*. Version 0.3.0,
 > 2026. https://doi.org/10.5281/zenodo.24248347
 
 The GitHub **Cite this repository** button follows the paper preference in
