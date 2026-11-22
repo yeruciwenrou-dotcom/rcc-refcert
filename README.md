@@ -22,7 +22,7 @@ preparation cost. A single certificate can rule out every circuit below that
 cost, even when the preparation history is unknown. You can also compare candidate preparations and use window RCC to study
 subsystem complexity in pure and mixed states.
 
-[Quick start](#quick-start) · [Physical motivation](#why-reference-contingent-complexity) · [Worked lower-bound example](#end-to-end-rcc-lower-bound-example) · [RCC paper](https://arxiv.org/abs/2509.18205)
+[Quick start](#quick-start) · [Why preparation cost depends on the reference](#why-reference-contingent-complexity) · [One-qubit example](#end-to-end-rcc-lower-bound-example) · [RCC paper](https://arxiv.org/abs/2509.18205)
 
 <a id="start-here"></a>
 <a id="what-this-repository-implements"></a>
@@ -34,11 +34,11 @@ subsystem complexity in pure and mixed states.
 |---|---|
 | [Analyze a finite-control model](#work-with-your-own-model) | Specify channels and control rules. Compute terminating program outputs and least fixed points, then test reference domination. |
 | [Verify a reference certificate](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CUSTOM_MODELS.md) | Construct numerical certificate candidates for stable models, verify supplied certificates and check local gain–cost conditions. |
-| [Calculate a terminal-state bound](#target-spectra-and-measured-counts) | Bound preparation cost from an exact target spectrum or from observed counts for a projector fixed before measurement. |
+| [Calculate a terminal-state bound](#target-spectra-and-measured-counts) | Bound preparation cost using an exact target spectrum or observed counts from a projection measurement specified in advance. |
 | [Compare preparation costs](#cost-and-window-workflows) | Bound the optimum for exact diagonal-preserving recipes. For numerical matrix models, compare each candidate's cost and trace distance from the target. |
 | [Compare subsystem complexity](#compare-subsystem-complexity) | Use window RCC to separate local and correlation contributions on a common resource scale or follow them along a preparation. |
 | [Reverify a shared calculation](#reverify-a-shared-analysis) | Recompute a model, certificate, cost or window analysis from its saved inputs and compare the results. |
-| [Reproduce the paper calculations](#reference-cases) | Rerun the reference cases, inspect prefix encodings and work through a lower bound attained by an explicit preparation. |
+| [Reproduce calculations from the RCC paper](#reference-cases) | Rerun the reference cases, inspect prefix encodings and work through a lower bound attained by an explicit preparation. |
 
 Use the command line, [Python API](#python-api) or [Jupyter notebooks](#jupyter-notebook).
 Preparation-cost and subsystem reports support text, JSON and Markdown.
@@ -183,7 +183,7 @@ python3 -m rcc_refcert bound counts counts.json
 ```
 
 For real measurements, use `bound prepare-protocol` **before collecting data**.
-Fix the projector, sample size and failure probability in advance. Record the
+Choose the projection measurement, sample size and failure probability. Record the
 observed hits after measurement and keep the protocol digest with the dataset. The
 [terminal-state guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md)
 explains the projector, sample-size and evidence requirements.
