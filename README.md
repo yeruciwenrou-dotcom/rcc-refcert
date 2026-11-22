@@ -16,6 +16,8 @@ The toolkit implements selected parts of **Reference-Contingent Complexity
 (RCC)**, introduced in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
 
+[Install and compute your first lower bound](#install-from-pypi)
+
 ## Structural fairness
 
 The same quantum state can be supplied by one physical background but require
@@ -28,8 +30,9 @@ counted.
 
 ## Auditable complexity lower bounds
 
-Optimal quantum circuit complexity is the global minimum cost over all allowed
-preparation circuits and is generally difficult to compute. RCC provides a
+For a fixed model, target state, and accuracy, optimal quantum circuit
+complexity is the infimum of the costs of all successful preparation histories.
+Computing it is generally difficult. RCC provides a
 **rigorous, auditable lower bound**: measurements of the final state can rule
 out every preparation below a certified cost threshold. Researchers can
 independently verify this evidence without reconstructing the generation
