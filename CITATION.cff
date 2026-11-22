@@ -16,7 +16,7 @@ abstract: >-
   rigorous lower bound on the cost of preparing a target to a specified
   accuracy. Researchers can build finite-control models, verify reference
   certificates and calculate these bounds from an exact target spectrum or
-  from counts collected under a prespecified fixed-projector protocol.
+  from observed counts for a projection measurement specified in advance.
   For exact diagonal-preserving models, a successful candidate program
   supplies an upper bound on the optimal cost. Numerical matrix models
   report each candidate's cost and distance from the target. Window RCC
