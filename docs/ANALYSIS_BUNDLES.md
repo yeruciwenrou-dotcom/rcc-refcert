@@ -19,7 +19,7 @@ the complete model and proof arrays.
 Use the producer version supplied with the `.rccbundle` file, or a compatible
 later reader. For cost and window bundles, install version 0.3.0 or later from
 [PyPI](../README.md#install-from-pypi) or the
-[source quickstart](../README.md#install-from-source). Replace `received.rccbundle`
+[source quickstart](../README.md#quick-start). Replace `received.rccbundle`
 with your file's path:
 
 ```bash
@@ -29,7 +29,7 @@ python -m rcc_refcert bundle verify received.rccbundle --output received-verific
 
 Use the interpreter from your active installation. Verification itself needs
 only the installed package and bundle. Later examples in this guide use the
-[source quickstart](../README.md#install-from-source) and `.venv/bin/python` from the
+[source quickstart](../README.md#quick-start) and `.venv/bin/python` from the
 checkout root. On Windows, substitute `.venv\Scripts\python.exe`.
 
 `inspect` checks stored data, object bindings and result consistency. `verify`
