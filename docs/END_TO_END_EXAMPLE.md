@@ -21,7 +21,7 @@ model, exact endpoint, and explicit tightness witness.
 
 ## Run the example
 
-From the repository root, follow the [quick start](../README.md#install-from-source),
+From the repository root, follow the [quick start](../README.md#quick-start),
 then use the environment it creates:
 
 ```bash

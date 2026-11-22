@@ -16,7 +16,7 @@ terminal-state evidence.
 
 ## First calculation
 
-Follow the [source quickstart](../README.md#install-from-source), then run these
+Follow the [source quickstart](../README.md#quick-start), then run these
 commands from the checkout root. On Windows, substitute
 `.venv\Scripts\python.exe`. If you installed into your own active environment,
 use its interpreter instead. These spectrum, counts and scalar-replay commands

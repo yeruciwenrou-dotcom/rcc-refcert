@@ -52,7 +52,7 @@ transcription calibration: the new code weights change the program prior.
 ## A complete two-action model
 
 Install the package from the repository root using the
-[quick-start instructions](../README.md#install-from-source), then run this example with
+[quick-start instructions](../README.md#quick-start), then run this example with
 the installed environment's Python interpreter or the **Python (rcc-refcert)**
 notebook kernel.
 
