@@ -9,32 +9,22 @@ date-released: 2026-11-15
 license: MIT
 repository-code: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 abstract: >-
-  rcc-refcert is a Python research toolkit for structure-fair quantum
-  circuit complexity. Reference-Contingent Complexity (RCC) introduces
-  structural fairness as a physical postulate, providing a common basis for
-  resource accounting across physical backgrounds. Optimal quantum circuit
-  complexity is the global minimum cost over all allowed preparation
-  circuits and is generally difficult to compute. RCC provides a rigorous,
-  auditable lower bound: measurements of the final state can rule out every
-  preparation below a certified cost threshold. Researchers can
-  independently verify this evidence without reconstructing the generation
-  history or finding the optimal circuit.
-  The toolkit implements finite-control models, reference certificates,
-  terminal-state bounds, preparation-cost intervals and subsystem complexity
-  profiles.
-  Researchers can construct their own finite-control quantum models, verify
-  supplied proof objects, and calculate lower bounds from exact spectra or predeclared
-  fixed-projector counts. For exact diagonal-preserving models, the toolkit
-  combines rigorous lower bounds with the costs of successful candidate
-  programs to bound the optimal preparation cost. Window RCC compares subsystem
-  complexity in pure and mixed states, analyzes local and correlation
-  contributions under a common reference and control bandwidth, and follows
-  these quantities along a preparation.
-  Numerical model inputs support candidate diagnostics with their evidence
-  level retained. Complete analysis bundles preserve inputs and historical
-  results for independent recomputation. Python and command-line interfaces,
-  three Jupyter tutorials, editable probes and reproducible reference cases
-  connect these calculations to the RCC paper and to new research tasks.
+  RCC RefCert is an open-source toolkit for studying quantum circuit
+  complexity. Given a preparation model and final-state data, it computes a
+  rigorous lower bound on optimal quantum circuit complexity. The inputs can
+  be an exact target spectrum or projector counts collected under a
+  prespecified measurement protocol. The toolkit implements the
+  Reference-Contingent Complexity (RCC) framework of Liu, Tian and Wu.
+  Structural fairness accounts for the resources supplied by the physical
+  background and those used in preparation. A terminal-state certificate
+  bounds the cost of every circuit that prepares the target to the stated
+  accuracy. Researchers can build finite-control quantum models, verify
+  reference certificates and compare candidate preparations. Exact
+  diagonal-preserving models support two-sided cost intervals. General matrix
+  models provide numerical candidate diagnostics. Window RCC uses a common
+  reference and control bandwidth to compare the complexity profiles of pure
+  and mixed states and separate local and correlation contributions. Shared
+  analysis bundles support independent recomputation.
 keywords:
   - quantum circuit complexity
   - structure-fairness

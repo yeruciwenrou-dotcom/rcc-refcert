@@ -359,15 +359,13 @@ def test_end_to_end_docs_preserve_theorem_and_unit_hierarchy() -> None:
         assert "Theorem 3.1" in text
         assert "st}_R" in text or "st_R" in text
 
-    assert "Appendix A" in paper_map
-    assert "Appendix A" in example
+    assert "docs/END_TO_END_EXAMPLE.md)" in readme
+    assert "Appendix A" in paper_map and "Appendix A" in example
     assert "one-$" not in example
-    assert (
-        "D_{\\max}^{0}(\\lvert0\\rangle\\langle0\\rvert\\Vert I/2)\n"
-        "=1\\ \\mathrm{bit}\n"
-        "=1\\thinspace\\mathrm{st}_R."
-    ) in readme
-    assert "C_{\\mathrm{opt}}^{(0)}\\ge1" in readme
+    assert r"D_{\max}^{0}(\rho\Vert\sigma_R)=\log_2 2=1." in example
+    assert r"1\thinspace{\rm st}_R" in example
+    assert "C_{\\rm opt}^{(0)}(\\rho;\\mathfrak M_R)\n\\ge\nF_{1,0}(1)\n=1." in example
+    assert r"C_{\rm opt}^{(0)}(\rho;\mathfrak M_R)=1" in example
 
 
 def test_public_exports_are_resolvable() -> None:
