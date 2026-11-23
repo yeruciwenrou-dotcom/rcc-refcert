@@ -18,6 +18,8 @@ verification.
 The toolkit is based on **Reference-Contingent Complexity (RCC)**, introduced by
 Liu, Tian and Wu in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
+The paper also discusses how RCC's lower bound on the cost of preparing a
+boundary state relates to [holographic complexity (CV/CA)](https://arxiv.org/html/2509.18205v4#S7.SS2.p8).
 
 ## Features of reference-contingent complexity
 
