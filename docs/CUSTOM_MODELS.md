@@ -20,7 +20,7 @@ profiles, continue to [preparation costs and complexity profiles](COST_AND_WINDO
 
 ## Run the first example
 
-Follow the [source quickstart](../README.md#quick-start), then run
+Follow the [source quickstart](../README.md#install-from-source), then run
 these commands from the checkout root:
 
 ```bash

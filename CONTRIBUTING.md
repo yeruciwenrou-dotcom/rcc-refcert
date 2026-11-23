@@ -133,7 +133,7 @@ inputs and budget refusals.
 ## Local verification
 
 From the repository root, use the environment created by the
-[source quickstart](README.md#quick-start), which already includes development
+[source quickstart](README.md#install-from-source), which already includes development
 dependencies. On macOS and Linux:
 
 ```bash
