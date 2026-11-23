@@ -68,12 +68,21 @@ certificate that establishes a rigorous lower bound.
 
 ### Install from PyPI
 
-With Python 3.10 or newer, run these commands in a new working directory:
+With Python 3.10 or newer, run these commands in a new working directory.
+On Windows you can use Command Prompt. Substitute `python` for `python3`
+if that is your interpreter's name.
 
 ```bash
 python3 -m pip install "rcc-refcert==0.3.0"
 python3 -m rcc_refcert bound template spectrum > spectrum.json
 python3 -m rcc_refcert bound spectrum spectrum.json
+```
+
+In Windows PowerShell 5.1, use this command for the template step to save
+`spectrum.json` as ASCII:
+
+```powershell
+python -m rcc_refcert bound template spectrum | Out-File -Encoding ascii -FilePath spectrum.json
 ```
 
 The template supplies a four-dimensional target spectrum and the model
@@ -84,7 +93,6 @@ To run your own calculation, replace the spectrum and model parameters in
 for projector counts. The [terminal-state guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md)
 describes the input fields.
 
-Use `python` in place of `python3` if that is your interpreter's name.
 The installed package includes the [Python API](#python-api), command-line
 tools and reference cases. The source checkout also includes example scripts,
 [Jupyter notebooks](#jupyter-notebook) and the verification suite.

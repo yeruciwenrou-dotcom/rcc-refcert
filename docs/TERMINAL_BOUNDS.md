@@ -16,11 +16,12 @@ terminal-state evidence.
 
 ## First calculation
 
-Follow the [source quickstart](../README.md#quick-start), then run these
-commands from the checkout root. On Windows, substitute
-`.venv\Scripts\python.exe`. If you installed into your own active environment,
-use its interpreter instead. These spectrum, counts and scalar-replay commands
-also work with the installed package outside a checkout.
+Follow the [source quickstart](../README.md#install-from-source), then run these
+commands from the checkout root. On Windows, use `.venv\Scripts\python.exe`.
+If your shell is Windows PowerShell 5.1, run the `>` examples in Command Prompt.
+These commands also work outside a checkout with the
+[PyPI package](../README.md#install-from-pypi). Use the interpreter from your
+active installation.
 
 ```bash
 .venv/bin/python -m rcc_refcert bound template spectrum > spectrum.json

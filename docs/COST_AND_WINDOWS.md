@@ -21,7 +21,7 @@ preparation step by step, and share either calculation for independent revalidat
 
 Use **rcc-refcert 0.3.0 or later** with Python 3.10 or later. Install from
 [PyPI](../README.md#install-from-pypi) or follow the
-[source quickstart](../README.md#quick-start), then activate that environment
+[source quickstart](../README.md#install-from-source), then activate that environment
 or substitute its Python path in the commands below.
 
 ## A complete cost task
