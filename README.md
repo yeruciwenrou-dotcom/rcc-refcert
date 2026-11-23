@@ -22,27 +22,31 @@ Liu, Tian and Wu in
 ## Features of reference-contingent complexity
 
 <a id="structural-fairness"></a>
+<a id="structural-fairness-gives-complexity-comparisons-a-physical-basis"></a>
 
-### Structural fairness gives complexity comparisons a physical basis
+### Structural fairness makes circuit complexity comparable across physical settings
 
-Quantum circuit complexity depends on what the physical setting provides and
-which operations count toward preparation. For example, one device may supply a
-pure ancillary qubit, while another must reset a qubit to obtain one. RCC takes
-structural fairness as a physical postulate. The reference accounts for the
-structure already present, and the model counts the resources used to generate
-additional structure. This gives the two preparations a common basis for
-comparison.
+Quantum circuit complexity is often measured by the minimum number of gates needed
+to prepare a target state from a fixed initial state. Counting starts once the
+inputs are ready, so equal gate counts can conceal different physical costs. For
+example, one device may supply a pure ancillary qubit, while another must first
+reset a qubit in a mixed state to obtain one. RCC treats structural fairness as a
+physical postulate, taking the structure reliably supplied by the physical
+background as the reference zero point. It counts only the resources used to
+generate additional structure. With these resources measured on a common scale,
+quantum circuit complexity can be compared across preparation settings.
 
 <a id="auditable-complexity-lower-bounds"></a>
+<a id="final-state-data-certify-a-lower-bound-on-optimal-complexity"></a>
 
-### Final-state data certify a lower bound on optimal complexity
+### Final-state data give a rigorous lower bound on optimal circuit complexity
 
-Once the model and its cost rules are fixed, optimal quantum circuit complexity
-is the infimum of the costs of all circuits that prepare the target to the
-required accuracy. This global optimum is generally hard to compute. RCC turns
-final-state data into a lower-bound certificate that applies to every successful
-preparation. Other researchers can verify it without reconstructing the
-preparation history.
+With the model, cost rules and required accuracy fixed, optimal quantum circuit
+complexity is the infimum of the costs of all circuits that successfully prepare
+the target. Each such circuit must generate the structure the target requires
+beyond what the reference already supplies. Even when this global optimum is hard
+to compute directly, RCC can turn final-state data alone into an auditable
+certificate that establishes a rigorous lower bound.
 
 <a id="start-here"></a>
 <a id="what-this-repository-implements"></a>
