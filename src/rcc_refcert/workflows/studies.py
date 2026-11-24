@@ -450,7 +450,8 @@ def _cluster_lines(r):
         )
     z = F(r["z_control"]["bits_lower"])
     lines.append(
-        f"At this tolerance, the Z-basis control gives a one-shot information lower bound of {decimal_string(z, 9)} bits."
+        "The color settings test stabilizer parities. From the computational-basis populations, "
+        f"the Z-basis control gives a one-shot information lower bound of {decimal_string(z, 9)} bits at this tolerance."
     )
     all_bits = decimal_string(F(combined["one_shot_bits_lower"]), 9)
     all_cost = combined["integer_slots"]
@@ -519,12 +520,16 @@ def _cooling_lines(r, *, details):
         "shorter-program": f"After the {r['parameters']['cycles'] - 1}-cycle program",
         "target-program": "After the full target program",
     }
+    lines.append(
+        "In the model the final refresh preserves target-qubit polarization. "
+        "It replaces the bath and removes its correlations with the target."
+    )
     for name, point in r["observed_polarizations"].items():
         stage = stages[name]
         correlation = correlations[r["sources"][name]["dataset_id"]]
         lines.append(
             f"{stage}, target-qubit polarization lies in {_cooling_interval(point['lower'], point['upper'])} "
-            f"and classical target-bath correlation in {_cooling_interval(correlation['lower'], correlation['upper'])} st_R."
+            f"and classical target-bath correlations contribute {_cooling_interval(correlation['lower'], correlation['upper'])} st_R to the measured window."
         )
     calibrated = r["calibrated"]["polarization_lower"]
     if calibrated is None:

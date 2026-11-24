@@ -16,10 +16,12 @@ python -m rcc_refcert bundle verify cluster.rccbundle
 In each color setting, 8,574 of the 10,000 synthetic shots pass the stabilizer
 test. Either setting certifies a preparation cost of **at least one slot**
 in the cluster model. Combining both settings raises the lower bound to **two
-slots**. The computational basis
-has the same distribution on the example preparation and the reference.
-Its 20,000 shots give a zero information floor. Compare with `--shots 10`
-to see how limited sampling changes the result.
+slots**. The noisy graph state and the uniform reference have identical
+computational-basis populations. More Z-basis shots can estimate those
+populations more precisely, but the two states still look the same in that
+basis. The alternating X/Z settings test the graph's stabilizer parities,
+where the states differ. Compare with `--shots 10` to see what limited
+sampling does to that contrast.
 
 With edges 01, 12, 34, 45, 03, 14, 25, the stabilizers are
 $K_i=X_i\prod_{j\sim i}Z_j$. Read X on sites 0, 2, 4 for A and on
@@ -63,8 +65,11 @@ Six resets, six H gates, seven CZ gates, six noise operations and halt
 prepare the example target in 26 slots. The uniform reference on 64 states
 limits the terminal-state information to six bits. At five bits per slot,
 even perfect knowledge of the final state yields an integer lower bound of
-at most two slots by this route. At zero noise the six phase-flip operations
-coincide and the template uses only the five-bit observation scale.
+at most two slots by this route. At the default noise and tolerance, the
+two-color witness reaches that limit. The 26-slot construction supplies a
+feasible upper bound on the same preparation cost. At zero noise the six
+phase-flip operations coincide and the template uses only the five-bit
+observation scale.
 
 ## Three-qubit algorithmic cooling
 
@@ -83,9 +88,18 @@ python -m rcc_refcert bundle verify cooling.rccbundle
 At trace-distance tolerance $1/50$, the eight-slot target program reaches
 the target exactly. The shorter six-slot program reaches trace distance
 $81/6250$ and the exact model rules out lower costs. The resulting model
-interval is **[6, 6]**. The `finite_windows` record separately reports the
-measurement intervals and classical correlation between target and bath;
-`observed_polarizations` bounds $2p(q_1=0)-1$. Each of three preparations
+interval is **[6, 6]**.
+
+Why measure the bath as well as the target qubit? In the default model the
+target's ground-state probability is exactly $3078/3125$ both just before
+and just after the final refresh. The refresh replaces the bath and removes
+its correlations with the target. The two full states are a trace distance
+$4779/312500$ apart. A polarization measurement alone would give them the
+same ideal reading.
+
+The `finite_windows` record reports what the joint counts resolve about the
+target, bath and their classical correlations. The `observed_polarizations`
+intervals bound $2p(q_1=0)-1$. Each of three preparations
 uses a separate joint histogram. A fourth acquisition observes the target
 qubit with known binary readout errors; the example uses a 2% false positive
 and 4% false negative probability for recording 0. An empty inverse image

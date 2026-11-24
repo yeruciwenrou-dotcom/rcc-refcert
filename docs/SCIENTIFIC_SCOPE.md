@@ -179,6 +179,15 @@ states it equals twice the reduced-state entropy. This identity decomposes
 state-side RCC complexity; the optimum over full preparation histories is
 bounded using the model and one-shot terms above.
 
+The same subsystem quantities enter the fixed-reference entropy balance
+in Proposition 6.2 of the [RCC paper](https://arxiv.org/html/2509.18205v4#S6).
+For a subsystem of dimension $d_A$ with uniform reference, its entropy in
+bits and its calibrated complexity satisfy $S(\rho_A)+g_R C_{R,A}=\log_2 d_A$.
+In the cooling trajectory a reversible compression preserves global entropy
+while changing the target, bath and correlation contributions. A bath
+refresh supplies fresh polarized qubits. The trajectory records the cost
+spent on each step alongside the structure visible through each window.
+
 The [preparation costs and complexity profiles guide](COST_AND_WINDOWS.md) gives editable reset and
 cooling tasks, state comparisons and trajectory probes. The model's reference,
 transcription and family conditions retain their roles in the universal

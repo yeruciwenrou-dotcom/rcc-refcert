@@ -263,13 +263,18 @@ cooling = analyze_cost(export_probe("w3-cooling-trajectory"))
 print(render_workflow_result(cooling["windows"]))
 ```
 
-The eight-action target program defines the complete target; the six-action
-candidate attains the optimum at the default tolerance. Refresh removes entropy
-and resets target–bath correlation, changing the RCC profile; reversible
-compression redistributes local and correlation contributions at a fixed global
-RCC value. Changing `p` changes the bath model,
-and changing `cycles` changes the target construction. Keep the model, target
-and tolerance fixed when comparing candidate costs.
+The eight-action program defines the full target. The six-action candidate
+reaches it within the default tolerance and attains the model's lower bound.
+To see what a paid operation does, compare the first refresh with the
+compression that follows it. Compression permutes the eight populations,
+so the global entropy and global RCC stay fixed. The target qubit becomes
+more polarized and the target and bath become correlated. The operation
+costs one slot even though the change in global RCC is zero. The next
+refresh replaces the bath and removes those correlations.
+
+Changing `p` changes the bath model, and changing `cycles` changes the
+target construction. Keep the model, target and tolerance fixed when
+comparing candidate costs.
 
 ### Read local and correlation contributions
 
