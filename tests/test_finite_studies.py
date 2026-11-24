@@ -399,6 +399,11 @@ def test_cooling_report_describes_a_future_measurement_and_its_limits():
     assert "37 ground-state outcomes in 39 shots" in text
     assert "4/5 with 99% confidence" in text and "power of 90%" in text
     assert "target exactly in 8 slots" in text
+    assert (
+        text.index("After the 2-cycle program,")
+        < text.index("After the last compression,")
+        < text.index("After the full target program,")
+    )
     point = default["observed_polarizations"]["shorter-program"]
     row = next(
         line

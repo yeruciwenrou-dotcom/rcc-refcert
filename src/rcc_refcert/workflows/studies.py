@@ -516,16 +516,16 @@ def _cooling_lines(r, *, details):
         for b in r["finite_windows"]["batches"]
     }
     stages = {
-        "after-compression": "After the last compression",
         "shorter-program": f"After the {r['parameters']['cycles'] - 1}-cycle program",
+        "after-compression": "After the last compression",
         "target-program": "After the full target program",
     }
     lines.append(
         "In the model the final refresh preserves target-qubit polarization. "
         "It replaces the bath and removes its correlations with the target."
     )
-    for name, point in r["observed_polarizations"].items():
-        stage = stages[name]
+    for name, stage in stages.items():
+        point = r["observed_polarizations"][name]
         correlation = correlations[r["sources"][name]["dataset_id"]]
         lines.append(
             f"{stage}, target-qubit polarization lies in {_cooling_interval(point['lower'], point['upper'])} "
