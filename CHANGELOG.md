@@ -7,6 +7,10 @@
 - Compare local graph-state measurements and three-qubit cooling programs using editable raw counts, explicit register ordering and independent bundle replay.
 - Check user-supplied gain certificates, target tolerances and exact scalar inputs on the existing cost and terminal-state paths.
 
+Use 0.4.0 or later to verify the new finite-data bundles and cost requests that
+specify `on_gain_failure`. The [compatibility table](docs/ANALYSIS_BUNDLES.md)
+lists the earliest reader for each bundle.
+
 ## 0.3.0 (2026-11-15)
 
 This release adds preparation-cost intervals and subsystem RCC complexity

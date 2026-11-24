@@ -16,10 +16,14 @@ preparation step by step, and share either calculation for independent revalidat
 | Does a candidate reach my target, and how close is its cost to optimal? | [A complete cost task](#a-complete-cost-task) |
 | How does changing the tolerance affect the result? | [Cost tasks](#a-complete-cost-task) and [candidate comparisons](#candidate-comparisons) |
 | How do complexity profiles differ across subsystems or between states? | [Subsystem complexity profiles](#subsystem-complexity-profiles) |
+| What can my measured histogram reveal about a subsystem? | [Finite-sample windows](#finite-sample-windows) |
 | How do I analyze my own state or model? | [Matrix inputs](#your-own-matrix-and-tensor-labels) and [numerical models](#numerical-models-and-candidate-diagnostics) |
 | How do I save, share and verify the calculation? | [Reports and revalidation](#reports-limits-and-revalidation) |
 
-Use **rcc-refcert 0.3.0 or later** with Python 3.10 or later. Install from
+Use **rcc-refcert 0.4.0 or later** with Python 3.10 or later to run all the
+examples. Version 0.3.0 supports preparation costs and windows of known
+states. Measured histograms and the `on_gain_failure` option require 0.4.0.
+Install from
 [PyPI](../README.md#install-from-pypi) or follow the
 [source quickstart](../README.md#install-from-source), then activate that environment
 or substitute its Python path in the commands below.
@@ -92,8 +96,9 @@ python -m rcc_refcert cost template algorithmic-cooling > cooling.json
 python -m rcc_refcert cost analyze cooling.json --format json --output cooling-result.json
 ```
 
-The three-qubit model refreshes the two bath qubits at probability `9/10` and
-compresses with the basis permutation exchanging `011` and `100`. The complete
+Each refresh replaces both bath qubits with independent states whose
+ground-state probability is `9/10`. Compression exchanges the basis states
+`011` and `100`. The complete
 target is produced by `R(CR)^3H`, with target-qubit probability `3078/3125`.
 Here, R denotes bath refresh, C reversible compression, and H halt.
 
@@ -516,7 +521,8 @@ result, records the delivery error and exits 1.
 
 ### Share and reverify a workflow
 
-Workflow bundles use container schema 2. `inspect` checks archive integrity,
+Preparation-cost and known-state window bundles use container schema 2.
+`inspect` checks archive integrity,
 object bindings and stored-result consistency; it does not rerun the physical
 model. `verify` rebuilds the recipe, checks evidence, executes candidates and
 recalculates windows from the saved effective inputs. It preserves author
@@ -531,8 +537,12 @@ window and partition readouts. Numeric evidence retains empty rigorous cost endp
 The recipient's resource ceilings constrain the first reconstruction as well as
 fresh calculation; the author's saved limits and input identity remain intact.
 
-Schema-1 model/certificate/spectrum/counts bundles from 0.2.0 retain their
-existing validation path. A 0.2 reader rejects schema 2; recipients need the
-new workflow version. A changed numerical policy constitutes a new task,
-so workflow verification uses the saved policy. See
-[bundle semantics](ANALYSIS_BUNDLES.md) for the original evidence contracts.
+A changed numerical policy defines a new task, so schema-2 verification uses
+the saved policy. Schema-1 model and certificate bundles, including their
+spectrum and projector-count requests, remain readable from 0.2.0.
+
+Finite-sample projective readouts use **container schema 4** and require
+0.4.0 or later. `inspect` checks the archive and its acquisition bindings.
+`verify` starts from the saved counts and recomputes the sampling coverage,
+window bounds, retention contributions and any eligible preparation-cost
+bounds. The [bundle guide](ANALYSIS_BUNDLES.md) lists the reader for each format.

@@ -32,19 +32,30 @@ independently of the package version.
 
 ## Producer and source provenance
 
-Every machine-facing document carries a top-level `producer` object with the
-software name and package version. A fresh reference-command or paired-reset result also
+The reference-command results listed above, the paired-reset result and
+terminal-state bound calculation records carry the software name and package
+version in `producer`. For other commands, read the fields for that output:
+
+| Output | Identifying fields |
+|---|---|
+| Sampling plan | `rcc-refcert.sampling-plan` v1, with the design goal, power and status |
+| Frozen acquisition protocol | Normalized `protocol` and `protocol_sha256`, plus `arm_sha256` for a fixed effect |
+| Terminal-state scalar replay | `rcc-refcert.replay` v2 for spectra or fixed projectors, v3 for fixed effects, with `matches` and the input digest |
+| Terminal-state input or calculation error | `rcc-refcert.bound-error` v2, with the analysis state and message |
+
+A fresh reference-command or paired-reset result also
 carries `provenance.repository` and `provenance.tested_revision` when
 `RCC_REFCERT_SOURCE_REVISION` supplies a full 40-character Git commit. CI sets
 that variable to the exact tree tested by the workflow. Local runs without a
 verified source revision omit `provenance` rather than guessing from the
 current directory.
 
-Complete analysis bundles and fresh bundle-verification reports record the
-same explicitly supplied revision as `producer.source_revision`, or `null`
-when it is unavailable. Inspection reports the original bundle producer;
-verification reports the current recipient environment. This is declared
-source provenance, not a check that the installed code matches the commit.
+Model-certificate bundles (schema 1) and cost or known-state window bundles
+(schema 2) record the supplied revision in `producer.source_revision`, or
+`null` when none was supplied. Fixed-effect, projective-readout and study
+bundles (schemas 3–5) record the package name and version. When sharing
+these from a checkout, include its commit alongside the bundle. Inspection
+reports the original producer. Verification records the recipient's producer.
 See [recording the revision](ANALYSIS_BUNDLES.md#record-the-software-revision).
 
 Canonical frozen evidence retains the stable `producer` identity but omits a

@@ -125,12 +125,17 @@ Run the export or verification commands in that shell. In PowerShell, use
 has changes, commit the intended source and reinstall it before assigning
 that revision; a commit ID alone cannot describe uncommitted edits.
 
-The bundle's `producer.source_revision` records the author's supplied commit.
+For a model-certificate bundle (schema 1) or a preparation-cost or known-state
+window bundle (schema 2), `producer.source_revision` records the author's supplied commit.
 `inspect` preserves that identity, while the fresh verification report's
 `producer.source_revision` records the recipient's supplied commit. Keep the
 original bundle and fresh report together. Without the environment variable,
 the field is `null`. The software validates the full 40-character Git ID but
 does not infer it from the current directory or authenticate the declaration.
+
+Fixed-effect counts, complete projective readouts and finite-data studies
+(schemas 3–5) record the package name and version. For a source installation,
+share the full output of `git rev-parse HEAD` alongside these bundles.
 
 ## Three questions, three answers
 

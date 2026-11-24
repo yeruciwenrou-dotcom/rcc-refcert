@@ -58,9 +58,13 @@ the reference. The other continuing actions are unital. Their code-weighted
 sum sends the reference to $31\sigma/32$, and halt contributes
 $\sigma/32$. Summing the stopping series gives exactly $\sigma$. The
 transcription is exact with zero overhead and domination constant one.
+
 Six resets, six H gates, seven CZ gates, six noise operations and halt
-prepare the example target in 26 slots. In this model the terminal-state information is at most six bits because the reference is uniform on 64 states. With five bits per slot, the integer lower bound from this route can reach at most two slots. To analyze counts alone, set `process_model` to `null`. The cluster study accepts the documented model at the chosen noise or this state-only option. For your own controls and cost units, use the [custom-model guide](CUSTOM_MODELS.md) and the [terminal-state workflow](TERMINAL_BOUNDS.md). At zero noise the template uses only
-the five-bit observation scale because the six noise operations coincide.
+prepare the example target in 26 slots. The uniform reference on 64 states
+limits the terminal-state information to six bits. At five bits per slot,
+even perfect knowledge of the final state yields an integer lower bound of
+at most two slots by this route. At zero noise the six phase-flip operations
+coincide and the template uses only the five-bit observation scale.
 
 ## Three-qubit algorithmic cooling
 
@@ -93,14 +97,37 @@ It asks how many shots are needed to certify $p(q_1=0)>0.8$ at the requested
 failure rate with at least 90% power, using the model forecast rounded down
 to two decimal places. With the default bath and target, the forecast is 0.98.
 Plan for 39 shots. Observing 0 on at least 37 of them certifies a ground-state
-probability above 0.8 at 99% confidence. Changing the bath changes the model; changing the
-cycle count changes the target. Within each task, the candidate programs
-share the complete target and tolerance. The cooling study uses this refresh/compression model with the supplied bath and cycle count. It tests earlier cycle programs within the candidate budget. For a twelve-cycle target at the same bath and tolerance, the two-cycle program R–C–R–C–R–H ends about 0.0158 from the full target. It attains the six-slot lower bound. This comparison executes the model and uses the four stated acquisitions for the measurement results.
+probability above 0.8 at 99% confidence.
+
+Changing the bath changes the model. Changing the cycle count changes the
+target. Within each task, all candidates share the full target and tolerance.
+The study tests earlier cycle programs within the candidate budget. For
+a twelve-cycle target at the same bath and tolerance, the two-cycle program
+R–C–R–C–R–H ends about 0.0158 from the full target and attains the six-slot
+lower bound.
 
 The text report identifies the origin of each acquisition. Add `--details` to
-show the dataset IDs and the digests binding each protocol to its readout. In the CSV, `evidence_origin` distinguishes measurement-derived entries from the complete target's preparation-model calculation. Rows that depend on the generation tolerance carry `generation_epsilon`. If the cost lower-bound search runs out of updates, the report names the limit and preserves the available interval. Rerun `study analyze input.json --max-dp-updates 100000` to increase the budget. A saved bundle retains the original calculation and its limits.
+show the dataset IDs and the digests binding each protocol to its readout.
+In the CSV, `evidence_origin` identifies rows derived from counts and rows
+calculated in the preparation model. Rows that use the generation tolerance
+carry `generation_epsilon`.
+
+If the cost search reaches its update limit, the report gives the interval
+obtained so far. Rerun `study analyze input.json --max-dp-updates 100000`
+to increase the budget. A saved bundle retains the original calculation
+and its limits.
 
 ## Your counts and Qiskit registers
+
+For cluster measurements, keep the [cluster model](#cluster-model) when
+its controls, reference and slot costs describe the preparation you want to
+study. To report state-side information from the counts alone, set
+`process_model` to `null`. The cooling study compares programs in the
+declared refresh/compression model. To use different controls or cost units,
+supply your model's reference and qualifications in the
+[fixed-effect](TERMINAL_BOUNDS.md#target-and-reference-counts-for-the-same-effect)
+or [measured-window workflow](COST_AND_WINDOWS.md#finite-sample-windows).
+The [model guide](CUSTOM_MODELS.md) shows how to construct the model.
 
 A request contains the raw counts, their origin, a source, and each
 acquisition's protocol. Specify the fixed shot count and measurement before
@@ -117,10 +144,7 @@ protocol's ID, `data.origin` to `observed_counts` or `simulation`, and
 `data.source` to the run and measurement record. Replace `data.outcomes`
 with a count dictionary or list of joint shot strings (optionally wrapped in
 `{"counts": {...}}` or `{"bitstrings": [...]}`) and preserve
-`data.protocol_sha256`. To use a different preparation model, take the measured responses to the
-[fixed-effect workflow](TERMINAL_BOUNDS.md#target-and-reference-counts-for-the-same-effect)
-or the [measured-window workflow](COST_AND_WINDOWS.md#finite-sample-windows)
-and supply that model’s reference, cost scale and qualifications.
+`data.protocol_sha256`.
 
 Register groups in a count string follow the **displayed left-to-right**
 order in `layout.registers`. Within each register, `bits_lsb_first` lists
