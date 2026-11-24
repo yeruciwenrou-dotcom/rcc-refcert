@@ -1083,7 +1083,13 @@ def verify_measurement_bundle(path, version, *, limits=None, tol=None):
         "record_consistency": "input_bindings_pass",
         "fresh_verification": {
             "outcome": "pass" if complete else "inconclusive",
-            "scope": "recomputed joint coverage, finite windows and process bounds from raw counts",
+            "scope": (
+                "Recomputed polarization and classical correlation bounds from the archived counts. "
+                "Evaluated preparation costs from the declared model and candidate programs."
+                if version == 5 and fresh["decision"] == "cooling"
+                else "Recomputed joint coverage and finite-window bounds from the archived counts. "
+                "Process bounds use the measurement evidence and the applicable model qualifications."
+            ),
         },
         "historical_results_supported": supported,
         **({"candidate_replay": coverage} if coverage else {}),

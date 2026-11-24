@@ -127,9 +127,9 @@ calculated in the preparation model. Rows that use the generation tolerance
 carry `generation_epsilon`.
 
 If the cost search reaches its update limit, the report gives the interval
-obtained so far. Rerun `study analyze input.json --max-dp-updates 100000`
-to increase the budget. A saved bundle retains the original calculation
-and its limits.
+obtained so far. To continue the search, rerun `study analyze` on the same
+input with `--max-dp-updates` set above the limit shown in that report.
+A saved bundle retains the original calculation and its limits.
 
 ## Your counts and Qiskit registers
 

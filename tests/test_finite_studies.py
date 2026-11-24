@@ -178,6 +178,17 @@ def test_study_cli_transfer_and_consistently_changed_history(name, tmp_path, cap
         inspect_analysis_bundle(archive)["record_consistency"] == "input_bindings_pass"
     )
     v = verify_analysis_bundle(archive)
+    scope = v["fresh_verification"]["scope"]
+    if name == "cooling":
+        assert (
+            "polarization and classical correlation bounds from the archived counts"
+            in scope
+        )
+        assert (
+            "preparation costs from the declared model and candidate programs" in scope
+        )
+    else:
+        assert "measurement evidence and the applicable model qualifications" in scope
     assert (
         v["historical_results_supported"]
         and v["same_version_replay"]["status"] == "match"
