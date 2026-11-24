@@ -11,9 +11,10 @@ abstract: >-
   complexity. Given a preparation model and final-state data, it computes a
   rigorous lower bound on optimal quantum circuit complexity. The inputs can
   be an exact target spectrum or finite measurement data collected under a
-  prespecified protocol. Complete readouts also resolve window complexity
-  and correlations in graph-state and bath-cooling studies. The toolkit implements the
-  Reference-Contingent Complexity (RCC) framework of Liu, Tian and Wu.
+  prespecified protocol. The graph-state study compares local measurements
+  at a common shot budget. The cooling study places measured polarization
+  alongside bounds on the cost of preparing the full target. The toolkit
+  implements the Reference-Contingent Complexity (RCC) framework of Liu, Tian and Wu.
   Structural fairness accounts for the resources supplied by the physical
   background and those used in preparation. A terminal-state certificate
   bounds the cost of every circuit that prepares the target to the stated

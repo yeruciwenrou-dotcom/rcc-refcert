@@ -385,7 +385,6 @@ _STUDY_LABELS = {
     "A": "Color A",
     "B": "Color B",
     "Z": "Z-basis control",
-    "shorter-program": "Shorter program",
     "target-program": "Full target program",
     "after-compression": "After the last compression",
     "calibrated": "Calibrated final readout",
@@ -412,21 +411,28 @@ def _cluster_lines(r):
 
     bits = decimal_string(F(binary["one_shot_bits_lower"]), 9)
     slots = binary["integer_slots"]
-    lines = [
-        (
-            f"The strongest one-shot information lower bound from the binary color tests is {bits} bits "
-            f"({names(binary)}), with joint coverage of at least {_percent(binary['coverage_at_least'])} under fixed-size IID sampling."
+    coverage = _percent(binary["coverage_at_least"])
+    evidence = (
+        f"The strongest one-shot information lower bound is {bits} bits ({names(binary)}), "
+        f"with at least {coverage} joint coverage under fixed-size IID sampling."
+    )
+    if slots is None:
+        lead = f"The binary color tests bound the measured state's information at smoothing radius {r['epsilon']}."
+    elif slots == 0:
+        lead = f"The binary color tests leave the preparation-cost lower bound at zero in model {r['reference_model']['id']} at tolerance {r['epsilon']}."
+    else:
+        lead = (
+            f"The binary color tests certify a preparation cost of at least {_slots(slots)} "
+            f"in model {r['reference_model']['id']} at trace-distance tolerance {r['epsilon']}."
         )
-    ]
-    if slots is not None:
+    lines = [f"{lead} {evidence}"]
+    if slots is None:
         lines.append(
-            f"The binary witnesses certify a preparation-cost lower bound of {_slots(slots)} in model {r['reference_model']['id']} "
-            f"within trace-distance tolerance {r['epsilon']}. The model counts {r['reference_model']['atomic_action_classes']} atomic action classes, including halt."
+            "To translate this state bound into a preparation cost, supply a model in the fixed-effect or window workflow."
         )
     else:
         lines.append(
-            f"The bound applies to the measured state at smoothing radius {r['epsilon']}. "
-            "For a different preparation model, use the fixed-effect or window workflow."
+            f"The model counts {r['reference_model']['atomic_action_classes']} atomic action classes, including halt."
         )
     for name, witness in r["witnesses"].items():
         value = decimal_string(F(witness["one_shot_bits_lower"]), 9)
@@ -448,12 +454,14 @@ def _cluster_lines(r):
     )
     all_bits = decimal_string(F(combined["one_shot_bits_lower"]), 9)
     all_cost = combined["integer_slots"]
-    value = f"{all_bits} bits" + (
-        f" and {_slots(all_cost)}" if all_cost is not None else ""
+    cost_text = (
+        f", corresponding to a preparation-cost lower bound of {_slots(all_cost)}"
+        if all_cost is not None
+        else ""
     )
     lines.append(
-        f"Across the binary tests, full color histograms and Z control, the strongest lower bound is {value} "
-        f"({names(combined)}), with joint coverage of at least {_percent(combined['coverage_at_least'])}."
+        f"Including the full color and Z histograms, the strongest information lower bound is {all_bits} bits "
+        f"({names(combined)}){cost_text}. Joint coverage across these measurements is at least {_percent(combined['coverage_at_least'])}."
     )
     return lines
 
@@ -465,7 +473,7 @@ def _cooling_interval(lower, upper):
     )
 
 
-def _cooling_lines(r):
+def _cooling_lines(r, *, details):
     cost = r["model_cost"]
     if cost["decision"] == "certified_optimal":
         lead = f"The optimal cost of the complete model target is {_slots(cost['lower_bound_slots'])}"
@@ -477,13 +485,17 @@ def _cooling_lines(r):
     lines = [
         f"{lead} within trace-distance tolerance {r['epsilon']}. Each program includes one halt slot."
     ]
-    for name, program in r["candidates"].items():
+    winners = cost["upper_witness_ids"]
+    for name in sorted(r["candidates"], key=lambda key: (key not in winners, key)):
+        program = r["candidates"][name]
         if name.startswith("cycle-prefix-"):
-            if name not in cost["upper_witness_ids"]:
+            if name not in winners:
                 continue
             subject = f"The {name.removeprefix('cycle-prefix-')}-cycle program"
+        elif name == "shorter-program":
+            subject = f"The {r['parameters']['cycles'] - 1}-cycle program"
         else:
-            subject = "The " + _STUDY_LABELS[name].lower()
+            subject = "The full target program"
         distance = program["trace_distance_exact"]
         if F(distance) == 0:
             lines.append(
@@ -491,19 +503,24 @@ def _cooling_lines(r):
             )
         else:
             verdict = "within" if program["target_satisfied"] else "outside"
+            approx = decimal_string(F(distance), 6)
+            reading = approx if F(approx) == F(distance) else f"about {approx}"
+            if details:
+                reading += f", exact value {distance}"
             lines.append(
-                f"{subject} costs {_slots(program['slots'])} and finishes {verdict} tolerance (trace distance {distance})."
+                f"{subject} costs {_slots(program['slots'])} and finishes {verdict} tolerance (trace distance {reading})."
             )
     correlations = {
         b["dataset_id"]: b["product"]["classical_correlation_st_R"]
         for b in r["finite_windows"]["batches"]
     }
+    stages = {
+        "after-compression": "After the last compression",
+        "shorter-program": f"After the {r['parameters']['cycles'] - 1}-cycle program",
+        "target-program": "After the full target program",
+    }
     for name, point in r["observed_polarizations"].items():
-        stage = (
-            _STUDY_LABELS[name]
-            if name == "after-compression"
-            else f"After the {_STUDY_LABELS[name].lower()}"
-        )
+        stage = stages[name]
         correlation = correlations[r["sources"][name]["dataset_id"]]
         lines.append(
             f"{stage}, target-qubit polarization lies in {_cooling_interval(point['lower'], point['upper'])} "
@@ -544,11 +561,14 @@ def _cooling_lines(r):
 def render_study(r, *, markdown=False, details=False):
     cluster = r["decision"] == "cluster"
     title = "Six-qubit cluster state" if cluster else "Three-qubit algorithmic cooling"
-    findings = _cluster_lines(r) if cluster else _cooling_lines(r)
+    findings = _cluster_lines(r) if cluster else _cooling_lines(r, details=details)
     lines = [("# " if markdown else "") + title, findings[0]]
+    labels = _STUDY_LABELS.copy()
+    if not cluster:
+        labels["shorter-program"] = f"The {r['parameters']['cycles'] - 1}-cycle program"
     origins = {}
     for key, source in r["sources"].items():
-        origins.setdefault(source["origin"], []).append(_STUDY_LABELS[key])
+        origins.setdefault(source["origin"], []).append(labels[key])
     for origin, settings in origins.items():
         label = {
             "synthetic_fixture": "synthetic counts",
@@ -584,7 +604,7 @@ def render_study(r, *, markdown=False, details=False):
         for key, source in r["sources"].items():
             lines.extend(
                 [
-                    f"{_STUDY_LABELS[key]} used dataset {source['dataset_id']} from preparation {source['preparation_id']}.",
+                    f"{labels[key]} used dataset {source['dataset_id']} from preparation {source['preparation_id']}.",
                     f"Source: {source['source']}",
                     f"Protocol SHA-256: {source['protocol_sha256']}",
                     f"Raw readout SHA-256: {source['readout_sha256']}",

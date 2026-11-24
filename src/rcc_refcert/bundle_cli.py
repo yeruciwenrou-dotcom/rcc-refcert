@@ -39,23 +39,46 @@ def render_bundle_report(report: dict) -> str:
             else:
                 from .workflows.render import render_workflow_result as render_result
 
-            lines.extend(
-                [
-                    f"Recomputation from the archived inputs: {report['fresh_verification']['outcome']}",
-                    f"Historical results supported: {_historical_support(report['historical_results_supported'])}",
-                    render_result(report["fresh_result"]).rstrip(),
-                ]
-            )
-            if coverage := report.get("candidate_replay"):
-                lines.insert(
-                    -1,
-                    f"Candidate programs replayed: {coverage['checked']} of {coverage['expected']}.",
+            coverage = report.get("candidate_replay")
+            if coverage:
+                interval = report["historical_result"].get("model_cost", {})
+                interval = (
+                    interval.get("interval_slots")
+                    if isinstance(interval, dict)
+                    else None
                 )
-                lines.insert(
-                    -1,
-                    "Historical cost interval supported: "
-                    + _historical_support(coverage["historical_interval_supported"]),
+                claim = "archived cost interval"
+                if (
+                    isinstance(interval, list)
+                    and len(interval) == 2
+                    and all(type(x) is int for x in interval)
+                ):
+                    claim += f" {interval} slots"
+                supported = coverage["historical_interval_supported"]
+                if supported is True:
+                    lines.append(f"The fresh bounds verify the {claim}.")
+                elif supported is False:
+                    lines.append(f"The fresh bounds contradict the {claim}.")
+                else:
+                    fresh = report["fresh_result"]["model_cost"]["interval_slots"]
+                    lines.append(
+                        f"The fresh bounds give {fresh} slots and leave the {claim} unresolved."
+                    )
+                lines.append(
+                    f"Candidate programs replayed: {coverage['checked']} of {coverage['expected']}."
                 )
+                if not coverage["replayed_fields_consistent"]:
+                    lines.append(
+                        "The checked record fields differ from the archived evidence."
+                    )
+            else:
+                lines.extend(
+                    [
+                        f"Recomputation from the archived inputs: {report['fresh_verification']['outcome']}",
+                        f"Historical results supported: {_historical_support(report['historical_results_supported'])}",
+                    ]
+                )
+            lines.append(render_result(report["fresh_result"]).rstrip())
         return "\n".join(lines) + "\n"
     lines = [
         "RCC analysis evidence",

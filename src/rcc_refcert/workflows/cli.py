@@ -118,23 +118,57 @@ def add_commands(commands):
     )
     sub = study.add_subparsers(dest="workflow_command", required=True)
     template = sub.add_parser(
-        "template", help="export a study with editable raw acquisitions"
+        "template", help="create editable study inputs with synthetic example counts"
     )
     template.add_argument("name", choices=("cluster", "cooling"))
-    for key in ("noise", "bath", "false-positive", "false-negative", "failure"):
-        template.add_argument("--" + key)
-    for key in ("cycles", "shots"):
-        template.add_argument("--" + key, type=int)
-    analyze = sub.add_parser(
-        "analyze", help="analyze counts and optional evidence bundle"
+    template.add_argument("--noise", help="cluster: phase-flip probability per qubit")
+    template.add_argument(
+        "--bath", help="cooling: ground-state probability of each fresh bath qubit"
     )
-    analyze.add_argument("input", type=Path)
-    analyze.add_argument("--bundle", type=Path)
-    analyze.add_argument("--max-matrix-elements", type=int)
+    template.add_argument(
+        "--false-positive",
+        help="cooling: probability of recording 0 when the target is 1",
+    )
+    template.add_argument(
+        "--false-negative",
+        help="cooling: probability of recording 1 when the target is 0",
+    )
+    template.add_argument(
+        "--failure", help="sampling failure budget per measurement strategy"
+    )
+    template.add_argument(
+        "--cycles",
+        type=int,
+        help="cooling: number of cycles in the target program (1–12)",
+    )
+    template.add_argument(
+        "--shots",
+        type=int,
+        help="shots per color or cooling acquisition (the cluster Z control uses twice this count)",
+    )
+    analyze = sub.add_parser(
+        "analyze", help="report what the counts and preparation model establish"
+    )
+    analyze.add_argument(
+        "input", type=Path, help="study request with counts and acquisition protocols"
+    )
+    analyze.add_argument(
+        "--bundle", type=Path, help="save the evidence for independent verification"
+    )
+    analyze.add_argument(
+        "--max-matrix-elements",
+        type=int,
+        help="set the matrix-element budget for the analysis",
+    )
     analyze.add_argument(
         "--max-dp-updates", type=int, help="set the cooling cost-bound update budget"
     )
-    analyze.add_argument("--width", type=int, default=80)
+    analyze.add_argument(
+        "--width",
+        type=int,
+        default=80,
+        help="text line width, 40–240 columns (default: 80)",
+    )
     analyze.add_argument(
         "--csv",
         type=Path,

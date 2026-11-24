@@ -403,7 +403,7 @@ def test_cooling_report_describes_a_future_measurement_and_its_limits():
     row = next(
         line
         for line in text.splitlines()
-        if line.startswith("After the shorter program,")
+        if line.startswith("After the 2-cycle program,")
     )
     endpoints = row.split("[", 1)[1].split("]", 1)[0]
     lo, hi = (F(x) for x in endpoints.split(","))
@@ -610,7 +610,12 @@ def test_cooling_interval_and_candidate_replay_have_separate_evidence(
         )
         assert info["historical_interval_supported"] is supported
         assert info["replayed_fields_consistent"]
-        assert "Candidate programs replayed:" in render_bundle_report(v)
+        text = render_bundle_report(v)
+        assert "Candidate programs replayed:" in text
+        assert "archived cost interval [6, 6] slots" in text
+        assert (
+            "verify the archived" if supported else "fresh bounds give [6, 24]"
+        ) in text
     assert (
         verify_analysis_bundle(path, limits={key: limits[-1]})["same_version_replay"][
             "status"

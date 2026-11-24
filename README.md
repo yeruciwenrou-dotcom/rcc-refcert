@@ -5,15 +5,15 @@
 [![Software 0.3.0 DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.24248347-darkgreen)](https://doi.org/10.5281/zenodo.24248347)
 
 **RCC RefCert** is an open-source toolkit for studying quantum circuit complexity.
-Given the parameters of your preparation model, you can compute a **rigorous
-lower bound on optimal quantum circuit complexity** from final-state data.
-Use the target state's exact spectrum, fixed-effect counts or a complete projective
-readout collected under a prespecified measurement protocol.
+How cheaply can a circuit prepare your target state? For a specified model and
+preparation tolerance, RCC RefCert uses final-state data to give a **rigorous
+lower bound on optimal quantum circuit complexity**. Supply an exact target
+spectrum or counts from a measurement chosen before data collection.
 
 You can build your own quantum models and compare preparation strategies. With a
 density matrix, window RCC shows how much structure is visible in each subsystem
-and how much comes from correlations in a pure or mixed state. Share the model, inputs and results for independent
-verification.
+and how much comes from correlations in a pure or mixed state. Share the model,
+inputs and results for independent verification.
 
 The toolkit is based on **Reference-Contingent Complexity (RCC)**, introduced by
 Liu, Tian and Wu in
@@ -57,15 +57,14 @@ certificate that establishes a rigorous lower bound.
 | Research task | What you can do |
 |---|---|
 | [Study graph-state noise or algorithmic cooling with finite data](#finite-data-studies) | See which local measurements give the strongest lower bound on the cost of preparing a noisy graph state. For cooling, compare the measured polarization with the cost of reaching the full target. Supply your own counts or Qiskit shots and share a replayable analysis. |
-| [Build a finite-control model for RCC certification](#work-with-your-own-model) | Model the preparation process you want to study by specifying its reference state, the quantum channels available to the program and the rules that govern their use. |
+| [Build a finite-control model for RCC certification](#work-with-your-own-model) | Choose the reference state and the controls available at each step. Test whether the resulting model has a reference bound you can use to certify preparation costs. |
 | [Verify a model's reference bound](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CUSTOM_MODELS.md#prepare-and-verify-a-candidate) | Check a certificate you already have or, for a stable model, generate and verify a numerical candidate. You can reuse the verified reference bound to calculate complexity lower bounds for different targets in the same model. |
-| [Certify a lower bound on optimal circuit complexity](#target-spectra-and-measured-counts) | An exact target spectrum gives a cost below which no circuit can prepare the target within tolerance. [Fixed-projector measurement counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md#fixed-projector-counts) give a lower bound at a prespecified confidence level. |
+| [Certify a lower bound on optimal circuit complexity](#target-spectra-and-measured-counts) | Use the exact target spectrum to find a cost below which no circuit in your model can prepare the target within tolerance. [Fixed-projector measurement counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md#fixed-projector-counts) give a lower bound at a prespecified confidence level. |
+| [Plan a measurement and certify a cost from counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/8d7076802e5c9aade76ab36de5d00042241eb60f/docs/TERMINAL_BOUNDS.md#plan-a-fixed-sample-size) | Choose a sample size for the response or cost threshold you want to certify. Apply the [same binary measurement to target and reference](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/8d7076802e5c9aade76ab36de5d00042241eb60f/docs/TERMINAL_BOUNDS.md#target-and-reference-counts-for-the-same-effect) and use the two histograms to bound the target’s preparation cost. |
 | [Compare preparation strategies](#cost-and-window-workflows) | Find which programs reach the target within tolerance and compare their costs. In exact diagonal-preserving models, you can prove a program is optimal, as in [cyclic reset](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/COST_AND_WINDOWS.md#a-complete-cost-task), or bound how much a better program could save, as in [algorithmic cooling](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/COST_AND_WINDOWS.md#cooling-and-the-remaining-optimality-gap). |
 | [Analyze pure-state complexity with window RCC](#compare-subsystem-complexity) | Distinguish pure states with the same global RCC value by the structure visible in their subsystems and correlations. For pure and mixed states alike, use [your own density matrices](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels) to separate [the contributions of local structure and correlations between subsystems](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/COST_AND_WINDOWS.md#read-local-and-correlation-contributions) and track how each changes during preparation. |
 | [Share a calculation for independent verification](#reverify-a-shared-analysis) | Share the original inputs and results in a single bundle. A colleague can use it to recompute the result independently. |
 | [Reproduce the paper's reference calculations](#reference-cases) | Rerun the bundled cases and compare the outputs with the frozen reference results. The [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md) links each calculation to the corresponding equations. |
-
-With target and reference counts for the same binary measurement, you can bound the cost of preparing the target in a specified model. [Plan how many trials a response or preparation-cost claim will need](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md#plan-a-fixed-sample-size). [Use two histograms to certify a cost lower bound and share the result for independent verification](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/TERMINAL_BOUNDS.md#target-and-reference-counts-for-the-same-effect).
 
 ## Quick start
 
@@ -204,19 +203,16 @@ With counts for **all outcomes of one measurement**, you can also compare the
 window RCC of two states. The Bell/GHZ example uses the same two-qubit
 readout on both preparations. From 20,000 synthetic shots per state it
 certifies a gap of at least 0.37086784 R-structons in the measured window
-at 99% joint coverage. See [finite-sample windows](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/COST_AND_WINDOWS.md#finite-sample-windows)
+at 99% joint coverage. See [finite-sample windows](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/8d7076802e5c9aade76ab36de5d00042241eb60f/docs/COST_AND_WINDOWS.md#finite-sample-windows)
 for the commands, protocol and example with your own counts.
-
-<a id="cost-and-window-workflows"></a>
-<a id="preparation-costs-and-subsystem-structure"></a>
 
 <a id="finite-data-studies"></a>
 
 ### Graph-state and cooling studies
 
 Use the 0.4.0 distribution or install the checkout you want to examine with
-`python -m pip install .` from its root. Run a two-color graph-state measurement
-and verify the result using the archived counts:
+`python -m pip install .` from its root. The following example compares two measurement settings
+on the same noisy cluster state and saves the counts for independent verification:
 
 ```bash
 python -m rcc_refcert study template cluster > cluster.json
@@ -224,9 +220,19 @@ python -m rcc_refcert study analyze cluster.json --bundle cluster.rccbundle
 python -m rcc_refcert bundle verify cluster.rccbundle
 ```
 
-Use `study template cooling` for the three-qubit cooling experiment. Both
-templates contain synthetic counts. To supply your own measurements, follow the
-layouts and acquisition steps in the [finite-data guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/FINITE_DATA_STUDIES.md).
+With the default synthetic counts, each color alone certifies at least one slot.
+Together they certify at least two slots. The same total number of Z-basis
+shots gives a zero lower bound.
+
+Use `study template cooling` to ask whether another cooling cycle is needed.
+In the default model, a six-slot program reaches the full three-qubit target
+within trace distance 1/50, and the model rules out every cheaper program.
+The synthetic counts show how much polarization is visible on the target qubit.
+To supply your own measurements, follow the register
+layouts and acquisition steps in the [finite-data guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/8d7076802e5c9aade76ab36de5d00042241eb60f/docs/FINITE_DATA_STUDIES.md).
+
+<a id="cost-and-window-workflows"></a>
+<a id="preparation-costs-and-subsystem-structure"></a>
 
 ### Preparation costs and complexity profiles
 
@@ -272,13 +278,13 @@ The [window guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/
 interprets the profiles of paired Bell states and a GHZ state on a common
 scale. To use [your own density matrix](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels),
 supply the matrix, its tensor dimensions and the subsystems to compare.
-The [workflow notebook](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Workflows_Quickstart.ipynb)
+The [workflow notebook](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/8d7076802e5c9aade76ab36de5d00042241eb60f/RCC_Workflows_Quickstart.ipynb)
 follows both the preparation and window calculations.
 
 ### Reverify a shared analysis
 
 Use the cyclic-reset certificate bundle from the [model example](#work-with-your-own-model),
-or substitute a file you received:
+or substitute a bundle you received.
 
 ```bash
 python3 -m rcc_refcert bundle inspect cyclic-reset.rccbundle
@@ -286,20 +292,21 @@ python3 -m rcc_refcert bundle verify cyclic-reset.rccbundle \
   --output cyclic-reset-verification.json
 ```
 
-`inspect` checks the saved data for consistency. `verify` checks the model and
-certificate matrices afresh, recomputes supported bounds, and compares them
-with the saved results. Read **Fresh matrix verification** and
-**Historical results supported** together: a passing matrix check can yield a
-larger conservative constant and leave an earlier, stronger result unsupported.
+`inspect` checks the saved data for consistency. `verify` recomputes the
+analysis from its saved inputs and compares it with the original result.
+For the cyclic-reset certificate, read **Fresh matrix verification** and
+**Historical results supported** together. A fresh matrix check can pass
+with a larger conservative constant than the one used in the original bound.
 
-The installed package and bundle are sufficient for verification; the sender's
-model script is unnecessary. The original bundle is preserved, and `--output`
-saves a separate report under an unused filename. The
-[analysis-bundle guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/ANALYSIS_BUNDLES.md) explains result comparisons,
+A colleague can verify the bundle with the installed package. Use `--output`
+to save the verification report under a new filename. The
+[analysis-bundle guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/8d7076802e5c9aade76ab36de5d00042241eb60f/docs/ANALYSIS_BUNDLES.md) explains result comparisons,
 exit codes and the original counts protocol. Exact historical scalar replay
-uses the producer's package version. Cost and window bundles require the 0.3
-reader and use the same commands; verification executes their saved requests
-and compares the new scientific results with the author's evidence.
+uses the producer's package version. Preparation-cost and known-state window
+bundles are readable from 0.3.0
+(0.4.0 for requests using `on_gain_failure`). Use 0.4.0 or later for
+fixed-effect counts, measured windows and finite-data studies. The same
+verification command recomputes their results from the archived inputs.
 
 ## Notebooks and Python API
 
@@ -321,7 +328,7 @@ Choose a notebook for the task you want to explore:
 |---|---|
 | [Models and certificates](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Quickstart.ipynb) | Analyze finite-control models, verify reference certificates and reproduce paper calculations. |
 | [Terminal-state bounds](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Bounds_Quickstart.ipynb) | Calculate bounds from exact spectra or fixed-projector counts, then save and replay the result. |
-| [Preparation costs and complexity profiles](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Workflows_Quickstart.ipynb) | Compare preparation costs, use window RCC to study states and cooling trajectories, and share complete evidence. |
+| [Preparation costs and complexity profiles](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/8d7076802e5c9aade76ab36de5d00042241eb60f/RCC_Workflows_Quickstart.ipynb) | Compare preparation costs, use window RCC to study states and cooling trajectories, and share complete evidence. |
 
 Select **Python (rcc-refcert)** as the kernel. Run all three commands with the
 same interpreter; on Windows, use `.venv\Scripts\python.exe`. These dependencies
@@ -498,7 +505,7 @@ describes limits and certificate error budgets.
 The guides include current explanations. The
 [version 0.3.0 source tree](https://github.com/yeruciwenrou-dotcom/rcc-refcert/tree/v0.3.0)
 preserves the documentation shipped with that release. The
-[0.3.0 release notes](https://github.com/yeruciwenrou-dotcom/rcc-refcert/releases/tag/v0.3.0) describe the earlier cost and subsystem workflows. The [0.4.0 research studies](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/FINITE_DATA_STUDIES.md) add raw counts, local measurement settings and hardware register mapping.
+[0.3.0 release notes](https://github.com/yeruciwenrou-dotcom/rcc-refcert/releases/tag/v0.3.0) describe the earlier cost and subsystem workflows. The [0.4.0 research studies](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/8d7076802e5c9aade76ab36de5d00042241eb60f/docs/FINITE_DATA_STUDIES.md) add raw counts, local measurement settings and hardware register mapping.
 
 - [Scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/SCIENTIFIC_SCOPE.md): what each calculation establishes and how it connects to RCC.
 - [Paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md): implemented objects, equations and worked examples.
@@ -548,7 +555,7 @@ For a calculation made with version 0.3.0, a copyable citation is:
 The GitHub **Cite this repository** button follows the paper preference in
 `CITATION.cff`; include the software version citation as well when reporting a
 calculation. Complete bundles can
-[record the source revision](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/ANALYSIS_BUNDLES.md#record-the-software-revision)
+[record the source revision](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/8d7076802e5c9aade76ab36de5d00042241eb60f/docs/ANALYSIS_BUNDLES.md#record-the-software-revision)
 for both the author and the recipient.
 
 For calculations made with a source checkout, record its full commit and
