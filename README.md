@@ -106,14 +106,14 @@ tools and reference cases. The source checkout also includes example scripts,
 
 ### Install from source
 
-The [source archive for the 0.4.0 examples](https://github.com/yeruciwenrou-dotcom/rcc-refcert/archive/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe.zip)
+The [source archive for the 0.4.0 examples](https://github.com/yeruciwenrou-dotcom/rcc-refcert/archive/9929c34b1a585b3b64505e33b31bbafb03067ad3.zip)
 contains the code used below. Extract it and open the directory containing
 `quickstart.py`. With Git, you can get the same source revision by running:
 
 ```bash
 git clone https://github.com/yeruciwenrou-dotcom/rcc-refcert.git
 cd rcc-refcert
-git switch --detach c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe
+git switch --detach 9929c34b1a585b3b64505e33b31bbafb03067ad3
 ```
 
 From that directory, run the frozen reference calculations:
@@ -248,7 +248,7 @@ within trace distance 1/50, and the model rules out every cheaper program.
 The final refresh preserves the target qubit's polarization and erases its
 correlations with the bath. Joint counts let you examine both effects.
 To supply your own measurements, follow the register
-layouts and acquisition steps in the [finite-data guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/FINITE_DATA_STUDIES.md).
+layouts and acquisition steps in the [finite-data guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/9929c34b1a585b3b64505e33b31bbafb03067ad3/docs/FINITE_DATA_STUDIES.md).
 
 <a id="cost-and-window-workflows"></a>
 <a id="preparation-costs-and-subsystem-structure"></a>
@@ -530,7 +530,7 @@ describes limits and certificate error budgets.
 The guides include current explanations. The
 [version 0.3.0 source tree](https://github.com/yeruciwenrou-dotcom/rcc-refcert/tree/v0.3.0)
 preserves the documentation shipped with that release. The
-[0.3.0 release notes](https://github.com/yeruciwenrou-dotcom/rcc-refcert/releases/tag/v0.3.0) describe the earlier cost and subsystem workflows. The [0.4.0 research studies](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/FINITE_DATA_STUDIES.md) add raw counts, local measurement settings and hardware register mapping.
+[0.3.0 release notes](https://github.com/yeruciwenrou-dotcom/rcc-refcert/releases/tag/v0.3.0) describe the earlier cost and subsystem workflows. The [0.4.0 research studies](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/9929c34b1a585b3b64505e33b31bbafb03067ad3/docs/FINITE_DATA_STUDIES.md) add raw counts, local measurement settings and hardware register mapping.
 
 - [Scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/SCIENTIFIC_SCOPE.md): what each calculation establishes and how it connects to RCC.
 - [Paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md): implemented objects, equations and worked examples.
