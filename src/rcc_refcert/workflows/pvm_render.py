@@ -5,6 +5,7 @@ import io
 from collections import Counter
 from decimal import ROUND_CEILING
 from fractions import Fraction
+from textwrap import TextWrapper
 
 from ..bounds.scalar import decimal_string
 from .pvm import _window_difference_lower
@@ -199,31 +200,56 @@ def export_pvm(record, csv_path, plot_path, overwrite):
         }
         return
     fig, ax = figure
-    for i, (_, _, lo, hi, *_) in enumerate(rows):
+    repeated = Counter((state, name) for state, name, *_ in rows)
+    labels, positions = [], []
+    height = 0.0
+    color = "#266c85"
+    for index, (state, name, lo, hi, _, dataset, _) in enumerate(rows):
+        wrap = TextWrapper(width=38, max_lines=2, placeholder=f"… [row {index + 1}]")
+        label = wrap.fill(f"{state} / {name}")
+        if repeated[state, name] > 1:
+            label += "\n" + wrap.fill(dataset)
+        row_height = 0.13 + 0.21 * (1 + label.count("\n"))
+        y = height + row_height / 2
+        height += row_height
+        labels.append(label)
+        positions.append(y)
         if lo is not None:
-            ax.plot(i, float(lo), marker="^" if hi is None else "o", color="C0")
+            ax.plot(float(lo), y, marker=">" if hi is None else "o", color=color)
             if hi is not None:
-                ax.vlines(i, float(lo), float(hi), color="C0")
-                ax.plot(i, float(hi), marker="_", color="C0")
-    duplicate = Counter((state, window) for state, window, *_ in rows)
-    labels = [
-        f"{state}\n{window}\n{dataset}"
-        if duplicate[state, window] > 1
-        else f"{state}\n{window}"
-        for state, window, _, _, _, dataset, _ in rows
-    ]
-    ax.set_xticks(range(len(rows)), labels, rotation=20, ha="right")
+                ax.hlines(y, float(lo), float(hi), color=color)
+                ax.plot(float(hi), y, marker="|", markersize=9, color=color)
+    fig.set_size_inches(9, max(3.2, height + 1.65))
+    ax.set_yticks(positions, labels)
+    for label in ax.get_yticklabels():
+        label.set_parse_math(False)
+    ax.set_ylim(max(height, 0.3), 0)
+    ax.set_axisbelow(True)
+    ax.grid(axis="x", color="0.9", linewidth=0.7)
     if any(lo is not None and hi is not None for _, _, lo, hi, *_ in rows):
-        ax.plot([], [], "o", color="C0", label="Interval lower endpoint")
-        ax.plot([], [], "_", color="C0", label="Interval upper endpoint")
+        ax.plot([], [], "o", color=color, label="Interval lower endpoint")
+        ax.plot([], [], "|", color=color, markersize=9, label="Interval upper endpoint")
     if any(lo is not None and hi is None for _, _, lo, hi, *_ in rows):
-        ax.plot([], [], "^", color="C0", label="One-sided lower bound")
-    if ax.get_legend_handles_labels()[0]:
-        ax.legend()
-    if any(b["product"] for b in record["batches"]):
-        ax.set_title("Window RCC and classical correlation")
-        ax.set_ylabel(r"Value ($\mathrm{st}_R$)")
-    else:
-        ax.set_title("Measured intervals and one-sided lower bounds")
-        ax.set_ylabel(r"Window RCC ($\mathrm{st}_R$)")
+        ax.plot([], [], ">", color=color, label="One-sided lower bound")
+    handles, keys = ax.get_legend_handles_labels()
+    if handles:
+        fig.legend(
+            handles, keys, loc="outside lower center", ncols=len(keys), frameon=False
+        )
+    product = any(b["product"] for b in record["batches"])
+    title = (
+        "Window RCC and classical correlation"
+        if product
+        else "Measured intervals and one-sided lower bounds"
+    )
+    fig.suptitle(title, fontweight="semibold")
+    coverage = decimal_string(100 * Fraction(record["coverage"]["at_least"]), 9)
+    ax.set_title(
+        f"Joint sampling coverage at least {coverage}%", loc="left", fontsize=10
+    )
+    quantity = "Value" if product else "Window RCC"
+    units = r"$\mathrm{st}_R$"
+    if "atomic_action_classes" in record:
+        units += rf", $\Gamma_R={record['atomic_action_classes']}$"
+    ax.set_xlabel(f"{quantity} ({units})")
     save_window_figure(fig, plot_path, overwrite)

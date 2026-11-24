@@ -475,8 +475,10 @@ Install `.[plots]` from this checkout; ordinary analysis only needs NumPy.
 Plotting supports SVG, PNG and PDF and is limited to 128 displayed rows.
 For complete projective readouts, each CSV row identifies the dataset and
 sampling event. When two acquisitions share a state and window, their plot
-labels also show the dataset. The legend distinguishes two-sided intervals
-from one-sided lower bounds.
+labels also show the dataset. Each horizontal row corresponds to one CSV
+data row. Exceptionally long labels include its row number. A dot and an
+end cap mark a two-sided interval. A right-pointing triangle marks a
+one-sided lower bound.
 Missing optional plotting dependencies preserve the computed scientific result
 and mark the presentation step partial. Output files are exclusive by default;
 `--overwrite` explicitly selects atomic replacement. Inputs and output paths

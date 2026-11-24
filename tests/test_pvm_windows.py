@@ -3,7 +3,7 @@
 import json
 from copy import deepcopy
 from fractions import Fraction as F
-from itertools import combinations
+from itertools import combinations, pairwise
 from math import log2
 
 import pytest
@@ -275,6 +275,55 @@ def test_repeated_window_acquisitions_keep_distinct_csv_and_figure_labels(tmp_pa
             "Interval lower endpoint" in drawing
             and "Interval upper endpoint" in drawing
         )
+
+
+@pytest.mark.parametrize(
+    ("preset", "copies"), [("pvm-counts", 2), ("product-counts", 3)]
+)
+def test_plot_labels_and_legend_clear_the_intervals(
+    preset, copies, tmp_path, monkeypatch
+):
+    import csv
+
+    pytest.importorskip("matplotlib")
+    from rcc_refcert.workflows import windows
+    from rcc_refcert.workflows.pvm_render import export_pvm
+
+    request = fixture(preset)
+    original = request["batches"][0]
+    request["batches"] = []
+    for i in range(1, copies + 1):
+        batch = deepcopy(original)
+        batch["protocol"].update(dataset_id=f"Run {i}", event_id=f"Acquisition {i}")
+        batch["data"]["dataset_id"] = f"Run {i}"
+        freeze(batch)
+        request["batches"].append(batch)
+    result = analyze_windows(request)
+
+    csv_path = tmp_path / "windows.csv"
+
+    def inspect_figure(fig, path, overwrite):
+        fig.canvas.draw()
+        ax = fig.axes[0]
+        renderer = fig.canvas.get_renderer()
+        labels = ax.get_yticklabels()
+        assert len(labels) == (2 if copies == 2 else 12)
+        boxes = [label.get_window_extent(renderer) for label in labels]
+        assert all(upper.y0 > lower.y1 for upper, lower in pairwise(boxes))
+        assert not fig.legends[0].get_window_extent(renderer).overlaps(ax.bbox)
+        assert all(
+            f"Run {i}" in " ".join(label.get_text() for label in labels)
+            for i in range(1, copies + 1)
+        )
+        with csv_path.open() as handle:
+            data = list(csv.DictReader(handle))
+        for line, y, row in zip(ax.collections, ax.get_yticks(), data, strict=True):
+            ((left, right),) = line.get_segments()
+            assert tuple(left) == (float(row["lower_st_R"]), y)
+            assert tuple(right) == (float(row["upper_st_R"]), y)
+
+    monkeypatch.setattr(windows, "save_window_figure", inspect_figure)
+    export_pvm(result, csv_path, tmp_path / "windows.png", False)
 
 
 @pytest.mark.parametrize(
