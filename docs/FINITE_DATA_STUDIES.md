@@ -13,9 +13,10 @@ python -m rcc_refcert study analyze cluster.json --csv cluster.csv --bundle clus
 python -m rcc_refcert bundle verify cluster.rccbundle
 ```
 
-Each color accepts 8,574 of the 10,000 synthetic shots. Its predeclared
-rank-eight effect certifies one integer slot. For the joint graph-state
-witness the RCC lower bound rises to **two slots**. The computational basis
+In each color setting, 8,574 of the 10,000 synthetic shots pass the stabilizer
+test. Either setting certifies a preparation cost of **at least one slot**
+in the cluster model. Combining both settings raises the lower bound to **two
+slots**. The computational basis
 has the same distribution on the example preparation and the reference.
 Its 20,000 shots give a zero information floor. Compare with `--shots 10`
 to see how limited sampling changes the result.
@@ -37,9 +38,14 @@ The complete color histograms form a second 99% analysis from the same
 counts, and the separate Z acquisition forms a third 99% analysis.
 A simultaneous statement covering all three strategies has coverage at least
 97% by the union bound, without assuming statistical independence. The
-analytic controls $(1-q)^3$ and $(1-q)^6$ record the ideal color and graph
-occupations. They are separate from the measured intervals. Template
-histograms use deterministic rounding and identify their origin. At noise `1/4`, A and B each certify one slot and the graph intersection certifies zero. The summary therefore credits both single-color witnesses. `strongest_bounds.binary_colors` uses the two binary events at 99%. `strongest_bounds.all_measurements` also considers the full color and Z histograms at 97%. Both entries list the witnesses and events used. CSV carries the same comparisons.
+model predicts color and graph occupations of $(1-q)^3$ and $(1-q)^6$.
+The templates round the predicted outcome frequencies to integer counts.
+
+At noise `1/4`, each color still certifies at least one slot, while their
+intersection no longer resolves a positive lower bound. The report credits
+both colors. In JSON, `strongest_bounds.binary_colors` gives the strongest
+binary witness at 99% joint coverage. `strongest_bounds.all_measurements`
+includes the full histograms at 97%. The CSV lists the same witnesses and events.
 
 ### Cluster model
 
@@ -89,7 +95,7 @@ to two decimal places. With the default bath and target, the forecast is 0.98.
 Plan for 39 shots. Observing 0 on at least 37 of them certifies a ground-state
 probability above 0.8 at 99% confidence. Changing the bath changes the model; changing the
 cycle count changes the target. Within each task, the candidate programs
-share the complete target and tolerance. The cooling study uses this refresh/compression model with the supplied bath and cycle count. It tests earlier cycle programs within the candidate budget. For a twelve-cycle target at the same bath and tolerance, the two-cycle program R–C–R–C–R–H ends about 0.01581 from the full target. It attains the six-slot lower bound. This comparison executes the model and uses the four stated acquisitions for the measurement results.
+share the complete target and tolerance. The cooling study uses this refresh/compression model with the supplied bath and cycle count. It tests earlier cycle programs within the candidate budget. For a twelve-cycle target at the same bath and tolerance, the two-cycle program R–C–R–C–R–H ends about 0.0158 from the full target. It attains the six-slot lower bound. This comparison executes the model and uses the four stated acquisitions for the measurement results.
 
 The text report identifies the origin of each acquisition. Add `--details` to
 show the dataset IDs and the digests binding each protocol to its readout. In the CSV, `evidence_origin` distinguishes measurement-derived entries from the complete target's preparation-model calculation. Rows that depend on the generation tolerance carry `generation_epsilon`. If the cost lower-bound search runs out of updates, the report names the limit and preserves the available interval. Rerun `study analyze input.json --max-dp-updates 100000` to increase the budget. A saved bundle retains the original calculation and its limits.
@@ -111,9 +117,10 @@ protocol's ID, `data.origin` to `observed_counts` or `simulation`, and
 `data.source` to the run and measurement record. Replace `data.outcomes`
 with a count dictionary or list of joint shot strings (optionally wrapped in
 `{"counts": {...}}` or `{"bitstrings": [...]}`) and preserve
-`data.protocol_sha256`. For a new physical model, specify which model
-qualifications apply. The count file alone supplies no model or detector
-qualifications.
+`data.protocol_sha256`. To use a different preparation model, take the measured responses to the
+[fixed-effect workflow](TERMINAL_BOUNDS.md#target-and-reference-counts-for-the-same-effect)
+or the [measured-window workflow](COST_AND_WINDOWS.md#finite-sample-windows)
+and supply that model’s reference, cost scale and qualifications.
 
 Register groups in a count string follow the **displayed left-to-right**
 order in `layout.registers`. Within each register, `bits_lsb_first` lists
