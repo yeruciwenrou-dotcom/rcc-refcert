@@ -12,11 +12,12 @@ abstract: >-
   rigorous lower bound on optimal quantum circuit complexity. The inputs can
   be an exact target spectrum or finite measurement data collected under a
   prespecified protocol. The graph-state study compares local measurements
-  at a common shot budget. The cooling study places measured polarization
-  alongside bounds on the cost of preparing the full target. The toolkit
+  at a common shot budget to find which correlations certify preparation
+  cost. The cooling study uses joint counts to resolve target polarization
+  and target–bath correlations, and compares programs against the full target. The toolkit
   implements the Reference-Contingent Complexity (RCC) framework of Liu, Tian and Wu.
-  Structural fairness accounts for the resources supplied by the physical
-  background and those used in preparation. A terminal-state certificate
+  Structural fairness fixes the background resources, permitted controls and
+  their accounting before the target is chosen. A terminal-state certificate
   bounds the cost of every circuit that prepares the target to the stated
   accuracy. Researchers can build finite-control quantum models, verify
   reference certificates and compare candidate preparations. Exact
