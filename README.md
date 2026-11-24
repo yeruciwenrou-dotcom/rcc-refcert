@@ -63,13 +63,13 @@ error.
 |---|---|
 | [Study graph-state noise or algorithmic cooling with finite data](#finite-data-studies) | See which local measurements give the strongest lower bound on the cost of preparing a noisy graph state. For cooling, find which programs reach the full target within tolerance and use joint counts to track polarization and target–bath correlations. Supply your own counts or Qiskit shots and share a replayable analysis. |
 | [Build a finite-control model for RCC certification](#work-with-your-own-model) | Specify what structure the background supplies and which operations incur a cost. Encode the reference state, quantum channels and allowed controls in a model you can submit for certification. |
-| [Verify a model's reference bound](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CUSTOM_MODELS.md#prepare-and-verify-a-candidate) | Check a certificate you already have or, for a stable model, generate and verify a numerical candidate. You can reuse the verified reference bound to calculate complexity lower bounds for different targets in the same model. |
+| [Verify a model's reference bound](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/docs/CUSTOM_MODELS.md#prepare-and-verify-a-candidate) | Check a certificate you already have or, for a stable model, generate and verify a numerical candidate. You can reuse the verified reference bound to calculate complexity lower bounds for different targets in the same model. |
 | [Certify a lower bound on optimal circuit complexity](#target-spectra-and-measured-counts) | Use the exact target spectrum to find a cost below which no circuit in your model can prepare the target within tolerance. [Fixed-projector measurement counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/TERMINAL_BOUNDS.md#fixed-projector-counts) give a lower bound at a prespecified confidence level. |
 | [Plan a measurement and certify a cost from counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/TERMINAL_BOUNDS.md#plan-a-fixed-sample-size) | Choose a sample size for the response or cost threshold you want to certify. Apply the [same binary measurement to target and reference](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/TERMINAL_BOUNDS.md#target-and-reference-counts-for-the-same-effect) and use the two histograms to bound the target’s preparation cost. |
 | [Compare preparation strategies](#cost-and-window-workflows) | Find which programs reach the target within tolerance and compare their costs. In exact diagonal-preserving models, you can prove a program is optimal, as in [cyclic reset](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#a-complete-cost-task), or bound how much a better program could save, as in [algorithmic cooling](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#cooling-and-the-remaining-optimality-gap). |
 | [Analyze pure-state complexity with window RCC](#compare-subsystem-complexity) | Distinguish pure states with the same global RCC value by the structure visible in their subsystems and correlations. For pure and mixed states alike, use [your own density matrices](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels) to separate [the contributions of local structure and correlations between subsystems](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#read-local-and-correlation-contributions) and track how each changes during preparation. |
 | [Share a calculation for independent verification](#reverify-a-shared-analysis) | Share the original inputs and results in a single bundle. A colleague can use it to recompute the result independently. |
-| [Reproduce the paper's reference calculations](#reference-cases) | Rerun the bundled cases and compare the outputs with the frozen reference results. The [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md) links each calculation to the corresponding equations. |
+| [Reproduce the paper's reference calculations](#reference-cases) | Rerun the bundled cases and compare the outputs with the frozen reference results. The [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/docs/PAPER_MAP.md) links each calculation to the corresponding equations. |
 
 ## Quick start
 
@@ -171,7 +171,7 @@ Both bound paths for this register return **two primitive slots**. The
 verifies the five-slot optimum with gain exclusion and a matching program.
 
 Each command saves a bundle containing the model, certificate and results.
-Choose an unused filename. Follow the [custom-model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CUSTOM_MODELS.md)
+Choose an unused filename. Follow the [custom-model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/docs/CUSTOM_MODELS.md)
 to replace the channels, states, control language and cost assumptions, then
 verify your certificate and add a supported target-state task. The guide
 explains the two certificate routes and their numerical limits.
@@ -350,8 +350,8 @@ Choose a notebook for the task you want to explore:
 
 | Tutorial | What you will do |
 |---|---|
-| [Models and certificates](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Quickstart.ipynb) | Analyze finite-control models, verify reference certificates and reproduce paper calculations. |
-| [Terminal-state bounds](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/RCC_Bounds_Quickstart.ipynb) | Calculate bounds from exact spectra or fixed-projector counts, then save and replay the result. |
+| [Models and certificates](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/RCC_Quickstart.ipynb) | Analyze finite-control models, verify reference certificates and reproduce paper calculations. |
+| [Terminal-state bounds](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/RCC_Bounds_Quickstart.ipynb) | Calculate bounds from exact spectra or fixed-projector counts, then save and replay the result. |
 | [Preparation costs and complexity profiles](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/RCC_Workflows_Quickstart.ipynb) | Compare preparation costs, use window RCC to study states and cooling trajectories, and share complete evidence. |
 
 Select **Python (rcc-refcert)** as the kernel. Run all three commands with the
@@ -375,7 +375,7 @@ The values are `True`, `15/14` numerically, and `"fail"` for the deliberately
 failed local gain–cost test in the [reference cases](#reference-cases). The model
 still passes its supplied Bellman–Choi and reference-potential certificate checks.
 
-The [model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/MODEL_GUIDE.md) shows how to build a model with `Action`
+The [model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/docs/MODEL_GUIDE.md) shows how to build a model with `Action`
 and `FiniteControlModel`, audit it, and verify supplied certificates. For
 target-state calculations, the [bounds guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/TERMINAL_BOUNDS.md) covers
 `bound_from_spectrum`, `bound_from_counts`, `prepare_protocol`,
@@ -458,7 +458,7 @@ The package exposes the model inputs, numerical certificate checks, and
 scalar cost inversion that make such examples reproducible. The
 [scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/SCIENTIFIC_SCOPE.md)
 explains the evidence each calculation supplies; the
-[paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md)
+[paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/docs/PAPER_MAP.md)
 connects the implementation to the full model construction and lower-bound
 theorem.
 
@@ -469,7 +469,7 @@ theorem.
 
 <a id="end-to-end-rcc-lower-bound-example"></a>
 
-The [worked lower-bound example](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/END_TO_END_EXAMPLE.md)
+The [worked lower-bound example](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/docs/END_TO_END_EXAMPLE.md)
 follows Theorem 3.1 from the physical model and its terminal-state certificate
 through the cost inversion in Appendix A to a matching preparation.
 
@@ -495,7 +495,7 @@ python3 -m rcc_refcert reproduce --check
 ```
 
 Expect three `MATCH` checks for the reference expectations, data and report.
-The [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md)
+The [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/docs/PAPER_MAP.md)
 locates the corresponding definitions and equations.
 
 ## Results and scientific scope
@@ -522,7 +522,7 @@ accuracy corrections in the [RCC explanation](#how-the-final-state-gives-a-lower
 The explicit matrix and path algorithms target small finite models. Resource
 budgets are checked before enumeration or dense matrix construction, and
 unresolved precision is reported explicitly. The
-[model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/MODEL_GUIDE.md#numerical-and-resource-limits)
+[model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/docs/MODEL_GUIDE.md#numerical-and-resource-limits)
 describes limits and certificate error budgets.
 
 ## Further reading
@@ -533,8 +533,8 @@ preserves the documentation shipped with that release. The
 [0.3.0 release notes](https://github.com/yeruciwenrou-dotcom/rcc-refcert/releases/tag/v0.3.0) describe the earlier cost and subsystem workflows. The [0.4.0 research studies](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/9929c34b1a585b3b64505e33b31bbafb03067ad3/docs/FINITE_DATA_STUDIES.md) add raw counts, local measurement settings and hardware register mapping.
 
 - [Scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/SCIENTIFIC_SCOPE.md): what each calculation establishes and how it connects to RCC.
-- [Paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md): implemented objects, equations and worked examples.
-- [Conventions](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CONVENTIONS.md): numerical, tensor and exact-input conventions.
+- [Paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/docs/PAPER_MAP.md): implemented objects, equations and worked examples.
+- [Conventions](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/docs/CONVENTIONS.md): numerical, tensor and exact-input conventions.
 - [Output contract](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/OUTPUT_CONTRACT.md): result fields, evidence levels and exit codes.
 - [Section VII.B of the paper](https://arxiv.org/pdf/2509.18205v4#page=26) discusses how RCC relates to other physical notions of complexity, including the holographic CV and CA proposals.
 
@@ -567,7 +567,7 @@ For development setup, tests, formatting and package builds, follow
 ## Citation and license
 
 Cite the software version used and the associated RCC paper.
-[`CITATION.cff`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/CITATION.cff) provides both citation records. The
+[`CITATION.cff`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/CITATION.cff) provides both citation records. The
 [all-versions DOI](https://doi.org/10.5281/zenodo.22544967) identifies the
 software archive across releases.
 
