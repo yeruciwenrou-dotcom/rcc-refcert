@@ -66,8 +66,8 @@ error.
 | [Verify a model's reference bound](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CUSTOM_MODELS.md#prepare-and-verify-a-candidate) | Check a certificate you already have or, for a stable model, generate and verify a numerical candidate. You can reuse the verified reference bound to calculate complexity lower bounds for different targets in the same model. |
 | [Certify a lower bound on optimal circuit complexity](#target-spectra-and-measured-counts) | Use the exact target spectrum to find a cost below which no circuit in your model can prepare the target within tolerance. [Fixed-projector measurement counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/TERMINAL_BOUNDS.md#fixed-projector-counts) give a lower bound at a prespecified confidence level. |
 | [Plan a measurement and certify a cost from counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/TERMINAL_BOUNDS.md#plan-a-fixed-sample-size) | Choose a sample size for the response or cost threshold you want to certify. Apply the [same binary measurement to target and reference](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/TERMINAL_BOUNDS.md#target-and-reference-counts-for-the-same-effect) and use the two histograms to bound the target’s preparation cost. |
-| [Compare preparation strategies](#cost-and-window-workflows) | Find which programs reach the target within tolerance and compare their costs. In exact diagonal-preserving models, you can prove a program is optimal, as in [cyclic reset](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/COST_AND_WINDOWS.md#a-complete-cost-task), or bound how much a better program could save, as in [algorithmic cooling](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/COST_AND_WINDOWS.md#cooling-and-the-remaining-optimality-gap). |
-| [Analyze pure-state complexity with window RCC](#compare-subsystem-complexity) | Distinguish pure states with the same global RCC value by the structure visible in their subsystems and correlations. For pure and mixed states alike, use [your own density matrices](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels) to separate [the contributions of local structure and correlations between subsystems](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/COST_AND_WINDOWS.md#read-local-and-correlation-contributions) and track how each changes during preparation. |
+| [Compare preparation strategies](#cost-and-window-workflows) | Find which programs reach the target within tolerance and compare their costs. In exact diagonal-preserving models, you can prove a program is optimal, as in [cyclic reset](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#a-complete-cost-task), or bound how much a better program could save, as in [algorithmic cooling](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#cooling-and-the-remaining-optimality-gap). |
+| [Analyze pure-state complexity with window RCC](#compare-subsystem-complexity) | Distinguish pure states with the same global RCC value by the structure visible in their subsystems and correlations. For pure and mixed states alike, use [your own density matrices](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels) to separate [the contributions of local structure and correlations between subsystems](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#read-local-and-correlation-contributions) and track how each changes during preparation. |
 | [Share a calculation for independent verification](#reverify-a-shared-analysis) | Share the original inputs and results in a single bundle. A colleague can use it to recompute the result independently. |
 | [Reproduce the paper's reference calculations](#reference-cases) | Rerun the bundled cases and compare the outputs with the frozen reference results. The [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md) links each calculation to the corresponding equations. |
 
@@ -106,14 +106,14 @@ tools and reference cases. The source checkout also includes example scripts,
 
 ### Install from source
 
-The [source archive for the 0.4.0 examples](https://github.com/yeruciwenrou-dotcom/rcc-refcert/archive/c5ecafef6f80c0c4519db1dba19b9ca093268dc0.zip)
+The [source archive for the 0.4.0 examples](https://github.com/yeruciwenrou-dotcom/rcc-refcert/archive/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe.zip)
 contains the code used below. Extract it and open the directory containing
 `quickstart.py`. With Git, you can get the same source revision by running:
 
 ```bash
 git clone https://github.com/yeruciwenrou-dotcom/rcc-refcert.git
 cd rcc-refcert
-git switch --detach c5ecafef6f80c0c4519db1dba19b9ca093268dc0
+git switch --detach c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe
 ```
 
 From that directory, run the frozen reference calculations:
@@ -167,7 +167,7 @@ verification passes even though the local gain–cost sufficient test fails.
 The second uses a **reference-potential certificate (H.4)** for a four-qubit
 register, then computes bounds from an exact spectrum and synthetic counts.
 Both bound paths for this register return **two primitive slots**. The
-[complete cost workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/COST_AND_WINDOWS.md#a-complete-cost-task) independently
+[complete cost workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#a-complete-cost-task) independently
 verifies the five-slot optimum with gain exclusion and a matching program.
 
 Each command saves a bundle containing the model, certificate and results.
@@ -217,7 +217,7 @@ With counts for **all outcomes of one measurement**, you can also compare the
 window RCC of two states. The Bell/GHZ example uses the same two-qubit
 readout on both preparations. From 20,000 synthetic shots per state it
 certifies a gap of at least 0.37086784 R-structons in the measured window
-at 99% joint coverage. See [finite-sample windows](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/COST_AND_WINDOWS.md#finite-sample-windows)
+at 99% joint coverage. See [finite-sample windows](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#finite-sample-windows)
 for the commands, protocol and example with your own counts.
 
 <a id="finite-data-studies"></a>
@@ -267,10 +267,10 @@ python3 -m rcc_refcert bundle verify task.rccbundle
 
 At the default trace-distance tolerance of `1/10`, the four-qubit reset task
 returns **[5,5] atomic slots**, including halt. The
-[worked calculation](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/COST_AND_WINDOWS.md#a-complete-cost-task)
+[worked calculation](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#a-complete-cost-task)
 shows how the model excludes shorter programs and how a five-slot program
 meets the target. For a model supplied as matrices, the
-[numerical workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/COST_AND_WINDOWS.md#numerical-models-and-candidate-diagnostics)
+[numerical workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#numerical-models-and-candidate-diagnostics)
 reports each candidate's cost and distance from the target.
 
 <a id="compare-state-organization"></a>
@@ -299,8 +299,8 @@ the two pairs it is 0. In the GHZ state either pair retains one shared
 classical bit, giving a reading of 1/2. The windows locate structure that a
 single global reading leaves unresolved.
 
-The [window guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/COST_AND_WINDOWS.md#subsystem-complexity-profiles)
-works through the local and correlation contributions on that common scale. To use [your own density matrix](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels),
+The [window guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#subsystem-complexity-profiles)
+works through the local and correlation contributions on that common scale. To use [your own density matrix](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels),
 supply the matrix, its tensor dimensions and the subsystems to compare.
 The [workflow notebook](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/RCC_Workflows_Quickstart.ipynb)
 follows both the preparation and window calculations.
@@ -383,7 +383,7 @@ target-state calculations, the [bounds guide](https://github.com/yeruciwenrou-do
 
 For preparation costs and subsystem complexity profiles, import from
 `rcc_refcert.workflows`.
-The [workflow guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/COST_AND_WINDOWS.md) introduces
+The [workflow guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md) introduces
 `analyze_cost`, `compare_cost_results`, `analyze_windows`, `export_probe` and
 `save_workflow_bundle` with executable examples.
 
