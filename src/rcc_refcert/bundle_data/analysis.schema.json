@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:rcc-refcert:analysis:1",
   "title": "RCC complete analysis v1",
-  "description": "High-level analysis metadata stored in analysis-bundle v1. Apply this schema to manifest.analysis in addition to analysis_bundle.schema.json for the container. Request/record scientific contracts, exact fractions, input identities and history relationships are checked by the runtime. Storage-only payloads may contain generic JSON metadata and do not constitute complete analyses.",
+  "description": "High-level analysis metadata stored in analysis-bundle v1. Apply this schema to manifest.analysis in addition to analysis_bundle.schema.json for the container. Request/record scientific contracts, exact fractions, input identities and history relationships are checked by the runtime. Storage-only payloads carry generic JSON metadata.",
   "type": "object",
   "properties": {
     "schema": {

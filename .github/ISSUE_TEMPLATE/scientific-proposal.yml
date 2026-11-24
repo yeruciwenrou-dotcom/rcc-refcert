@@ -49,7 +49,7 @@ body:
   - type: textarea
     id: claim_boundary
     attributes:
-      label: Claim boundary
+      label: Model assumptions
       description: Describe the physical and analytic assumptions needed for the proposed result, such as reference consistency, faithful transcription, or uniformity across a model family.
     validations:
       required: true

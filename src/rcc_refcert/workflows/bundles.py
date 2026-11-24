@@ -22,6 +22,7 @@ from ..bundle_storage import (
     _read_json,
     _read_member,
 )
+from ..limits import ResourceLimitError
 from .api import (
     _point,
     analyze_cost,
@@ -33,11 +34,14 @@ from .core import (
     InputError,
     WorkflowLimits,
     canonical_bytes,
+    check_size,
     digest,
     exact,
     json_value,
     keys,
+    mapping,
     read_json,
+    require_int,
 )
 from .gain import exclude_budgets, spectral_threshold
 from .states import StateInput
@@ -66,7 +70,7 @@ def _manifest(path):
     if (
         result.get("format") != FORMAT
         or type(result.get("schema_version")) is not int
-        or result["schema_version"] not in (1, 2)
+        or result["schema_version"] not in (1, 2, 3, 4, 5)
     ):
         raise BundleFormatError("unsupported analysis-bundle schema")
     return result
@@ -76,7 +80,7 @@ def workflow_bundle_version(path):
     return _manifest(path)["schema_version"]
 
 
-def _read_workflow(path):
+def _read_workflow(path, *, version=2):
     manifest = _manifest(path)
     keys(
         manifest,
@@ -91,8 +95,8 @@ def _read_workflow(path):
         },
         name="workflow manifest",
     )
-    if manifest["schema_version"] != 2:
-        raise BundleFormatError("expected workflow schema 2")
+    if manifest["schema_version"] != version:
+        raise BundleFormatError(f"expected bundle schema {version}")
     if manifest["manifest_sha256"] != digest(
         {k: v for k, v in manifest.items() if k != "manifest_sha256"}
     ):
@@ -142,6 +146,15 @@ def _read_workflow(path):
                 ):
                     raise BundleFormatError("workflow member digest or size mismatch")
                 payloads[info.filename] = read_json(data, document=True)
+    if version in (3, 4, 5):
+        request = payloads["request.json"]
+        if (
+            manifest["kind"]
+            != {3: "fixed_effect_counts", 4: "pvm_windows", 5: "finite_study"}[version]
+            or digest(request) != manifest["request_digest"]
+        ):
+            raise BundleFormatError("counts request identity or kind mismatch")
+        return manifest, request, payloads["history.json"]
     request = keys(
         payloads["request.json"], {"original", "effective"}, name="saved request"
     )
@@ -153,6 +166,32 @@ def _read_workflow(path):
     return manifest, request, history
 
 
+def _check_replayed_gain_bound(saved, replayed, recorded_limits, limits):
+    if saved == replayed:
+        return
+    rows = replayed["rows"]
+    saved_rows = saved.get("rows") if isinstance(saved, dict) else None
+    if isinstance(saved_rows, list) and saved_rows[: len(rows)] == rows:
+        if (
+            replayed["stop_reason"] == "update_budget"
+            and limits.max_dp_updates < recorded_limits.max_dp_updates
+        ):
+            updates = require_int(saved.get("updates"), "history gain updates")
+            if updates <= recorded_limits.max_dp_updates:
+                check_size("dp_updates", updates, limits.max_dp_updates)
+        if (
+            replayed["stop_reason"] == "arithmetic_budget"
+            and limits.max_fraction_bits < recorded_limits.max_fraction_bits
+        ):
+            # The next product needs at least one more bit than the recipient allows.
+            raise ResourceLimitError(
+                "fraction_bits", limits.max_fraction_bits + 1, limits.max_fraction_bits
+            )
+    raise InputError(
+        "history: dynamic-program history is inconsistent with its coefficients"
+    )
+
+
 def _check_cost_history(history, *, limits):
     effective = history["effective_request"]
     _, _, model, target, _, core = normalize_cost_request(effective, limits=limits)
@@ -160,6 +199,41 @@ def _check_cost_history(history, *, limits):
     expected = {"request": digest(effective), "task_core": core_digest, **core}
     if history["digests"] != expected:
         raise InputError("history: complete task or request binding mismatch")
+    selection = history.get("gain_selection")
+    if "gain_selection" in history or history["producer"].get("version") == __version__:
+        selection = keys(
+            selection, {"source", "outcome"}, {"submitted"}, "history.gain_selection"
+        )
+        original = history["original_request"]
+        submitted = original.get("gain_certificate", "auto") != "auto"
+        system_source = "preset" if "preset" in original["model"] else "reference"
+        rejected = selection.get("submitted")
+        if "submitted" in selection and (
+            not submitted
+            or original.get("on_gain_failure") != "auto"
+            or mapping(rejected, "history.gain_selection.submitted").get("source")
+            != "user"
+            or rejected.get("outcome") not in ("invalid", "failed")
+            or not isinstance(rejected.get("message"), str)
+            or not rejected["message"]
+        ):
+            raise InputError(
+                "history: certificate fallback differs from the submitted request"
+            )
+        expected_source = "user" if submitted and rejected is None else system_source
+        if (
+            selection["source"] == "saved_certificate"
+            and history.get("artifact_role") == "recipient_revalidation"
+            and rejected is None
+        ):
+            expected_source = "saved_certificate"
+        if (
+            selection.get("source") != expected_source
+            or selection.get("outcome") != "pass"
+        ):
+            raise InputError(
+                "history: gain certificate source or verification outcome differs"
+            )
     cert = history["gain_certificate"]
     if any(
         cert.get(k) != effective["gain_certificate"].get(k)
@@ -273,15 +347,8 @@ def _check_cost_history(history, *, limits):
         raise InputError("history: spectral threshold disagrees with the full target")
     # Scalar bookkeeping is checked without re-running any physical channel.
     recorded_limits = WorkflowLimits.from_value(effective.get("limits"))
-    scalar_limits = WorkflowLimits(
-        **{k: min(v, getattr(limits, k)) for k, v in recorded_limits.as_dict().items()}
-    )
-    model.limits = scalar_limits
     scalar = exclude_budgets(model, cert, q, effective["max_cost"])
-    if scalar != bound:
-        raise InputError(
-            "history: dynamic-program history is inconsistent with its coefficients"
-        )
+    _check_replayed_gain_bound(bound, scalar, recorded_limits, limits)
     upper = min(
         (r["slots"] for r in history["candidates"] if r["target_satisfied"]),
         default=None,
@@ -312,6 +379,8 @@ def _check_cost_history(history, *, limits):
     if len(history["epsilon_scan"]) != len(effective["epsilon_values"]):
         raise InputError("history: tolerance scan count mismatch")
     for point, e in zip(history["epsilon_scan"], effective["epsilon_values"]):
+        if not isinstance(point, dict):
+            raise InputError("history: tolerance scan evidence is inconsistent")
         ecost, ebound, ewitnesses = _point(
             model,
             target,
@@ -330,6 +399,9 @@ def _check_cost_history(history, *, limits):
             "candidates": ewitnesses,
         }
         if point != expected:
+            _check_replayed_gain_bound(
+                point.get("gain_bound"), ebound, recorded_limits, limits
+            )
             raise InputError("history: tolerance scan evidence is inconsistent")
     if history["execution"]["state"] == "completed" and (
         not bound["completed"]
@@ -427,6 +499,11 @@ def check_workflow_history(history, *, limits=None):
 
 def save_workflow_bundle(path, request, result, *, overwrite=False):
     """Save original and effective inputs with immutable author-side history."""
+    if isinstance(request, dict) and request.get("schema") in (
+        "rcc-refcert.pvm-windows",
+        "rcc-refcert.finite-study",
+    ):
+        return save_measurement_bundle(path, request, result, overwrite=overwrite)
     limits = WorkflowLimits.from_value(
         result.get("effective_request", {}).get("limits")
     )
@@ -439,6 +516,21 @@ def save_workflow_bundle(path, request, result, *, overwrite=False):
         "original": json_value(request),
         "effective": result["effective_request"],
     }
+    return _write_json_bundle(
+        path,
+        request_data,
+        result,
+        version=2,
+        kind=result["kind"],
+        request_digest=digest(result["effective_request"]),
+        author=producer(),
+        overwrite=overwrite,
+    )
+
+
+def _write_json_bundle(
+    path, request_data, result, *, version, kind, request_digest, author, overwrite
+):
     members = {
         "request.json": canonical_bytes(request_data, document=True),
         "history.json": canonical_bytes(result, document=True),
@@ -447,14 +539,14 @@ def save_workflow_bundle(path, request, result, *, overwrite=False):
         raise BundleFormatError("workflow JSON member byte budget exceeded")
     manifest = {
         "format": FORMAT,
-        "schema_version": 2,
-        "kind": result["kind"],
-        "producer": producer(),
+        "schema_version": version,
+        "kind": kind,
+        "producer": author,
         "members": {
             k: {"sha256": hashlib.sha256(v).hexdigest(), "bytes": len(v)}
             for k, v in members.items()
         },
-        "request_digest": digest(result["effective_request"]),
+        "request_digest": request_digest,
     }
     manifest["manifest_sha256"] = digest(manifest)
     destination = Path(path)
@@ -527,6 +619,13 @@ def _scientific_result(result):
             "diagnostics",
         )
     }
+    # History validation checks each digest against its own effective request.
+    # Recipient resource limits are part of that identity.
+    if selected["epsilon_scan"]:
+        selected["epsilon_scan"] = [
+            {k: v for k, v in point.items() if k != "request_digest"}
+            for point in selected["epsilon_scan"]
+        ]
 
     def stable(value):
         if isinstance(value, dict):
@@ -561,7 +660,18 @@ def verify_workflow_bundle(path, *, limits=None, tol=None):
     recorded = WorkflowLimits.from_value(request["effective"].get("limits"))
     limits = recorded.restricted_by(limits)
     if manifest["kind"] == "cost_analysis":
-        fresh = analyze_cost(request["effective"], limits=limits)
+        # New cost records retain the certificate choice. Older bundles replay
+        # the verified, fully expanded certificate saved by their producer.
+        saved_certificate = history.get("gain_selection", {}).get("source") in (
+            None,
+            "saved_certificate",
+        )
+        source_request = (
+            request["effective"] if saved_certificate else request["original"]
+        )
+        fresh = analyze_cost(source_request, limits=limits)
+        if saved_certificate and "gain_selection" in fresh:
+            fresh["gain_selection"] = {"source": "saved_certificate", "outcome": "pass"}
     else:
         from .windows import analyze_windows
 
@@ -573,6 +683,9 @@ def verify_workflow_bundle(path, *, limits=None, tol=None):
         and fresh["decision"] != "numerical_unresolved"
     )
     old_science, new_science = _scientific_result(history), _scientific_result(fresh)
+    if "gain_selection" in history:
+        old_science["gain_selection"] = history["gain_selection"]
+        new_science["gain_selection"] = fresh.get("gain_selection")
     from .windows import _close
 
     def numerical_view(value):
@@ -624,4 +737,361 @@ def verify_workflow_bundle(path, *, limits=None, tol=None):
         "historical_result": history,
         "fresh_result": fresh,
         "scope": "Independent computation from the complete saved recipe and target; author history is retained.",
+    }
+
+
+def save_effect_bundle(path, request, result, *, overwrite=False):
+    """Save a raw two-arm request and the independently replayable historical record."""
+    from ..bounds.api import replay_record
+    from ..bounds.contracts import json_ready
+    from ..bounds.effects import RECORD, validate_effect_record
+
+    if not isinstance(result, dict) or result.get("schema") != RECORD:
+        raise InputError(
+            "--bundle on bound counts requires a fixed-effect counts request"
+        )
+    raw = json_ready(request)
+    validate_effect_record(result, raw)
+    replay_record(result)
+    return _write_json_bundle(
+        path,
+        raw,
+        result,
+        version=3,
+        kind="fixed_effect_counts",
+        request_digest=digest(raw),
+        author=result["producer"],
+        overwrite=overwrite,
+    )
+
+
+def _read_effect_bundle(path):
+    from ..bounds.effects import validate_effect_record
+
+    manifest, raw, history = _read_workflow(path, version=3)
+    if not isinstance(history, dict) or not isinstance(raw, dict):
+        raise BundleFormatError("expected fixed-effect request and history objects")
+    if manifest["producer"] != history.get("producer"):
+        raise BundleFormatError("fixed-effect producer identity mismatch")
+    validate_effect_record(history, raw)
+    return manifest, raw, history
+
+
+def inspect_effect_bundle(path):
+    manifest, _, history = _read_effect_bundle(path)
+    return {
+        "schema": "rcc-refcert.bundle-inspection",
+        "schema_version": 3,
+        "kind": manifest["kind"],
+        "producer": manifest["producer"],
+        "record_consistency": "pass",
+        "physical_revalidation": "not_run",
+        "historical_decision": history["decision"],
+        "request_digest": manifest["request_digest"],
+        "request_count": 1,
+    }
+
+
+def verify_effect_bundle(path, *, tol=None):
+    from ..bounds.contracts import canonical_hash
+    from ..bounds.effects import analyze_effect_counts
+
+    if tol is not None:
+        raise InputError(
+            "fixed-effect verification uses the saved exact scalar and sampling policy"
+        )
+    manifest, raw, history = _read_effect_bundle(path)
+    fresh = analyze_effect_counts(raw)
+    same_version = fresh["producer"] == history["producer"]
+    matches = canonical_hash(
+        {k: v for k, v in history.items() if k != "producer"}
+    ) == canonical_hash({k: v for k, v in fresh.items() if k != "producer"})
+    complete = fresh["analysis_state"] == "complete"
+    return {
+        "schema": "rcc-refcert.bundle-verification",
+        "schema_version": 3,
+        "kind": manifest["kind"],
+        "producer": fresh["producer"],
+        "record_consistency": "pass",
+        "fresh_verification": {
+            "outcome": "pass" if complete else "inconclusive",
+            "scope": "recomputed responses, common coverage and RCC conclusions from saved raw inputs",
+        },
+        "historical_results_supported": matches if complete else None,
+        "same_version_replay": {
+            "status": "different_producer_version"
+            if not same_version
+            else "match"
+            if matches
+            else "mismatch",
+            "producer_version_matches": same_version,
+        },
+        "historical_result": history,
+        "fresh_result": fresh,
+        "external_premises_verified": False,
+    }
+
+
+def _read_measurement_bundle(path, version):
+    from ..bounds.contracts import canonical_hash
+
+    if version == 5:
+        from .studies import KIND, RECORD, REQUEST
+    else:
+        from .pvm import KIND, RECORD, REQUEST
+
+    manifest, raw, history = _read_workflow(path, version=version)
+    if (
+        not isinstance(raw, dict)
+        or raw.get("schema") != REQUEST
+        or not isinstance(history, dict)
+    ):
+        raise BundleFormatError("invalid finite-measurement documents")
+    if (
+        history.get("schema") != RECORD
+        or history.get("kind") != KIND
+        or history.get("run_id")
+        != (digest(raw) if version == 5 else canonical_hash(raw))
+        or history.get("producer") != manifest["producer"]
+    ):
+        raise BundleFormatError("historical measurement input identity mismatch")
+    if version == 5:
+        from .studies import source_bindings
+
+        if type(history.get("schema_version")) is not int or history[
+            "schema_version"
+        ] not in (1, 2):
+            raise BundleFormatError("unsupported finite-study result version")
+        if history.get("sources") != source_bindings(raw["acquisitions"]):
+            raise BundleFormatError("study historical acquisition bindings differ")
+        return manifest, raw, history
+    saved = history.get("batches")
+    if (
+        not isinstance(saved, list)
+        or not isinstance(raw.get("batches"), list)
+        or len(saved) != len(raw["batches"])
+    ):
+        raise BundleFormatError("PVM acquisition count mismatch")
+    from .pvm import prepare_pvm_protocol
+
+    for entry, batch in zip(raw["batches"], saved):
+        if (
+            not isinstance(entry, dict)
+            or not isinstance(batch, dict)
+            or "protocol" not in entry
+            or "data" not in entry
+            or batch.get("protocol_sha256")
+            != prepare_pvm_protocol(entry["protocol"])["protocol_sha256"]
+            or batch.get("data_sha256") != canonical_hash(entry["data"])
+        ):
+            raise BundleFormatError(
+                "PVM historical evidence bindings differ from the archived acquisitions"
+            )
+    return manifest, raw, history
+
+
+def save_measurement_bundle(path, request, result, *, overwrite=False):
+    from ..bounds.contracts import canonical_hash, json_ready
+
+    version = 5 if request.get("schema") == "rcc-refcert.finite-study" else 4
+    if version == 5:
+        from .studies import KIND
+        from .studies import analyze_study as analyze
+    else:
+        from .pvm import KIND
+        from .pvm import analyze_pvm_windows as analyze
+    raw = json_value(request) if version == 5 else json_ready(request)
+    if version == 5 and result.get("schema_version") == 1:
+        from .studies import _analyze_study
+
+        fresh = _analyze_study(
+            raw, limits=result.get("computation_limits"), record_version=1
+        )
+    else:
+        fresh = analyze(raw, limits=result.get("computation_limits"))
+    # Optional plot delivery belongs to the caller, independently of the scientific record.
+    history = {k: v for k, v in result.items() if k not in ("execution", "delivery")}
+    if canonical_hash(history) != canonical_hash(fresh):
+        raise InputError(
+            "saved measurement conclusions do not reproduce from the submitted counts"
+        )
+    return _write_json_bundle(
+        path,
+        raw,
+        history,
+        version=version,
+        kind=KIND,
+        request_digest=digest(raw),
+        author=history["producer"],
+        overwrite=overwrite,
+    )
+
+
+def inspect_measurement_bundle(path, version):
+    m, _, h = _read_measurement_bundle(path, version)
+    return {
+        "schema": "rcc-refcert.bundle-inspection",
+        "schema_version": version,
+        "kind": m["kind"],
+        "producer": m["producer"],
+        "record_consistency": "input_bindings_pass",
+        "physical_revalidation": "not_run",
+        "historical_decision": h["decision"],
+        "request_digest": m["request_digest"],
+        "request_count": 1,
+    }
+
+
+def _limited_cooling_replay(history, fresh, recorded):
+    """Compare the independently replayed portion of a v2 cooling archive."""
+    from ..bounds.contracts import canonical_hash
+    from .study_cooling import cycle_prefixes
+
+    base = fresh["model_request"]["candidates"][:2]
+    prefixes = list(cycle_prefixes(fresh["parameters"]["cycles"], base, recorded))
+    expected = {p["id"] for p in base} | {
+        f"cycle-prefix-{i}" for i in range(len(prefixes))
+    }
+    checked = fresh["candidates"]
+    if len(checked) >= len(expected):
+        return None
+
+    old_cost = history.get("model_cost", {})
+    cost = fresh["model_cost"]
+    old_interval = (
+        old_cost.get("interval_slots") if isinstance(old_cost, dict) else None
+    )
+    valid = (
+        isinstance(old_interval, list)
+        and len(old_interval) == 2
+        and all(type(x) is int and x >= 0 for x in old_interval)
+        and old_interval[0] <= old_interval[1]
+        and old_interval
+        == [old_cost.get("lower_bound_slots"), old_cost.get("upper_bound_slots")]
+        and old_cost.get("task_core_digest") == cost["task_core_digest"]
+    )
+    interval_supported = None
+    if valid:
+        lo, hi = cost["interval_slots"]
+        if old_interval[0] <= lo <= hi <= old_interval[1]:
+            interval_supported = True
+        elif hi < old_interval[0] or lo > old_interval[1]:
+            interval_supported = False
+
+    def replayed_fields(record):
+        return {
+            k: v
+            for k, v in record.items()
+            if k
+            not in {
+                "model_request",
+                "candidates",
+                "model_cost",
+                "producer",
+                "computation_limits",
+            }
+        }
+
+    saved = history.get("candidates")
+    old_request = history.get("model_request")
+    programs = fresh["model_request"]["candidates"]
+    same_request = (
+        isinstance(old_request, dict)
+        and isinstance(old_request.get("candidates"), list)
+        and len(old_request["candidates"]) == len(expected)
+        and (
+            canonical_hash(
+                {
+                    **old_request,
+                    "candidates": old_request["candidates"][: len(programs)],
+                }
+            )
+            == canonical_hash(fresh["model_request"])
+        )
+    )
+    consistent = (
+        valid
+        and old_cost["lower_bound_slots"] == cost["lower_bound_slots"]
+        and old_cost.get("lower_route") == cost["lower_route"]
+        and old_cost.get("epsilon_exact") == cost["epsilon_exact"]
+        and same_request
+        and isinstance(saved, dict)
+        and set(saved) == expected
+        and canonical_hash({k: saved[k] for k in checked}) == canonical_hash(checked)
+        and canonical_hash(replayed_fields(history))
+        == canonical_hash(replayed_fields(fresh))
+    )
+    return {
+        "checked": len(checked),
+        "expected": len(expected),
+        "historical_interval_supported": interval_supported,
+        "replayed_fields_consistent": consistent,
+    }
+
+
+def verify_measurement_bundle(path, version, *, limits=None, tol=None):
+    from ..bounds.contracts import canonical_hash
+
+    if version == 5:
+        from .studies import analyze_study as analyze
+    else:
+        from .pvm import analyze_pvm_windows as analyze
+    if tol is not None:
+        raise InputError(
+            "measurement verification uses the archived statistical and exact arithmetic policy"
+        )
+    m, raw, history = _read_measurement_bundle(path, version)
+    recorded = WorkflowLimits.from_value(history.get("computation_limits"))
+    verification_limits = recorded.restricted_by(limits)
+    fresh = analyze(raw, limits=verification_limits)
+    replay = fresh
+    if version == 5 and history["schema_version"] == 1:
+        from .studies import _analyze_study
+
+        # Recompute the original candidate set as well as the current bounds.
+        replay = _analyze_study(raw, limits=verification_limits, record_version=1)
+    same = fresh["producer"] == history["producer"]
+    metadata = {"producer", "computation_limits"}
+    matches = canonical_hash(
+        {k: v for k, v in replay.items() if k not in metadata}
+    ) == canonical_hash({k: v for k, v in history.items() if k not in metadata})
+    complete = fresh["analysis_state"] == "complete"
+    supported = matches if complete else None
+    replay_status = "match" if matches else "mismatch" if complete else "inconclusive"
+    coverage = None
+    if (
+        version == 5
+        and history["schema_version"] == 2
+        and fresh["decision"] == "cooling"
+        and fresh["parameters"]["cycles"] >= 2
+        and verification_limits != recorded
+        and complete
+    ):
+        coverage = _limited_cooling_replay(history, fresh, recorded)
+        if coverage:
+            contradicted = (
+                not coverage["replayed_fields_consistent"]
+                or coverage["historical_interval_supported"] is False
+            )
+            supported = False if contradicted else None
+            replay_status = "mismatch" if contradicted else "inconclusive"
+    return {
+        "schema": "rcc-refcert.bundle-verification",
+        "schema_version": version,
+        "kind": m["kind"],
+        "producer": fresh["producer"],
+        "record_consistency": "input_bindings_pass",
+        "fresh_verification": {
+            "outcome": "pass" if complete else "inconclusive",
+            "scope": "recomputed joint coverage, finite windows and process bounds from raw counts",
+        },
+        "historical_results_supported": supported,
+        **({"candidate_replay": coverage} if coverage else {}),
+        "same_version_replay": {
+            "status": "different_producer_version" if not same else replay_status,
+            "producer_version_matches": same,
+        },
+        "historical_result": history,
+        "fresh_result": fresh,
+        "external_premises_verified": False,
     }

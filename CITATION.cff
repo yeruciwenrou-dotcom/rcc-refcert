@@ -2,18 +2,17 @@ cff-version: 1.2.0
 message: "Cite the software version used and the associated RCC paper."
 title: "RCC RefCert: A Research Toolkit for Structure-Fair Quantum Circuit Complexity"
 type: software
-version: 0.3.0
-doi: "10.5281/zenodo.24248347"
-url: "https://github.com/yeruciwenrou-dotcom/rcc-refcert/releases/tag/v0.3.0"
-date-released: 2026-11-15
+version: 0.4.0
+url: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 license: MIT
 repository-code: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 abstract: >-
   RCC RefCert is an open-source toolkit for studying quantum circuit
   complexity. Given a preparation model and final-state data, it computes a
   rigorous lower bound on optimal quantum circuit complexity. The inputs can
-  be an exact target spectrum or projector counts collected under a
-  prespecified measurement protocol. The toolkit implements the
+  be an exact target spectrum or finite measurement data collected under a
+  prespecified protocol. Complete readouts also resolve window complexity
+  and correlations in graph-state and bath-cooling studies. The toolkit implements the
   Reference-Contingent Complexity (RCC) framework of Liu, Tian and Wu.
   Structural fairness accounts for the resources supplied by the physical
   background and those used in preparation. A terminal-state certificate

@@ -1,0 +1,165 @@
+# Research with finite measurement data
+
+## Six-qubit cluster state
+
+Which local measurements reveal the structure left after independent phase noise?
+Two Pauli settings measure alternating colors of the same six-qubit cluster.
+A computational-basis measurement uses the same total number of shots as the
+two color settings together.
+
+```sh
+python -m rcc_refcert study template cluster --noise 1/20 --shots 10000 > cluster.json
+python -m rcc_refcert study analyze cluster.json --csv cluster.csv --bundle cluster.rccbundle
+python -m rcc_refcert bundle verify cluster.rccbundle
+```
+
+Each color accepts 8,574 of the 10,000 synthetic shots. Its predeclared
+rank-eight effect certifies one integer slot. For the joint graph-state
+witness the RCC lower bound rises to **two slots**. The computational basis
+has the same distribution on the example preparation and the reference.
+Its 20,000 shots give a zero information floor. Compare with `--shots 10`
+to see how limited sampling changes the result.
+
+With edges 01, 12, 34, 45, 03, 14, 25, the stabilizers are
+$K_i=X_i\prod_{j\sim i}Z_j$. Read X on sites 0, 2, 4 for A and on
+sites 1, 3, 5 for B, reading Z on the other sites. An outcome passes if
+each measured stabilizer has even parity. The color projectors commute.
+Their product is the rank-one graph projector, so its occupation is at
+least $\max(0,p_{A,L}+p_{B,L}-1)$. Both endpoints refer to the same prepared
+state. Applying the paper's fixed-effect bound to this occupation and its
+reference response $1/64$ gives at least 5.33856 one-shot bits at tolerance
+0.05. The witness uses the same two statistical events as the color tests.
+[Paper, IV.2–IV.4](https://arxiv.org/html/2509.18205v4)
+· [Graph-state coloring measurements](https://arxiv.org/abs/1806.05565)
+
+The two predeclared binary tests have 99% joint coverage by default.
+The complete color histograms form a second 99% analysis from the same
+counts, and the separate Z acquisition forms a third 99% analysis.
+A simultaneous statement covering all three strategies has coverage at least
+97% by the union bound, without assuming statistical independence. The
+analytic controls $(1-q)^3$ and $(1-q)^6$ record the ideal color and graph
+occupations. They are separate from the measured intervals. Template
+histograms use deterministic rounding and identify their origin. At noise `1/4`, A and B each certify one slot and the graph intersection certifies zero. The summary therefore credits both single-color witnesses. `strongest_bounds.binary_colors` uses the two binary events at 99%. `strongest_bounds.all_measurements` also considers the full color and Z histograms at 97%. Both entries list the witnesses and events used. CSV carries the same comparisons.
+
+### Cluster model
+
+The declared input and reference are $I/64$. At each slot the controller
+selects from twelve addressed resets to 0 or 1, six H gates, seven CZ gates
+on the grid, six addressed phase-flip channels with declared probability
+$q>0$, and one halt. Each costs one slot. The code uses five bits per slot
+and stops at the first halt. The two reset directions together preserve twice
+the reference. The other continuing actions are unital. Their code-weighted
+sum sends the reference to $31\sigma/32$, and halt contributes
+$\sigma/32$. Summing the stopping series gives exactly $\sigma$. The
+transcription is exact with zero overhead and domination constant one.
+Six resets, six H gates, seven CZ gates, six noise operations and halt
+prepare the example target in 26 slots. In this model the terminal-state information is at most six bits because the reference is uniform on 64 states. With five bits per slot, the integer lower bound from this route can reach at most two slots. To analyze counts alone, set `process_model` to `null`. The cluster study accepts the documented model at the chosen noise or this state-only option. For your own controls and cost units, use the [custom-model guide](CUSTOM_MODELS.md) and the [terminal-state workflow](TERMINAL_BOUNDS.md). At zero noise the template uses only
+the five-bit observation scale because the six noise operations coincide.
+
+## Three-qubit algorithmic cooling
+
+How much polarization does a further cycle buy, and is that cycle necessary
+to prepare the specified full target? A refresh replaces both bath qubits.
+Compression swaps 011 with 100. Halt returns the full register and costs one
+slot. Observe the target qubit jointly with the bath immediately after the
+last compression as well as after the final refresh.
+
+```sh
+python -m rcc_refcert study template cooling --bath 9/10 --cycles 3 > cooling.json
+python -m rcc_refcert study analyze cooling.json --format json --output cooling-report.json --bundle cooling.rccbundle
+python -m rcc_refcert bundle verify cooling.rccbundle
+```
+
+At trace-distance tolerance $1/50$, the eight-slot target program reaches
+the target exactly. The shorter six-slot program reaches trace distance
+$81/6250$ and the exact model rules out lower costs. The resulting model
+interval is **[6, 6]**. The `finite_windows` record separately reports the
+measurement intervals and classical correlation between target and bath;
+`observed_polarizations` bounds $2p(q_1=0)-1$. Each of three preparations
+uses a separate joint histogram. A fourth acquisition observes the target
+qubit with known binary readout errors; the example uses a 2% false positive
+and 4% false negative probability for recording 0. An empty inverse image
+is reported as a calibration conflict. These four experiments together have
+99% coverage. See `analytic_control` for the full predicted populations.
+
+The prospective sampling plan concerns a new **ideal** target-qubit readout.
+It asks how many shots are needed to certify $p(q_1=0)>0.8$ at the requested
+failure rate with at least 90% power, using the model forecast rounded down
+to two decimal places. With the default bath and target, the forecast is 0.98.
+Plan for 39 shots. Observing 0 on at least 37 of them certifies a ground-state
+probability above 0.8 at 99% confidence. Changing the bath changes the model; changing the
+cycle count changes the target. Within each task, the candidate programs
+share the complete target and tolerance. The cooling study uses this refresh/compression model with the supplied bath and cycle count. It tests earlier cycle programs within the candidate budget. For a twelve-cycle target at the same bath and tolerance, the two-cycle program R–C–R–C–R–H ends about 0.01581 from the full target. It attains the six-slot lower bound. This comparison executes the model and uses the four stated acquisitions for the measurement results.
+
+The text report identifies the origin of each acquisition. Add `--details` to
+show the dataset IDs and the digests binding each protocol to its readout. In the CSV, `evidence_origin` distinguishes measurement-derived entries from the complete target's preparation-model calculation. Rows that depend on the generation tolerance carry `generation_epsilon`. If the cost lower-bound search runs out of updates, the report names the limit and preserves the available interval. Rerun `study analyze input.json --max-dp-updates 100000` to increase the budget. A saved bundle retains the original calculation and its limits.
+
+## Your counts and Qiskit registers
+
+A request contains the raw counts, their origin, a source, and each
+acquisition's protocol. Specify the fixed shot count and measurement before
+sampling. Generate templates at other budgets with `--shots`. To change
+wiring or dataset names, edit the protocol, keeping the expected measurement,
+physical axes and prepared state, then freeze the bare object:
+
+```sh
+python -m rcc_refcert study prepare-protocol protocol.json > frozen.json
+```
+
+Use a common `preparation_id` and data origin for settings measured on the same physical preparation. Keep the returned digest with the dataset. Set `data.dataset_id` to the
+protocol's ID, `data.origin` to `observed_counts` or `simulation`, and
+`data.source` to the run and measurement record. Replace `data.outcomes`
+with a count dictionary or list of joint shot strings (optionally wrapped in
+`{"counts": {...}}` or `{"bitstrings": [...]}`) and preserve
+`data.protocol_sha256`. For a new physical model, specify which model
+qualifications apply. The count file alone supplies no model or detector
+qualifications.
+
+Register groups in a count string follow the **displayed left-to-right**
+order in `layout.registers`. Within each register, `bits_lsb_first` lists
+the wire measured into each classical bit starting at bit zero. Use
+`axes` to choose the RCC output order or a marginal. Keep the laboratory
+wire-to-classical-bit assignment with the source. With multiple registers,
+pass joint keys such as `"10 1"` or the aligned records from the same shots.
+Separately aggregated register counts lose their joint information.
+
+```python
+from rcc_refcert.workflows import (
+    import_readout, prepare_study_protocol, qiskit_readout, study_template,
+)
+
+study = study_template("cluster")
+entry = study["acquisitions"]["A"]
+protocol = entry["protocol"]
+# For a circuit that measures q[i] into meas[i], fix the assignment before acquisition.
+protocol["layout"]["registers"][0]["bits_lsb_first"] = [f"q{i}" for i in range(6)]
+protocol["dataset_id"] = "run-17/color-A"
+frozen = prepare_study_protocol(protocol)
+
+# pub_result is one SamplerPubResult from that acquisition.
+raw = qiskit_readout(pub_result, protocol["layout"])
+decoded = import_readout(raw, protocol["layout"])
+entry["data"] = dict(dataset_id=protocol["dataset_id"], source="run-17/color-A",
+                     origin="observed_counts", protocol_sha256=frozen["protocol_sha256"],
+                     outcomes=raw)
+# Supply the matching color-B and Z acquisitions from the same preparation.
+```
+
+Select one parameter point on every broadcast axis. For a two-dimensional grid pass `loc=(i, j)`. On a one-dimensional grid an integer is sufficient. All registers must describe the same grid and the same shots. For large JSON acquisitions, store the joint histogram in `data.outcomes.counts`, with one dictionary per setting and parameter point. This preserves shot correlations in a compact file. Plain JSON can be read directly.
+[IBM bit ordering](https://quantum.cloud.ibm.com/docs/en/qiskit/bit-ordering)
+· [IBM BitArray API](https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.primitives.BitArray)
+
+### Check the mapping on a hardware file
+
+From the source checkout, run:
+
+```sh
+python -m rcc_refcert study import-counts examples/readouts/sherbrooke_counts.json examples/readouts/sherbrooke_layout.json
+```
+
+These are 1,024 published shots from register `c_reg` on IBM Sherbrooke.
+Displaying classical axes in order c0, c1, c2, c3 yields 524 ones on c0
+and 291 on c3. Both bit orders preserve the shot total. This example
+checks the archived register data and makes no assumption about its physical
+preparation cost.
+[Original hardware counts](https://github.com/TriumDesigns/emergent-spacetime-quantum-circuits/blob/68850e5e7ae94f1e90200b6e4d764eff8d33a932/Emergence-quantum-exp/exp-1-4-qubit-emergence/run_emergence_ibm%20%20raw%20result%20counts%20and%20data.txt)

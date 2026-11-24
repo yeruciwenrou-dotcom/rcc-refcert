@@ -171,10 +171,8 @@ leaves the supplied model unchanged. A numerical basis change or Kraus mixing ca
 equality into an inconclusive boundary and increase the suggested integer
 length, while the underlying gain estimates agree within numerical precision.
 
-These checks are numerical verification in working precision, not an
-interval-arithmetic or exact-arithmetic proof. The conservative scalar
-propagation can be inconclusive for a mathematically valid candidate. Strict
-verification remains an extension point.
+The matrix checks use working-precision arithmetic. When the propagated
+error exceeds the selected tolerance, the verifier reports `inconclusive`.
 
 ## Exact scalar bound calculations
 

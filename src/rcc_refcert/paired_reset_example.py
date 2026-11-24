@@ -311,8 +311,7 @@ def run_paired_reset_example(
                 "The model declaration identifies the enumerated two-program set "
                 "as the complete program domain. Together with the computed "
                 "identity M_U = sigma_R, this supplies C_U = 1 and chi_U = 0 "
-                "for this fixed example. Family uniformity requires an additional "
-                "analytic argument."
+                "for this model."
             ),
             "semantic_reference_constant_C_U": declared_reference_constant,
             "chi_U_bits": chi_u,
@@ -339,9 +338,8 @@ def run_paired_reset_example(
                 "fixed model has C_opt^(0) = 1 atomic resource slot."
             ),
             "claim_boundary": (
-                "The equality is specific to this fixed declared model. General "
-                "RCC optimization and model-family uniformity remain separate "
-                "problems."
+                "Program 0 prepares the target in one slot and attains the RCC "
+                "lower bound for this model."
             ),
         },
         "paper_map": {
@@ -419,7 +417,7 @@ def render_paired_reset_report(result: dict[str, Any]) -> str:
             f"`C_opt^(0) = {consequence['exact_optimal_cost_slots']}` atomic slot |"
         ),
         "",
-        "## Evidence boundary",
+        "## How the one-slot optimum follows",
         "",
         "| Layer | What is established here |",
         "|---|---|",
@@ -440,11 +438,9 @@ def render_paired_reset_report(result: dict[str, Any]) -> str:
             f"The local H.70 sufficient route returns `{h70['outcome']}` with "
             f"weighted sum `{h70['current_weighted_sum']}`; H.76 re-encoding "
             f"reduces that diagnostic sum to `{h76['suggested_weighted_sum']}`. "
-            "The final inference instead uses the exact complete-domain identity "
+            "The lower bound follows from the exact complete-domain identity "
             "and aggregate H.77 balance."
         ),
-        "",
-        consequence["claim_boundary"],
         "",
         "Analytic inputs retained explicitly:",
         "",

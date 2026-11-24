@@ -16,7 +16,9 @@ from rcc_refcert.bounds import (
     UnsupportedContract,
     bound_from_counts,
     bound_from_spectrum,
+    fixed_effect_information,
     hoeffding_lower,
+    hoeffding_upper,
     projection_information,
     render_record,
     spectral_information,
@@ -185,6 +187,43 @@ class SpectrumTests(unittest.TestCase):
 
 
 class StatisticalTests(unittest.TestCase):
+    def test_upper_matches_complement_and_covers_zero_hits(self):
+        for hits in (0, 1, 38, 99, 100):
+            with self.subTest(hits=hits):
+                self.assertEqual(
+                    hoeffding_upper(hits, 100, "1/40"),
+                    Interval.point(1) - hoeffding_lower(100 - hits, 100, "1/40"),
+                )
+        self.assertGreater(hoeffding_upper(0, 100, "1/40").lower, 0)
+        self.assertEqual(hoeffding_upper(100, 100, "1/40"), Interval.point(1))
+
+    def test_two_sample_effect_information(self):
+        target = hoeffding_lower(550, 1000, "1/40").lower
+        reference = hoeffding_upper(250, 1000, "1/40").upper
+        info = fixed_effect_information(target, reference, "1/10")
+        self.assertGreater(info.lower, Q(47, 100))
+        self.assertLess(info.upper, Q(48, 100))
+        cost, status = invert_canonical(info, Interval.point(3), 0)
+        self.assertEqual((status, ceil_fraction(cost.lower)), ("complete", 1))
+        weaker = hoeffding_lower(300, 1000, "1/40").lower
+        self.assertEqual(
+            fixed_effect_information(weaker, reference, "1/10"), Interval.point(0)
+        )
+
+    def test_effect_floor_and_reference_support(self):
+        self.assertEqual(
+            fixed_effect_information("3/5", "1/8", "1/10"), Interval.point(2)
+        )
+        self.assertEqual(
+            fixed_effect_information("3/5", "2/7", "1/10"),
+            projection_information("3/5", 2, 7, "1/10"),
+        )
+        with self.assertRaisesRegex(UnsupportedContract, "support"):
+            fixed_effect_information("3/5", 0, "1/10")
+        for invalid in ("-1/4", "5/4", True):
+            with self.subTest(invalid=invalid), self.assertRaises(InputError):
+                fixed_effect_information("3/5", invalid, "1/10")
+
     def test_zero_hits(self):
         self.assertEqual(hoeffding_lower(0, 10, ".05"), Interval.point(0))
 

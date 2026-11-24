@@ -244,7 +244,7 @@ def build_reference_report(suite: ReferenceSuite) -> str:
         "",
         "## Run summary",
         "",
-        f"Package: `rcc-refcert {__version__}`  ",
+        f"Package: `rcc-refcert {__version__}`\\",
         f"Action depth: `1–{suite.max_depth}`  ",
         f"Maximum transient continuations: `{suite.max_transient_steps}`  ",
         f"Numerical tolerance: `{suite.tolerance:.1e}`",
@@ -362,9 +362,8 @@ def build_reference_report(suite: ReferenceSuite) -> str:
                 "statements for the declared processes and supplied proof objects. They make "
                 "the Appendix F/H constructions inspectable. The RCC paper supplies the physical "
                 "reference-consistency, faithful-transcription (`TC`), and uniform model-family "
-                "arguments used by the lower bound. A local gain–cost failure (H.70) "
-                "identifies codewords that do not meet that sufficient condition; "
-                "other reference-certificate routes remain available."
+                "arguments used by the lower bound. H.70 tests the supplied "
+                "codewords. H.3 and H.4 report their own certificate checks."
             ),
             "",
         ]

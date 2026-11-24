@@ -92,8 +92,7 @@ def test_paired_reset_example_keeps_certificate_boundaries_explicit() -> None:
     assert analytic["family_scope"] == "this fixed finite model only"
     assert analytic["semantic_reference_constant_C_U"] == 1.0
     assert analytic["chi_U_bits"] == 0.0
-    assert "specific to this fixed declared model" in consequence["claim_boundary"]
-    assert "model-family uniformity remain separate" in consequence["claim_boundary"]
+    assert "attains the RCC lower bound for this model" in consequence["claim_boundary"]
 
 
 def test_paired_reset_example_script_runs_in_text_and_json_modes() -> None:
@@ -109,7 +108,7 @@ def test_paired_reset_example_script_runs_in_text_and_json_modes() -> None:
     )
     assert text_result.returncode == 0, text_result.stderr
     assert "# RCC paired-reset lower-bound example" in text_result.stdout
-    assert "## Evidence boundary" in text_result.stdout
+    assert "## How the one-slot optimum follows" in text_result.stdout
     assert "1.0 st_R" in text_result.stdout
     assert "C_opt^(0) = 1 atomic resource slot" in text_result.stdout
 

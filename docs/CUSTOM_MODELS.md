@@ -217,8 +217,7 @@ checks pass, but the propagated error correction estimate, approximately
 $6.6\times10^{-9}$, exceeds the default budget $10^{-10}$. The second command
 additionally evaluates an explicitly chosen larger error budget. It retains
 the default result and reports the new conservative constant separately.
-Arithmetic remains binary64. Increasing a tolerance changes the accepted
-error budget; it does not increase arithmetic precision.
+Both calculations use binary64 arithmetic.
 
 The examples export the H.4 route for the register. A different route or
 tolerance should be recorded as a distinct analysis with its own inputs.

@@ -11,7 +11,7 @@
       "RCC manuscript v4: reference complexity and subsystem windows"
     ],
     "state_requirements": "Complete normalized density matrices or an exact diagonal process with explicit tensor axes.",
-    "required_information": "Full state data; a single observable expectation does not in general determine window entropy.",
+    "required_information": "The complete input states, reduced to each selected window to compute its entropy.",
     "reference": "Uniform product support with explicitly declared Gamma.",
     "quantities": [
       "entropy_bits",
@@ -31,7 +31,7 @@
     "title": "Quantum organization at a fixed global spectrum",
     "research_question": "Where is purity organized across subsystems?",
     "distinguishes": "Paired Bell modules and GHZ organization",
-    "known_counterexample": "Paired Bell and GHZ states have the same global spectrum at every common mixing value. Complete-state comparisons can also distinguish them.",
+    "known_counterexample": "The states have equal global spectra at each common mixing value. At the defaults, the Bell pairs concentrate window complexity in 12 and 34, while GHZ distributes it equally across all three windows. At full mixing the states coincide.",
     "parameter_defaults": {
       "gamma": 4,
       "mixing": "0"
@@ -2368,7 +2368,7 @@
       "RCC manuscript v4: reference complexity and subsystem windows"
     ],
     "state_requirements": "Complete normalized density matrices or an exact diagonal process with explicit tensor axes.",
-    "required_information": "Full state data; a single observable expectation does not in general determine window entropy.",
+    "required_information": "The complete input states, reduced to each selected window to compute its entropy.",
     "reference": "Uniform product support with explicitly declared Gamma.",
     "quantities": [
       "entropy_bits",
@@ -4735,7 +4735,7 @@
       "RCC manuscript v4: reference complexity and subsystem windows"
     ],
     "state_requirements": "Complete normalized density matrices or an exact diagonal process with explicit tensor axes.",
-    "required_information": "Full state data; a single observable expectation does not in general determine window entropy.",
+    "required_information": "States along the cooling program's trajectory, reduced to each selected window.",
     "reference": "Uniform product support; Gamma=3 from the declared physical action classes.",
     "quantities": [
       "entropy_bits",

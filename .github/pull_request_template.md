@@ -15,7 +15,7 @@ this change address?
 - [ ] Theorem-facing interpretation
 - [ ] Documentation or public interface only
 
-Explain the highest claim layer affected and identify its accompanying analytic
+Identify the affected result and its supporting analytic
 or physical obligations.
 
 ## Evidence

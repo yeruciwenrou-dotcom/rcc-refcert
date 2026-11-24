@@ -469,9 +469,20 @@ def _derived_bound(original: dict, fresh_task: dict) -> dict:
 
 def inspect_analysis_bundle(path: str | Path, *, limits=DEFAULT_LIMITS) -> dict:
     """Check stored identity/relationships without running matrix verification."""
-    from .workflows.bundles import inspect_workflow_bundle, workflow_bundle_version
+    from .workflows.bundles import (
+        inspect_effect_bundle,
+        inspect_workflow_bundle,
+        workflow_bundle_version,
+    )
 
-    if workflow_bundle_version(path) == 2:
+    version = workflow_bundle_version(path)
+    if version in (4, 5):
+        from .workflows.bundles import inspect_measurement_bundle
+
+        return inspect_measurement_bundle(path, version)
+    if version == 3:
+        return inspect_effect_bundle(path)
+    if version == 2:
         return inspect_workflow_bundle(path, limits=limits)
     payload = load_bundle_payload(path, limits=limits)
     analysis, _ = _history(payload)
@@ -501,9 +512,20 @@ def verify_analysis_bundle(
     history; they cannot enlarge the receiving environment's budget.
     In the returned report, limits above 256 bits use bounded diagnostic strings.
     """
-    from .workflows.bundles import verify_workflow_bundle, workflow_bundle_version
+    from .workflows.bundles import (
+        verify_effect_bundle,
+        verify_workflow_bundle,
+        workflow_bundle_version,
+    )
 
-    if workflow_bundle_version(path) == 2:
+    version = workflow_bundle_version(path)
+    if version in (4, 5):
+        from .workflows.bundles import verify_measurement_bundle
+
+        return verify_measurement_bundle(path, version, limits=limits, tol=tol)
+    if version == 3:
+        return verify_effect_bundle(path, tol=tol)
+    if version == 2:
         return verify_workflow_bundle(path, limits=limits, tol=tol)
     payload = load_bundle_payload(path, limits=limits)
     analysis, original_tol = _history(payload)

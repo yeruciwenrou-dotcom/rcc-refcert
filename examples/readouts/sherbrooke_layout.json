@@ -1,0 +1,19 @@
+{
+  "registers": [
+    {
+      "name": "c_reg",
+      "bits_lsb_first": [
+        "c0",
+        "c1",
+        "c2",
+        "c3"
+      ]
+    }
+  ],
+  "axes": [
+    "c0",
+    "c1",
+    "c2",
+    "c3"
+  ]
+}

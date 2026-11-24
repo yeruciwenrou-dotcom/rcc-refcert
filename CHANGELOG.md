@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0
+
+- Plan fixed-shot acquisitions, audit general fixed effects with measured or exact reference responses, and propagate known binary readout errors.
+- Bound measured windows and classical correlations from complete histograms, including projected branches and retention-weighted contributions.
+- Compare local graph-state measurements and three-qubit cooling programs using editable raw counts, explicit register ordering and independent bundle replay.
+- Check user-supplied gain certificates, target tolerances and exact scalar inputs on the existing cost and terminal-state paths.
+
 ## 0.3.0 (2026-11-15)
 
 This release adds preparation-cost intervals and subsystem RCC complexity

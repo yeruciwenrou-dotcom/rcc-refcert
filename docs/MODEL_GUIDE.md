@@ -243,8 +243,7 @@ To use an H.3 or H.4 proof object in a terminal-state task,
 `rcc_refcert.bounds.with_reference_certificate` verifies it against the actual
 model and transfers only a passing report's usable `constant`. The task must
 match the model identity, dimension, and uniform reference. Preserve the
-physical and transcription arguments alongside the task; a model audit alone
-does not supply them. Freeze a counts protocol only after this task is settled.
+physical and transcription arguments alongside the task. Then freeze the counts protocol.
 The [terminal-state guide](TERMINAL_BOUNDS.md#connect-an-h3-or-h4-proof-object)
 includes a runnable certificate-to-bound example and explains the adapter's
 numerical evidence and required inputs.

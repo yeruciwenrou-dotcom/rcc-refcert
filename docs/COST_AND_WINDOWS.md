@@ -112,6 +112,22 @@ code-weighted gain–cost test (H.70) checks a sufficient local condition; its
 failure does not invalidate an independently verified unweighted gain
 certificate.
 
+For an exact-cost request, omit `gain_certificate` or set it to `"auto"` to
+verify the preset certificate (or a reference envelope for a custom model).
+To test your own certificate, supply an object with an `envelopes` entry.
+An empty object or a failed inequality returns a diagnostic for that input.
+With 0.4.0 or later, set `"on_gain_failure": "auto"` to also try the automatic certificate.
+The result retains the original diagnostic and names the verified certificate
+that supports the lower bound in `gain_selection`.
+
+To reuse a verified certificate with the same model, copy its input from the
+effective request. The top-level `result["gain_certificate"]` also contains the
+verification checks for the audit record.
+
+```python
+request["gain_certificate"] = result["effective_request"]["gain_certificate"]
+```
+
 ## Candidate comparisons
 
 Save machine results with `--format json --output result.json`, then use:
@@ -128,13 +144,16 @@ Different tasks are displayed separately.
 For a reported interval `[L,U]`, L is the lower bound and U is the cost of the
 best supplied feasible candidate. `U-L` bounds that candidate's additive
 overhead relative to the optimum; `U/L` gives a multiplicative bound when `L>0`.
-A zero lower bound has
-no multiplicative ratio. A missing upper bound is not a proof of
-unreachability. `L>U` is an evidence conflict and produces no valid interval.
-The comparison API accepts an explicit `criterion={"additive_gap": 1}` or
-`criterion={"multiplicative_factor": "3/2"}`; it attaches the requested decision
-to each eligible row. Comparisons read supplied result records; shared evidence
-can be reverified using its complete bundle.
+The multiplicative ratio requires a positive lower bound. A feasible program
+supplies an upper bound. Crossed endpoints (`L>U`) signal conflicting evidence.
+
+Use `cost compare --additive-gap 0` to test optimality, or supply
+`criterion={"additive_gap": 0}` to the Python API. A closed interval such as
+`[5,5]` certifies the optimum. With `[4,5]`, a five-slot program's optimality
+remains unresolved. `criterion_status` records `certified` or `unresolved`,
+and `meets_criterion` is respectively `true` or `null`. Positive additive
+gaps and multiplicative factors use the same evidence rule. Shared results
+can be reverified from their complete bundles.
 
 <a id="state-windows-and-probes"></a>
 <a id="subsystem-entropy-and-correlations"></a>
@@ -263,6 +282,76 @@ Overlapping windows do not sum to the global quantity. Windows distinguish
 subsystem complexity profiles even when global spectra coincide; a known full
 spectrum already fixes its global Dmax bound.
 
+## Finite-sample windows
+
+Use a complete histogram when the laboratory or simulator reports an ideal
+projective measurement in a known setting. The workflow needs block ranks,
+the uniform reference on the declared support and the control bandwidth
+`g_R = log2(atomic_action_classes)`. You can study a window without giving
+a preparation model. These installed examples use synthetic counts.
+
+| Template | Question answered |
+|---|---|
+| `bell-ghz-counts` | Can one Bell-basis measurement distinguish the window RCC of a Bell pair and the reduced pair of a GHZ state? |
+| `pvm-counts` | Which group of outcomes certifies the strongest one-shot information floor at the requested tolerance, and what preparation budget does it exclude? |
+| `product-counts` | How much of the joint computational-basis reading comes from the two marginals and how much from correlations? |
+| `retained-counts` | What window information survives a projection, and how much remains after weighting by the probability of retention? |
+
+```bash
+python -m rcc_refcert window template bell-ghz-counts > pair.json
+python -m rcc_refcert window analyze pair.json --csv pair.csv --bundle pair.rccbundle
+python -m rcc_refcert bundle verify pair.rccbundle
+```
+
+Each state contributes 20,000 shots. The Bell pair puts all of them in
+$\Phi^+$, and the GHZ reduced pair splits evenly between $\Phi^+$ and
+$\Phi^-$. The Bell lower endpoint exceeds the GHZ upper endpoint by at least
+0.37086784 R-structons at 99% joint coverage. This compares the two states
+on the **same Bell-basis classical window**. With `window_scope` set to
+`containing_quantum`, the measurement supplies a lower bound for the larger
+window. Its upper endpoint and the corresponding ordering remain open.
+
+For your own experiment, replace the acquisition fields in a template. Before
+sampling, save the bare object at `batches[0].protocol` to `protocol.json`
+and run:
+
+```bash
+python -m rcc_refcert window prepare-protocol protocol.json > frozen.json
+```
+
+The [installed request schema](../src/rcc_refcert/workflows/data/pvm_request.schema.json) describes the fields. Keep the returned protocol and SHA-256 digest with the dataset. Specify the
+state, reference, setting and projector source, every outcome and its positive
+rank, the fixed IID trial count, and the failure budget. For observed data set
+`data.origin` to `observed_counts`, copy the dataset identity and protocol
+digest, and supply integer counts for the declared outcomes. Missing histogram
+entries count as zero once the total reconciles with the fixed trial count.
+The declared ranks must sum to the reference dimension. The experiment
+supplies the evidence for the physical readout, support and reference.
+
+Every tolerance and deterministic regrouping of one acquisition uses the same
+coverage event. Add `coarse_windows` to an entry to map **each** outcome of
+its parent measurement to a group. To obtain local windows, declare the two
+product axes, their block ranks and the joint outcome-to-coordinate map as in
+`product-counts`. The correlation interval bounds the classical correlation.
+Its lower endpoint also bounds the quantum mutual-information contribution.
+
+The `pvm-counts` example has counts (9600, 9400, 600, 400). At trace-distance
+tolerance 0.3, pooling outcomes 0 and 1 gives at least **0.34832863 one-shot
+bits** at 99% coverage. The supplied eight-action model converts this to at
+least one integer slot. Supply model qualifications for the target state to
+obtain a cost. Different settings may strengthen the same task by taking the
+largest valid floor. The request reports each task and its tolerance separately.
+
+For a projected branch, include all discarded trials. The retained outcomes
+estimate the normalized projected state's window, using the retained sample
+size. A separate one-sided retention endpoint (Hoeffding or Clopper–Pearson)
+or a supplied known retention probability weights the state-side lower bound.
+Zero retained observations leave the conditional window undetermined. A known
+zero retention probability gives an exactly zero weighted contribution.
+The parent preparation's unconditional process cost needs additional evidence.
+See the [paper-to-code derivation](PAPER_MAP.md#finite-histogram-calculation)
+and [bundle verification](ANALYSIS_BUNDLES.md#complete-projective-readouts).
+
 ## Your own matrix and tensor labels
 
 ```python
@@ -374,6 +463,10 @@ python -m rcc_refcert window analyze windows.json --format markdown --output rep
 
 Install `.[plots]` from this checkout; ordinary analysis only needs NumPy.
 Plotting supports SVG, PNG and PDF and is limited to 128 displayed rows.
+For complete projective readouts, each CSV row identifies the dataset and
+sampling event. When two acquisitions share a state and window, their plot
+labels also show the dataset. The legend distinguishes two-sided intervals
+from one-sided lower bounds.
 Missing optional plotting dependencies preserve the computed scientific result
 and mark the presentation step partial. Output files are exclusive by default;
 `--overwrite` explicitly selects atomic replacement. Inputs and output paths
@@ -411,9 +504,11 @@ reports its own status separately.
 
 ### Execution status
 
-Cost and window analysis exits: 0 completed, 1 partial, 2 invalid or unsupported
-input, 3 preflight resource limit, 130 interrupted. A fresh run identifier accompanies
-each result or failure. A failed candidate alone does not mean failed execution.
+Cost and window analyses exit 0 on completion, 1 for a partial result, 2 for
+input errors, 3 for a preflight resource limit and 130 on interruption. With
+the default certificate policy, a failed inequality returns `certificate_failed`
+(exit 1) and a malformed certificate returns `invalid_input` (exit 2).
+Each result or failure carries a run identifier.
 An unresolved numerical input or tolerance comparison returns a partial result
 and exit 1. A definite numerical candidate miss remains a completed analysis.
 If bundle saving fails after calculation, the CLI still delivers the scientific

@@ -11,10 +11,18 @@ from .core import (
     check_size,
     exact,
     exact_text,
-    keys,
+    mapping,
     probabilities,
     require_int,
 )
+
+
+class GainCertificateError(InputError):
+    """Describe the certificate and the check that stopped verification."""
+
+    def __init__(self, message, *, source="user", outcome="failed"):
+        super().__init__(message)
+        self.diagnostic = {"source": source, "outcome": outcome, "message": message}
 
 
 def domination(values, envelope):
@@ -22,7 +30,7 @@ def domination(values, envelope):
     for numerator, denominator in zip(values, envelope):
         if not denominator:
             if numerator:
-                raise InputError(
+                raise GainCertificateError(
                     "gain envelope: positive output lies outside the declared support"
                 )
         else:
@@ -32,17 +40,25 @@ def domination(values, envelope):
 
 def verify_gain_certificate(model, proposal=None):
     """Recompute local inequalities from the recipe, independently of a preset."""
-    proposal = proposal or {
-        "envelopes": {
-            s: [exact_text(v) for v in model.reference] for s in model.actions
+    if proposal is None:
+        proposal = {
+            "envelopes": {
+                s: [exact_text(v) for v in model.reference] for s in model.actions
+            }
         }
+    mapping(proposal, "gain_certificate")
+    if "envelopes" not in proposal:
+        raise InputError(
+            "gain_certificate.envelopes: provide an envelope for every syntax state"
+        )
+    extra = proposal.keys() - {
+        "envelopes",
+        "initial_coefficient",
+        "coefficients",
+        "model_digest",
     }
-    keys(
-        proposal,
-        {"envelopes"},
-        {"initial_coefficient", "coefficients", "model_digest"},
-        "gain certificate",
-    )
+    if extra:
+        raise InputError(f"gain_certificate: unexpected fields {sorted(extra)}")
     if proposal.get("model_digest", model.content_digest) != model.content_digest:
         raise InputError("gain certificate: model digest mismatch")
     raw = proposal["envelopes"]
@@ -59,7 +75,9 @@ def verify_gain_certificate(model, proposal=None):
         limits=model.limits,
     )
     if initial < initial_min:
-        raise InputError("gain certificate: initial domination inequality fails")
+        raise GainCertificateError(
+            "gain_certificate.initial_coefficient: initial domination inequality fails"
+        )
     proposed = proposal.get("coefficients")
     if proposed is not None and (
         not isinstance(proposed, dict) or set(proposed) != set(model.actions)
@@ -93,8 +111,9 @@ def verify_gain_certificate(model, proposal=None):
                 )
             )
             if value < minimum:
-                raise InputError(
-                    f"gain certificate: domination inequality fails for {syntax}/{action['name']}"
+                raise GainCertificateError(
+                    f"gain_certificate.coefficients.{syntax}.{action['name']}: "
+                    f"domination requires at least {exact_text(minimum)}, received {exact_text(value)}"
                 )
             row[action["name"]] = exact_text(value)
             checks.append(

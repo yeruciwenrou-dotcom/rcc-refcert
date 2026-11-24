@@ -20,7 +20,8 @@ from .core import (
     mapping,
     read_json,
 )
-from .render import render_probe, render_workflow_result
+from .gain import GainCertificateError
+from .render import render_probe, render_workflow_result, validate_width
 from .templates import load_workflow_template
 
 
@@ -40,7 +41,23 @@ def add_commands(commands):
                 "name", choices=("cyclic-reset", "algorithmic-cooling")
             )
         else:
-            template.set_defaults(name="window-state")
+            template.add_argument(
+                "name",
+                nargs="?",
+                default="window-state",
+                choices=(
+                    "window-state",
+                    "pvm-counts",
+                    "bell-ghz-counts",
+                    "product-counts",
+                    "retained-counts",
+                ),
+            )
+            freeze = sub.add_parser(
+                "prepare-protocol",
+                help="freeze a complete PVM acquisition before collecting counts",
+            )
+            freeze.add_argument("input", type=Path)
         analyze = sub.add_parser(
             "analyze", help="analyze a request and optionally save complete evidence"
         )
@@ -87,7 +104,54 @@ def add_commands(commands):
                 default=80,
                 help="text line width, 40–240 columns (default: 80)",
             )
+            threshold = compare.add_mutually_exclusive_group()
+            threshold.add_argument(
+                "--additive-gap", help="certify an additive overhead in slots"
+            )
+            threshold.add_argument(
+                "--multiplicative-factor", help="certify a multiplicative overhead"
+            )
             _output_options(compare)
+    study = commands.add_parser(
+        "study",
+        help="compare finite-data graph-state measurements or algorithmic cooling programs",
+    )
+    sub = study.add_subparsers(dest="workflow_command", required=True)
+    template = sub.add_parser(
+        "template", help="export a study with editable raw acquisitions"
+    )
+    template.add_argument("name", choices=("cluster", "cooling"))
+    for key in ("noise", "bath", "false-positive", "false-negative", "failure"):
+        template.add_argument("--" + key)
+    for key in ("cycles", "shots"):
+        template.add_argument("--" + key, type=int)
+    analyze = sub.add_parser(
+        "analyze", help="analyze counts and optional evidence bundle"
+    )
+    analyze.add_argument("input", type=Path)
+    analyze.add_argument("--bundle", type=Path)
+    analyze.add_argument("--max-matrix-elements", type=int)
+    analyze.add_argument(
+        "--max-dp-updates", type=int, help="set the cooling cost-bound update budget"
+    )
+    analyze.add_argument("--width", type=int, default=80)
+    analyze.add_argument(
+        "--csv",
+        type=Path,
+        help="export scientific quantities with units and interval endpoints",
+    )
+    _output_options(analyze)
+    freeze = sub.add_parser(
+        "prepare-protocol",
+        help="freeze a study measurement and wire mapping before collecting counts",
+    )
+    freeze.add_argument("input", type=Path)
+    convert = sub.add_parser(
+        "import-counts",
+        help="reorder raw counts or joint shots using an explicit register layout",
+    )
+    convert.add_argument("input", type=Path)
+    convert.add_argument("layout", type=Path)
     probe = commands.add_parser(
         "probe", help="find and export executable research probes"
     )
@@ -157,19 +221,97 @@ def write_atomic(path, content, *, overwrite=False):
             os.unlink(temporary)
 
 
-def _read_request(path, *, document=False):
+def _read_request(path, *, document=False, pvm_protocol=False):
     with Path(path).open("rb") as stream:
         data = stream.read(MAX_JSON_BYTES + 1)
-    return read_json(data, document=document)
+    parsed = read_json(data, document=document)
+    if (
+        pvm_protocol
+        or isinstance(parsed, dict)
+        and parsed.get("schema")
+        in ("rcc-refcert.pvm-windows", "rcc-refcert.finite-study")
+    ):
+        # Keep numeric JSON tokens exact after the bounded, duplicate-key-aware preflight.
+        from decimal import Decimal
+
+        from ..bounds.contracts import json_ready
+
+        exact = json.loads(data, parse_float=Decimal)
+        if (
+            isinstance(parsed, dict)
+            and parsed.get("schema") == "rcc-refcert.finite-study"
+        ):
+            from .core import json_value
+
+            return json_value(exact)
+        return json_ready(exact)
+    return parsed
+
+
+def _delivery_failed(result, name, path, exc):
+    result.setdefault("delivery", {})[name] = {
+        "state": "failed",
+        "path": str(path),
+        "reason": str(exc),
+    }
+    if result.get("execution", {}).get("state") != "partial":
+        result["execution"] = {"state": "partial", "reason": f"{name}_write_failed"}
 
 
 def run(arguments):
     run_id = uuid.uuid4().hex
     try:
+        if (
+            arguments.command == "study"
+            and arguments.workflow_command == "import-counts"
+        ):
+            from .readouts import import_readout
+
+            print(
+                json.dumps(
+                    import_readout(
+                        _read_request(arguments.input), _read_request(arguments.layout)
+                    ),
+                    indent=2,
+                )
+            )
+            return 0
+        if arguments.command == "study" and arguments.workflow_command == "template":
+            from .studies import study_template
+
+            params = {
+                k: getattr(arguments, k)
+                for k in (
+                    "noise",
+                    "bath",
+                    "cycles",
+                    "shots",
+                    "false_positive",
+                    "false_negative",
+                    "failure",
+                )
+                if getattr(arguments, k) is not None
+            }
+            print(json.dumps(study_template(arguments.name, **params), indent=2))
+            return 0
         if arguments.workflow_command == "template":
             print(
                 json.dumps(
                     load_workflow_template(arguments.name), ensure_ascii=False, indent=2
+                )
+            )
+            return 0
+        if arguments.workflow_command == "prepare-protocol":
+            if arguments.command == "study":
+                from .studies import prepare_study_protocol as prepare
+            else:
+                from .pvm import prepare_pvm_protocol as prepare
+
+            print(
+                json.dumps(
+                    prepare(_read_request(arguments.input, pvm_protocol=True)),
+                    indent=2,
+                    ensure_ascii=False,
                 )
             )
             return 0
@@ -191,6 +333,12 @@ def run(arguments):
             getattr(arguments, k, None) for k in ("output", "bundle", "plot", "csv")
         ]
         destinations = [p.resolve() for p in destinations if p is not None]
+        if arguments.output_format != "json":
+            validate_width(arguments.width)
+        if getattr(arguments, "plot", None) is not None:
+            from .windows import validate_plot_path
+
+            validate_plot_path(arguments.plot)
         if len(set(destinations)) != len(destinations):
             raise InputError("output paths must be distinct")
         sources = (
@@ -205,33 +353,70 @@ def run(arguments):
                 raise FileExistsError(
                     f"{path}: already exists; select a new path or explicitly use --overwrite"
                 )
+        saved_outputs = {}
         if arguments.workflow_command == "compare":
+            criterion = None
+            if arguments.additive_gap is not None:
+                criterion = {"additive_gap": arguments.additive_gap}
+            elif arguments.multiplicative_factor is not None:
+                criterion = {"multiplicative_factor": arguments.multiplicative_factor}
             result = compare_cost_results(
-                [_read_request(p, document=True) for p in arguments.inputs]
+                [_read_request(p, document=True) for p in arguments.inputs],
+                criterion=criterion,
             )
         else:
             request = _read_request(arguments.input)
             mapping(request, "analysis request")
             limits = None
-            if arguments.max_matrix_elements is not None:
+            overrides = {
+                name: getattr(arguments, name)
+                for name in ("max_matrix_elements", "max_dp_updates")
+                if getattr(arguments, name, None) is not None
+            }
+            if overrides:
                 limits = WorkflowLimits.from_value(
                     {
                         **mapping(request.get("limits", {}), "limits"),
-                        "max_matrix_elements": arguments.max_matrix_elements,
+                        **overrides,
                     }
                 )
-            if arguments.command == "cost":
+            if arguments.command == "study":
+                from .studies import analyze_study
+
+                result = analyze_study(request, limits=limits)
+                if arguments.csv is not None:
+                    from .study_tables import study_table
+
+                    try:
+                        write_atomic(
+                            arguments.csv,
+                            study_table(result),
+                            overwrite=arguments.overwrite,
+                        )
+                    except OSError as exc:
+                        _delivery_failed(result, "csv", arguments.csv, exc)
+                    else:
+                        saved_outputs["csv"] = arguments.csv
+            elif arguments.command == "cost":
                 result = analyze_cost(request, limits=limits)
             else:
                 from .windows import analyze_windows, export_window_files
 
                 result = analyze_windows(request, limits=limits)
-                export_window_files(
-                    result,
-                    csv_path=arguments.csv,
-                    plot_path=arguments.plot,
-                    overwrite=arguments.overwrite,
-                )
+                for name, path in (("csv", arguments.csv), ("plot", arguments.plot)):
+                    if path is not None:
+                        try:
+                            export_window_files(
+                                result,
+                                **{f"{name}_path": path},
+                                overwrite=arguments.overwrite,
+                            )
+                        except OSError as exc:
+                            _delivery_failed(result, name, path, exc)
+                        else:
+                            stop = result.get("execution", {}).get("reason") or ""
+                            if name != "plot" or not stop.startswith("optional_plot_"):
+                                saved_outputs[name] = path
             run_id = result["run_id"]
             if arguments.bundle is not None:
                 try:
@@ -240,28 +425,30 @@ def run(arguments):
                     )
                 except (ValueError, TypeError, KeyError, OSError, OverflowError) as exc:
                     # Delivery failure must not erase an already computed result.
-                    result.setdefault("delivery", {})["bundle"] = {
-                        "state": "failed",
-                        "path": str(arguments.bundle),
-                        "reason": str(exc),
-                    }
-                    result["execution"] = {
-                        "state": "partial",
-                        "reason": "bundle_write_failed",
-                    }
-        rendered = render_workflow_result(
-            result,
-            format=arguments.output_format,
-            details=arguments.details,
-            width=arguments.width,
-        )
+                    _delivery_failed(result, "bundle", arguments.bundle, exc)
+                else:
+                    saved_outputs["bundle"] = arguments.bundle
+        view = {
+            "format": arguments.output_format,
+            "details": arguments.details,
+            "width": arguments.width,
+        }
+        rendered = render_workflow_result(result, **view)
         if arguments.output is not None:
-            write_atomic(arguments.output, rendered, overwrite=arguments.overwrite)
+            try:
+                write_atomic(arguments.output, rendered, overwrite=arguments.overwrite)
+            except OSError as exc:
+                _delivery_failed(result, "report", arguments.output, exc)
+                for name, path in saved_outputs.items():
+                    result["delivery"][name] = {"state": "saved", "path": str(path)}
+                print(render_workflow_result(result, **view), end="")
+                return 1
         else:
             print(rendered, end="")
         return (
             0
             if result.get("execution", {"state": "completed"})["state"] == "completed"
+            and result.get("analysis_state") != "partial"
             else 1
         )
     except KeyboardInterrupt:
@@ -281,6 +468,14 @@ def run(arguments):
     except BudgetError as exc:
         error = {"state": "resource_limited", "message": str(exc)}
         status = 3
+    except GainCertificateError as exc:
+        state = (
+            "certificate_failed"
+            if exc.diagnostic["outcome"] == "failed"
+            else "invalid_input"
+        )
+        error = {"state": state, "message": str(exc), "gain_selection": exc.diagnostic}
+        status = 1 if state == "certificate_failed" else 2
     except (ValueError, TypeError, KeyError, OSError, OverflowError) as exc:
         error = {"state": "invalid_input", "message": str(exc)}
         status = 2

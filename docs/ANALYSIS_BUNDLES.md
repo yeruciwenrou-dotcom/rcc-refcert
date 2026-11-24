@@ -7,7 +7,10 @@ the calculation without the author's modeling script.
 | Calculation | Bundle contents | Reader version |
 |---|---|---|
 | Model certificates and terminal-state bounds | Model and proof arrays, numerical controls, requests and historical results; container schema 1 | 0.2.0 or later |
-| Preparation costs and subsystem complexity profiles | Complete effective requests, exact recipes or numerical inputs, candidates, windows and historical results; container schema 2 | 0.3.0 or later |
+| Preparation costs and subsystem complexity profiles | Requests, models, candidates, windows and historical results (container schema 2) | 0.3.0 or later for the original workflow fields. Requests that set `on_gain_failure` require 0.4.0 or later. |
+| Fixed-effect target and reference counts | Raw histograms, frozen measurement and sampling plans, model premises and historical result (container schema 3) | 0.4.0 or later |
+| Complete projective readouts | Frozen acquisitions, histogram counts, windows and result (container schema 4) | 0.4.0 or later |
+| Cluster and cooling studies | Raw acquisitions, register layout, constraints, model and study result (container schema 5) | 0.4.0 or later |
 
 Use a bundle when handing results to a collaborator, preserving a calculation
 for review, or comparing numerical environments. The existing bound record
@@ -17,7 +20,7 @@ the complete model and proof arrays.
 ## Reverify a bundle you received
 
 Use the producer version supplied with the `.rccbundle` file, or a compatible
-later reader. For cost and window bundles, install version 0.3.0 or later from
+reader from the table above. Install it from
 [PyPI](../README.md#install-from-pypi) or the
 [source quickstart](../README.md#install-from-source). Replace `received.rccbundle`
 with your file's path:
@@ -148,24 +151,21 @@ visible alongside these results.
 ## Compare historical and fresh constants
 
 Floating-point results can vary across environments. Historical support is
-therefore assessed using the actual conservative constants, rather than
-requiring byte-for-byte equality of matrix reports.
+assessed using the unrounded conservative constants.
 
 - If the fresh verification passes and its usable constant is no larger than
   the saved constant, the fresh numerical evidence supports the historical
   constant for the same input and declarations.
 - If the fresh usable constant is larger, the fresh result supplies a new
-  conservative bound. Its passing status alone does not support the stronger
-  historical constant.
+  conservative bound and historical support is recorded as `no`.
 - A failed or inconclusive verifier, or a resource refusal, is reported with
-  its own diagnostics. It does not become a successful historical check.
+  the corresponding diagnostics.
 
 For example, verifying the cyclic-reset bundle with the explicit tolerance
 `1e-8` gives a fresh constant approximately `1.0000000100000002`, larger than
 the historical `1.0000000001000002`. The matrix check passes, historical
-support is `no`, and the integer bound remains **two**. The report shows the
-constant comparison and explains that rounding to the same integer does not
-establish support for the smaller historical constant. The command and its
+support is `no`, and the integer bound remains **two**. The report gives the two
+unrounded constants alongside the integer bounds. The command and its
 separate output file appear [below](#format-and-numerical-identity).
 
 For terminal-state tasks, comparison uses the same $C\ge1$ convention as the
@@ -200,25 +200,19 @@ reported budget and the model size before explicitly changing the limit.
 
 A counts request binds a declared target, projector, fixed sample size,
 statistical failure budget, and dataset to its original protocol. Revalidation
-preserves that request and its protocol digest. It never relabels a changed
-task as the original pre-acquisition declaration.
+uses the original request and protocol digest.
 
 When a new numerical certificate constant changes the bound, the verifier
 reports a separate derived result linked to the original acquisition event.
 The same supported probability statement is used for deterministic
-post-processing with the fresh constant. The original protocol, data, and
-historical record remain unchanged. This mechanism does not authorize choosing
-a new witness after viewing data, changing the sample rule, or substituting
-different measurements.
+post-processing with the fresh constant. The saved record identifies the acquisition
+protocol used for both calculations.
 
-The example counts are synthetic. For experimental results, acquisition
-chronology, independent and identically distributed sampling with a fixed
-sample size, ideal readout, support assumptions, and the
-physical meaning of the witness remain external obligations. Storing their
-declarations does not establish them.
-The embedded protocol carries a witness ID and rank. Preserve the actual
-projector definition and acquisition records alongside the bundle; its model
-and proof arrays do not include the experimental measurement operator.
+The examples use synthetic counts. For experimental data, retain the
+projector definition and dated acquisition and calibration records alongside
+the bundle. They document the witness, the fixed sample size and sampling
+assumptions, and the readout and support conditions. The embedded protocol
+carries the witness ID and rank.
 
 ## Format and numerical identity
 
@@ -289,11 +283,18 @@ target basis and tensor labels, candidate words, reference scale, numerical
 policy and computation controls. Verification reconstructs the request,
 checks its evidence, executes candidates and recalculates windows.
 
+If a 0.3.0 archive contains a fraction with repeated signs, reverify it with
+0.3.0. For example, that version read `1/+-10` as `1/10`. The original request
+preserves the spelling and the effective request records the value used. Use
+the effective value when preparing a new request in 0.4.0.
+
 Read `fresh_verification` and `historical_results_supported` in the recipient
-report. Exact rational values are compared exactly; numerical scientific
-results use a relative and absolute tolerance of `1e-10`. Same-version
-bitwise replay is reported separately, so a change of producer version can
-still yield matching scientific results.
+report. Exact rational values are compared exactly. Numerical results use a
+relative and absolute tolerance of `1e-10`. Same-version bitwise replay is
+reported separately. For a tolerance scan, each point's request digest
+includes that run's resource limits. The reader checks the author's digest,
+then compares the cost, gain bound and candidate evidence at each tolerance.
+Lower recipient limits can still reproduce every scientific result.
 
 Roundoff-derived states can differ in their last bits across numerical
 backends. Each saved state must match its own content digest, tensor layout
@@ -314,3 +315,33 @@ recipient's fresh result retain separate identities. The schema-1 validation
 path described above remains available; version 0.2.0 readers reject schema 2.
 See the [workflow guide](COST_AND_WINDOWS.md#reports-limits-and-revalidation)
 for analysis budgets, presentation options and examples.
+
+
+### Fixed-effect counts
+
+`bound counts request.json --bundle study.rccbundle` saves the original request and result. A recipient can run `bundle inspect study.rccbundle` to check archive integrity, data bindings, coverage identities and the conclusions implied by the stored endpoints. Run `bundle verify study.rccbundle` to compute the endpoints anew from the raw counts, apply the RCC routes and compare with the saved result. Its JSON report includes both records, historical support and a separate same-version replay comparison. A successful replay can reproduce a zero bound, information-only result or support conflict. The decision field states which conclusion the data support. [Worked example and acquisition format](TERMINAL_BOUNDS.md#target-and-reference-counts-for-the-same-effect)
+
+### Complete projective readouts
+
+Schema 4 saves the full window request, evidence and result. Use
+`window analyze request.json --bundle result.rccbundle` to export it.
+`bundle inspect` checks member integrity, the request identity and each
+protocol and data digest. `bundle verify` rebuilds the confidence ledger,
+clipped distributions, window bounds, retention and eligible costs from the
+archived counts. It compares the fresh conclusions to the author's record
+and reports same-version replay separately. The recipient needs only the
+bundle and a version that supports schema 4. The physical measurement and
+source declarations remain identified in the request.
+
+### Finite-data research studies
+
+For a cooling study, a recipient can have enough resources to verify the
+archived cost interval before every candidate program has been replayed.
+When the recipient's budget shortens that list, `candidate_replay` reports
+the checked and expected counts and whether the fresh bounds establish the
+historical interval. An overlapping but wider fresh interval leaves that
+question unresolved. Full-record replay remains inconclusive until every
+candidate has been checked. A contradiction in the checked evidence is
+reported as a mismatch.
+
+Schema 5 preserves the original count strings or ordered shots, register layout, acquisition protocols, model and result. Use `study analyze input.json --bundle study.rccbundle` and `bundle verify study.rccbundle` to recalculate the graph witness or cooling analysis. Inspection checks the data bindings. Verification repeats the decoding, confidence accounting, inference and model calculations. Study records use version 2. A recipient reading an earlier version-1 study record can reproduce the original calculation and see the current result separately. For example, a newly verified shorter cooling program can tighten the fresh upper bound while the original interval remains valid. See the [research studies](FINITE_DATA_STUDIES.md).

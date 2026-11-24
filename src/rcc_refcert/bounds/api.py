@@ -1,15 +1,20 @@
-"""Terminal-state bounds following C.1/C.2 and D.6 audit-record requirements.
-
-All process conclusions remain conditional on the supplied model premises.
-The scalar calculations share a single implementation across API and CLI.
-"""
+"""Terminal-state RCC lower bounds for the declared model, with D.6 audit records."""
 
 from __future__ import annotations
 
 from fractions import Fraction
 
 from .._version import __version__
-from .contracts import Task, canonical_hash, json_ready, keys, text, validate_protocol
+from .contracts import (
+    Task,
+    canonical_hash,
+    json_ready,
+    keys,
+    text,
+    validate_projector_hits,
+    validate_protocol,
+)
+from .effects import RECORD, REQUEST, analyze_effect_counts, render_effect_record
 from .information import hoeffding_lower, projection_information, spectral_information
 from .scalar import (
     InputError,
@@ -146,6 +151,8 @@ def bound_from_spectrum(request: dict) -> dict:
 
 
 def bound_from_counts(request: dict) -> dict:
+    if isinstance(request, dict) and request.get("schema") == REQUEST:
+        return analyze_effect_counts(request)
     keys(request, {"task", "protocol", "data"}, "counts request")
     task = Task.from_dict(request["task"])
     p = validate_protocol(task, request["protocol"])
@@ -172,7 +179,8 @@ def bound_from_counts(request: dict) -> dict:
         "simulation",
     }:
         raise InputError("data origin must be explicit")
-    occupancy = hoeffding_lower(data["hits"], n, delta)
+    hits = validate_projector_hits(data["hits"], p, task.dimension)
+    occupancy = hoeffding_lower(hits, n, delta)
     info = projection_information(occupancy.lower, rank, task.dimension, task.epsilon)
     details = {
         "kind": "fixed_projector_counts",
@@ -212,6 +220,8 @@ ZERO_EXPLANATIONS = {
 
 def render_record(result: dict, *, details: bool = False) -> str:
     """Render one result; short display values were rounded down at construction."""
+    if result.get("schema") == RECORD:
+        return render_effect_record(result, details=details)
     c = result["cost"]
     display = result["display"]
     lines = [
@@ -233,13 +243,9 @@ def render_record(result: dict, *, details: bool = False) -> str:
             + result["confidence"]["coverage_at_least_exact"]
         )
         lines.append("Data source: " + result["information"]["data_origin"])
-    lines.append(
-        "Model premises: supplied externally; not verified by this calculator."
-    )
     lines.append(f"Calculation: {result['analysis_state']}")
     if c["zero_reason"]:
         lines.append("Zero-bound explanation: " + ZERO_EXPLANATIONS[c["zero_reason"]])
-        lines.append("Zero is not a claim of zero preparation cost.")
     if details:
         import json
 
@@ -262,6 +268,18 @@ def replay_record(record: dict) -> dict:
     from .records import validate_record
 
     validate_record(record)
+    if record["schema"] == RECORD:
+        fresh = analyze_effect_counts(record["provenance"]["input_snapshot"])
+        if canonical_hash(fresh) != canonical_hash(record):
+            raise InputError(
+                "saved record differs from a fresh fixed-effect computation"
+            )
+        return {
+            "schema": "rcc-refcert.replay",
+            "schema_version": 3,
+            "matches": True,
+            "input_sha256": record["provenance"]["input_sha256"],
+        }
     compute = (
         bound_from_spectrum
         if record["path"]["name"] == "spectrum"

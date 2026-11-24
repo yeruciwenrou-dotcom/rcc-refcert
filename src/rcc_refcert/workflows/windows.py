@@ -209,6 +209,10 @@ def normalize_window_request(request, *, limits=None):
 
 def analyze_windows(request, *, limits=None):
     from .api import producer
+    from .pvm import REQUEST, analyze_pvm_windows
+
+    if isinstance(request, dict) and request.get("schema") == REQUEST:
+        return analyze_pvm_windows(request, limits=limits)
 
     original, effective, states, scale, limits = normalize_window_request(
         request, limits=limits
@@ -545,6 +549,10 @@ def window_report_lines(result, *, details=False):
 def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=False):
     from .cli import write_atomic
 
+    if result.get("kind") == "pvm_windows":
+        from .pvm_render import export_pvm
+
+        return export_pvm(result, csv_path, plot_path, overwrite)
     rows = [
         {
             "state": p["id"],
@@ -573,9 +581,27 @@ def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=Fals
         write_atomic(csv_path, stream.getvalue(), overwrite=overwrite)
     if plot_path is None:
         return
-    destination = Path(plot_path)
-    if destination.suffix.lower() not in {".svg", ".png", ".pdf"}:
+    figure = window_figure(result, plot_path, len(rows))
+    if figure is None:
+        return
+    fig, ax = figure
+    ax.barh(range(len(rows)), [r["rcc_main_term"] for r in rows], color="#266c85")
+    ax.set_yticks(range(len(rows)), [f"{r['state']} / {r['window']}" for r in rows])
+    ax.invert_yaxis()
+    ax.set_xlabel(
+        f"Window RCC complexity C [st_R] (Gamma={result['reference']['gamma_exact']})"
+    )
+    ax.set_title("Complexity profiles across subsystems")
+    save_window_figure(fig, plot_path, overwrite)
+
+
+def validate_plot_path(plot_path):
+    if Path(plot_path).suffix.lower() not in {".svg", ".png", ".pdf"}:
         raise InputError("plot: choose .svg, .png or .pdf")
+
+
+def window_figure(result, plot_path, row_count):
+    validate_plot_path(plot_path)
     try:
         from matplotlib.backends.backend_agg import FigureCanvasAgg
         from matplotlib.figure import Figure
@@ -585,19 +611,17 @@ def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=Fals
             "reason": "optional_plot_dependency_missing",
         }
         return
-    if len(rows) > 128:
+    if row_count > 128:
         result["execution"] = {"state": "partial", "reason": "optional_plot_row_limit"}
         return
-    fig = Figure(figsize=(8, max(3, 0.3 * len(rows) + 1)), layout="constrained")
+    fig = Figure(figsize=(8, max(3, 0.3 * row_count + 1)), layout="constrained")
     FigureCanvasAgg(fig)
     ax = fig.subplots()
-    ax.barh(range(len(rows)), [r["rcc_main_term"] for r in rows], color="#266c85")
-    ax.set_yticks(range(len(rows)), [f"{r['state']} / {r['window']}" for r in rows])
-    ax.invert_yaxis()
-    ax.set_xlabel(
-        f"Window RCC complexity C [st_R] (Gamma={result['reference']['gamma_exact']})"
-    )
-    ax.set_title("Complexity profiles across subsystems")
+    return fig, ax
+
+
+def save_window_figure(fig, plot_path, overwrite):
+    destination = Path(plot_path)
     destination.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(
         prefix=".rcc-plot-", suffix=destination.suffix, dir=destination.parent

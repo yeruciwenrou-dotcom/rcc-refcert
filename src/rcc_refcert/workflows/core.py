@@ -105,7 +105,7 @@ def exact_text(value):
 
 def _integer(value):
     sign = -1 if value.startswith("-") else 1
-    digits = value.lstrip("+-")
+    digits = value[1:] if value.startswith(("+", "-")) else value
     if not digits or not digits.isascii() or not digits.isdecimal():
         raise ValueError("invalid integer")
     result = 0

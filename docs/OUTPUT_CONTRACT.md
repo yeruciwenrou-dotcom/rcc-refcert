@@ -197,12 +197,11 @@ writes only to the explicit destination.
 
 ## Terminal-state bound records
 
-The `bound` command has its own `rcc-refcert.bound-record` schema, version 2,
-and `fresh-run-bound` artifact role. Existing output schemas retain their
-identities. A record preserves exact inputs, model declarations, calibration,
+Spectrum and fixed-projector calculations use `rcc-refcert.bound-record`,
+version 2, and the `fresh-run-bound` artifact role. A general fixed-effect
+calculation uses `rcc-refcert.fixed-effect-record`, version 1. A record preserves exact inputs, model declarations, calibration,
 reference treatment, scalar enclosures, source hashes, and producer version.
-`replay` compares a recomputed same-version scalar record; it does not verify
-external model premises or acquisition chronology.
+`replay` recomputes the same-version scalar result and compares it with the saved record.
 
 A completed zero bound exits 0; rejected inputs, unsupported contracts,
 resource limits, replay mismatches, and partial calculations exit 2.
@@ -218,10 +217,17 @@ statistical, and replay contract.
 revalidation. `bundle verify` independently checks the saved model and proof,
 then reports fresh numerical evidence and support for historical results. Their
 JSON reports use `rcc-refcert.bundle-inspection` and
-`rcc-refcert.bundle-verification`. Certificate bundles produce reports with
-`schema_version: 1`; cost and window bundles use version 2. These report
-schemas are separate from the analysis-bundle container and bound-record
-schemas.
+`rcc-refcert.bundle-verification`. The record, archive and verification report each carry their own schema version.
+
+| Calculation | Saved result schema | Bundle / inspect / verify version | Earliest reader |
+|---|---|---:|---|
+| Model certificate, exact spectrum or fixed projector | Certificate with associated `rcc-refcert.bound-record` v2 when present | 1 | 0.2.0 |
+| Preparation cost or known-state window | `rcc-refcert.workflow-result` v1 | 2 | 0.3.0 (0.4.0 for `on_gain_failure`) |
+| Target and reference effect counts | `rcc-refcert.fixed-effect-record` v1 | 3 | 0.4.0 |
+| Complete projective readout | `rcc-refcert.pvm-window-record` v1 | 4 | 0.4.0 |
+| Cluster or cooling study | `rcc-refcert.finite-study-record` v2, also reads v1 | 5 | 0.4.0 |
+
+For a version-1 study, `same_version_replay` checks the author's recorded procedure and `fresh_result` carries the current analysis. In version 2, cluster summaries include the strongest bound, all tied witnesses, the shared events and their joint coverage. Cooling records identify the verified upper-bound program and any budget that stopped the cost search.
 
 For schema-1 certificate bundles, stored-history validation requires a
 nonempty check list. A passing report
@@ -258,7 +264,7 @@ their exact representations and existing storage limits.
 
 ## Workflow results
 
-Cost and window analyses use `rcc-refcert.workflow-result`, schema version 1,
+Preparation-cost and known-state window analyses use `rcc-refcert.workflow-result`, schema version 1,
 and bundle container version 2. Text, Markdown and JSON are views of the same
 result. Human-readable labels do not change the JSON decision values.
 
@@ -285,13 +291,13 @@ evaluated numerical profile; `numerical_unresolved` identifies unresolved
 state-input checks. Exact state probabilities still produce numerical
 logarithmic entropies.
 
-The `cost analyze` and `window analyze` exit codes describe execution:
+The `cost analyze`, `window analyze` and `study analyze` exit codes describe execution:
 
 | Code | Meaning |
 |---:|---|
 | 0 | Analysis completed |
-| 1 | Analysis or requested presentation completed only in part |
-| 2 | Invalid or unsupported input, or an output-file error |
+| 1 | Partial analysis or delivery, or a failed certificate inequality (`certificate_failed`). If the main report cannot be written after analysis, stdout carries the result and the paths of successful exports. |
+| 2 | Invalid or unsupported input, including a malformed certificate (`invalid_input`), or an invalid output destination detected before analysis |
 | 3 | Preflight resource limit |
 | 130 | Interrupted execution |
 

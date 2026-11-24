@@ -102,6 +102,8 @@ def test_larger_fresh_constant_explains_unchanged_integer_bound(tmp_path):
     )
     rendered = render_bundle_report(report)
     assert "Usable constants: fresh" in rendered
-    assert "larger fresh constant" in rendered
-    assert "integer bound is unchanged" in rendered
+    assert rendered.count("Historical support is assessed before rounding") == 1
+    assert rendered.count("Integer lower bounds: fresh 2, historical 2") == len(
+        report["requests"]
+    )
     assert path.read_bytes() == original

@@ -50,6 +50,7 @@ Repository = "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 rcc-refcert = "rcc_refcert.cli:main"
 
 [project.optional-dependencies]
+qiskit = ["qiskit>=2,<3"]
 dev = ["build>=1.2", "pytest>=8", "ruff>=0.11", "jsonschema>=4.18"]
 plots = ["matplotlib>=3.8"]
 notebook = [

@@ -1,4 +1,4 @@
-"""Small scalar enclosure oracle; not a matrix or physical-model verifier.
+"""Conservative scalar enclosures for RCC cost inversion.
 
 Arithmetic endpoints are Fractions. Only logarithms use Decimal, with directed
 input conversion and neighbouring correctly rounded ln results. See the design

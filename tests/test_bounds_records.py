@@ -63,6 +63,23 @@ class ReviewTests(unittest.TestCase):
                 with self.assertRaises(InputError):
                     bound_from_counts(request)
 
+    def test_full_support_projector_requires_a_hit_in_every_trial(self):
+        self.c["protocol"]["rank"] = Task.from_dict(self.c["task"]).dimension
+        frozen = prepare_protocol(self.c["task"], self.c["protocol"])
+        self.c["data"]["protocol_sha256"] = frozen["protocol_sha256"]
+        self.c["data"]["hits"] = self.c["protocol"]["samples"]
+        result = bound_from_counts(self.c)
+        self.assertEqual(result["cost"]["integer_lower_bound_slots"], 0)
+        validate_record(result)
+        for hits in (999, 0):
+            self.c["data"]["hits"] = hits
+            with self.assertRaisesRegex(InputError, "full-support projector"):
+                bound_from_counts(self.c)
+            changed = copy.deepcopy(result)
+            changed["information"]["hits"] = hits
+            with self.assertRaisesRegex(InputError, "full-support projector"):
+                validate_record(changed)
+
     def test_missing_acquisition_digest_rejected(self):
         del self.c["data"]["protocol_sha256"]
         with self.assertRaises(InputError):
@@ -203,7 +220,9 @@ class ReviewTests(unittest.TestCase):
         self.s["task"]["target"]["epsilon"] = ".35"
         result = bound_from_spectrum(self.s)
         self.assertEqual(result["cost"]["zero_reason"], "smoothing_saturated")
-        self.assertIn("not a claim of zero preparation cost", render_record(result))
+        self.assertIn(
+            "tolerance already includes the reference state", render_record(result)
+        )
 
     def test_model_overhead_zero_explanation(self):
         self.s["task"]["model"]["transcription"]["gamma_bits"] = "2"

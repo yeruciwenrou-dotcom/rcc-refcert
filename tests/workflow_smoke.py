@@ -64,6 +64,16 @@ def main():
                 check=True,
             ).stdout
 
+        for name in ("cluster", "cooling"):
+            (root / "study.json").write_text(run("study", "template", name))
+            run("study", "analyze", "study.json", "--bundle", name + ".rccbundle")
+            checked = json.loads(
+                run("bundle", "verify", name + ".rccbundle", "--format", "json")
+            )
+            assert (
+                checked["historical_results_supported"]
+                and checked["same_version_replay"]["status"] == "match"
+            )
         request = run("cost", "template", "cyclic-reset")
         (root / "task.json").write_text(request)
         result = json.loads(

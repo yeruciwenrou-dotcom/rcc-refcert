@@ -8,10 +8,14 @@ import textwrap
 from .core import InputError
 
 
-def render_probe(entry, *, width=80):
-    """Read a probe's scientific purpose before exporting its matrix inputs."""
+def validate_width(width):
     if type(width) is not int or not 40 <= width <= 240:
         raise InputError("width: choose an integer from 40 to 240")
+
+
+def render_probe(entry, *, width=80):
+    """Read a probe's scientific purpose before exporting its matrix inputs."""
+    validate_width(width)
     parameters = ", ".join(
         f"{key}={value}" for key, value in entry["parameter_defaults"].items()
     )
@@ -85,13 +89,33 @@ def _decision_label(value):
     }.get(value, str(value).replace("_", " "))
 
 
+def _delivery_lines(result):
+    lines = []
+    for name, delivery in result.get("delivery", {}).items():
+        label = "CSV" if name == "csv" else name.capitalize()
+        if delivery["state"] == "failed":
+            lines.append(
+                f"{label} was not saved to {delivery['path']}: {delivery['reason']}"
+            )
+        elif delivery["state"] == "saved":
+            lines.append(f"{label} saved to {delivery['path']}.")
+    return lines
+
+
 def render_workflow_result(result, *, format="text", details=False, width=80):
     if format == "json":
         return json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
     if format not in {"text", "markdown"}:
         raise InputError("format: choose text, json or markdown")
-    if type(width) is not int or not 40 <= width <= 240:
-        raise InputError("width: choose an integer from 40 to 240")
+    validate_width(width)
+    if result.get("kind") in ("finite_study", "pvm_windows"):
+        if result["kind"] == "finite_study":
+            from .studies import render_study as render_measurement
+        else:
+            from .pvm_render import render_pvm as render_measurement
+        lines = render_measurement(result, details=details).splitlines()
+        lines.extend(_delivery_lines(result))
+        return _format_report(lines, format, width, break_long_words=False)
     if result.get("schema") == "rcc-refcert.cost-comparison":
         lines = [
             "RCC cost comparison",
@@ -107,6 +131,11 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
                 f"{row['run_id']}: lower={lower_text}, upper={upper_text}; "
                 f"{_decision_label(row['decision'])}"
             )
+            if "criterion_status" in row:
+                name, threshold = next(iter(result["criterion"].items()))
+                lines.append(
+                    f"  {name.replace('_', ' ')} {threshold}: {row['criterion_status']}"
+                )
     elif result["kind"] == "cost_analysis":
         cost = result["cost"]
         lines = [
@@ -118,7 +147,7 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
             lines.append(
                 f"Cost interval: [{cost['lower_bound_slots']}, {cost['upper_bound_slots']}] atomic slots (halt included)"
             )
-        else:
+        elif cost["decision"] != "numerical_analysis":
             lines.append(
                 "Strict lower bound: unavailable"
                 if cost["lower_bound_slots"] is None
@@ -136,6 +165,20 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
                 if cost["additive_overhead_upper"] == 0
                 else f"Best supplied candidate is within {cost['additive_overhead_upper']} slots of the optimum."
             )
+        selection = result.get("gain_selection")
+        if selection:
+            if "submitted" in selection:
+                rejection = selection["submitted"]
+                lines.append(
+                    f"Submitted gain certificate ({rejection['outcome']}): {rejection['message']}"
+                )
+            source = {
+                "user": "supplied in the request",
+                "saved_certificate": "verified certificate from the saved bundle",
+                "preset": "model preset",
+                "reference": "constructed from the reference",
+            }[selection["source"]]
+            lines.append(f"Verified gain certificate: {source}.")
         lines.append("Candidate programs:")
         if not result["candidates"]:
             lines.append("  No candidate supplied.")
@@ -177,9 +220,10 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
                     f"Budget stop: {result['gain_bound']['stop_reason'].replace('_', ' ')}",
                 ]
             )
-        lines.append(
-            "Scope: the declared model, full target, tolerance and atomic cost."
-        )
+        if cost["decision"] == "numerical_analysis":
+            lines.append(
+                "Trace distances are numerical estimates. The strict preparation-cost interval is unresolved."
+            )
         if result.get("windows"):
             lines.append(
                 "Candidate trajectory windows: "
@@ -197,9 +241,7 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
         from .windows import window_report_lines
 
         lines = window_report_lines(result, details=details)
-    for name, delivery in result.get("delivery", {}).items():
-        if delivery.get("state") == "failed":
-            lines.append(f"{name.capitalize()} was not saved: {delivery['reason']}")
+    lines.extend(_delivery_lines(result))
     if "execution" in result:
         lines.append(f"Execution: {result['execution']['state']}")
         if result["execution"].get("reason"):
@@ -210,6 +252,10 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
             }.get(reason, reason.replace("_", " "))
             lines.append(f"Reason: {explanation}")
         lines.append(f"Run: {result['run_id']}")
+    return _format_report(lines, format, width)
+
+
+def _format_report(lines, format, width, *, break_long_words=True):
     safe = ["".join(max(c, " ") for c in line) for line in lines]
     if format == "markdown":
         return (
@@ -225,7 +271,7 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
                 line,
                 width=width,
                 subsequent_indent="  ",
-                break_long_words=True,
+                break_long_words=break_long_words,
                 break_on_hyphens=False,
             )
             for line in safe

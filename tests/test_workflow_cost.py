@@ -14,6 +14,7 @@ from rcc_refcert.workflows import (
     StateInput,
     WorkflowLimits,
     analyze_cost,
+    compare_cost_results,
     compose_interval,
     load_workflow_template,
 )
@@ -244,3 +245,98 @@ def test_scan_preserves_separate_requests():
         [4, 5],
     ]
     assert len({p["request_digest"] for p in result["epsilon_scan"]}) == 3
+
+
+def test_gain_certificate_choice_and_provenance(tmp_path):
+    from rcc_refcert.workflows import save_workflow_bundle
+    from rcc_refcert.workflows.bundles import verify_workflow_bundle
+    from rcc_refcert.workflows.gain import GainCertificateError
+
+    request = load_workflow_template("algorithmic-cooling")
+    auto = analyze_cost(request)
+    assert auto["cost"]["interval_slots"] == [6, 6]
+    assert auto["gain_selection"] == {"source": "preset", "outcome": "pass"}
+    assert (
+        analyze_cost({**request, "gain_certificate": "auto"})["gain_selection"]
+        == auto["gain_selection"]
+    )
+    uniform = {
+        "envelopes": {
+            state: ["1/8"] * 8 for state in auto["gain_certificate"]["envelopes"]
+        }
+    }
+    supplied = analyze_cost({**request, "gain_certificate": uniform})
+    assert supplied["cost"]["interval_slots"] == [3, 6]
+    assert supplied["gain_selection"]["source"] == "user"
+
+    bad = {**uniform, "initial_coefficient": "0"}
+    for index, (value, outcome, field) in enumerate(
+        (({}, "invalid", "envelopes"), (bad, "failed", "initial_coefficient"))
+    ):
+        invalid = {**request, "gain_certificate": value}
+        with pytest.raises(GainCertificateError, match=field) as error:
+            analyze_cost(invalid)
+        assert error.value.diagnostic["outcome"] == outcome
+        fallback = {**invalid, "on_gain_failure": "auto"}
+        result = analyze_cost(fallback)
+        assert result["cost"]["interval_slots"] == [6, 6]
+        assert result["original_request"]["gain_certificate"] == value
+        assert result["gain_selection"] == {
+            **auto["gain_selection"],
+            "submitted": error.value.diagnostic,
+        }
+        file = save_workflow_bundle(
+            tmp_path / f"fallback-{index}.rccbundle", fallback, result
+        )
+        verified = verify_workflow_bundle(file)
+        assert verified["historical_results_supported"] is True
+        assert verified["fresh_result"]["gain_selection"] == result["gain_selection"]
+
+    for value in (None, [], False, ""):
+        with pytest.raises(GainCertificateError, match="certificate object"):
+            analyze_cost({**request, "gain_certificate": value})
+
+
+@pytest.mark.parametrize(
+    "epsilon,status", [("11/25", "unresolved"), ("1/10", "certified")]
+)
+def test_cost_comparison_certifies_only_proved_thresholds(epsilon, status):
+    request = load_workflow_template("cyclic-reset")
+    result = analyze_cost({**request, "epsilon": epsilon})
+    for criterion in ({"additive_gap": 0}, {"multiplicative_factor": 1}):
+        row = compare_cost_results([result], criterion=criterion)["rows"][0]
+        assert row["criterion_status"] == status
+        assert row["meets_criterion"] is (True if status == "certified" else None)
+    row = compare_cost_results([result], criterion={"additive_gap": 1})["rows"][0]
+    assert row["meets_criterion"] is True
+
+
+def test_repeated_signs_report_the_original_field():
+    request = load_workflow_template("cyclic-reset")
+    with pytest.raises(InputError, match="epsilon: invalid finite rational"):
+        analyze_cost({**request, "epsilon": "1/+-10"})
+    request["model"]["parameters"]["p"] = "++19/20"
+    with pytest.raises(InputError, match="p: invalid finite rational"):
+        analyze_cost(request)
+    assert exact("+1/+10") == F(1, 10)
+    assert exact("1/-10") == F(-1, 10)
+
+
+def test_legacy_bundle_rechecks_its_saved_certificate(tmp_path):
+    from rcc_refcert.workflows import save_workflow_bundle
+    from rcc_refcert.workflows.bundles import verify_workflow_bundle
+
+    request = load_workflow_template("algorithmic-cooling")
+    uniform = {"envelopes": {state: ["1/8"] * 8 for state in ("s0", "sR", "sC")}}
+    historical = analyze_cost({**request, "gain_certificate": uniform})
+    historical.pop("gain_selection")
+    historical["producer"]["version"] = "0.3.0"
+    # Version 0.3.0 accepted an empty submission and stored its generated uniform certificate.
+    old_request = {**request, "gain_certificate": {}}
+    historical["original_request"] = old_request
+    file = save_workflow_bundle(tmp_path / "legacy.rccbundle", old_request, historical)
+    report = verify_workflow_bundle(file)
+    assert report["historical_results_supported"] is True
+    fresh = report["fresh_result"]
+    assert fresh["cost"]["interval_slots"] == [3, 6]
+    assert fresh["gain_selection"]["source"] == "saved_certificate"
