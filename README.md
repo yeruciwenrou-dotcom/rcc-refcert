@@ -18,8 +18,6 @@ verification.
 The toolkit is based on **Reference-Contingent Complexity (RCC)**, introduced by
 Liu, Tian and Wu in
 [*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
-The paper also discusses how RCC's lower bound on the cost of preparing a
-boundary state relates to [holographic complexity (CV/CA)](https://arxiv.org/html/2509.18205v4#S7.SS2.p8).
 
 ## Features of reference-contingent complexity
 
@@ -407,13 +405,6 @@ explains the evidence each calculation supplies; the
 connects the implementation to the full model construction and lower-bound
 theorem.
 
-Reference choices and resource scales also matter in high-energy approaches
-to quantum complexity. The [RCC paper](https://arxiv.org/abs/2509.18205)
-discusses how its generation-cost lower bounds can be compared with geometric
-proposals for boundary-state complexity, including the complexity–volume and
-complexity–action conjectures, when the preparation task and resource
-conventions are aligned.
-
 > **Manuscript alignment.** This source tree is aligned with version 4 of the
 > [RCC manuscript](https://arxiv.org/abs/2509.18205)
 > ([fixed V4](https://arxiv.org/abs/2509.18205v4)). Appendix labels and
@@ -488,6 +479,7 @@ preserves the documentation shipped with that release. The
 - [Paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/PAPER_MAP.md): implemented objects, equations and worked examples.
 - [Conventions](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/CONVENTIONS.md): numerical, tensor and exact-input conventions.
 - [Output contract](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/docs/OUTPUT_CONTRACT.md): result fields, evidence levels and exit codes.
+- [Section VII.B of the paper](https://arxiv.org/pdf/2509.18205v4#page=26) discusses how RCC relates to other physical notions of complexity, including the holographic CV and CA proposals.
 
 ### Extending the research kernel
 
