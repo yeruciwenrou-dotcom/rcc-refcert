@@ -126,6 +126,8 @@ def test_half_erasure_candidate_and_tolerance_change_the_conclusion():
     short = request["candidates"].pop(1)
     open_result = analyze_cost(request)
     assert open_result["cost"]["interval_slots"] == [3, 4]
+    summary = " ".join(render_workflow_result(open_result).split())
+    assert "costs at most 1 slot more than the optimum" in summary
     report = " ".join(
         render_workflow_result(compare_cost_results([open_result, closed])).split()
     )

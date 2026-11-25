@@ -114,7 +114,7 @@ def add_commands(commands):
             _output_options(compare)
     study = commands.add_parser(
         "study",
-        help="compare finite-data graph-state measurements or algorithmic cooling programs",
+        help="bound graph-state preparation cost from counts or test cooling programs for optimality",
     )
     sub = study.add_subparsers(dest="workflow_command", required=True)
     template = sub.add_parser(

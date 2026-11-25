@@ -95,10 +95,10 @@ It is determined by the control interface. A count of syntax labels or the
 Hilbert-space dimension alone does not determine it. The reference fixes the
 structural zero point, and $g_R$ calibrates information against the model's
 atomic resource scale. Thus $C_R$ is a state-side complexity reading in
-R-structons ($\mathrm{st}_R$), with $1 \mathrm{st}_R=g_R$ bits; preparation cost
-is counted in atomic resource slots. "State-side" identifies where the reading
-is obtained. Its complexity meaning comes from this physical calibration and
-its relation to the process optimum through the RCC theorem.
+R-structons ($\mathrm{st}_R$), with $1\thinspace\mathrm{st}_R = g_R$ bits. The
+model counts preparation cost in atomic resource slots. "State-side" identifies
+where the reading is obtained. Its complexity meaning comes from this physical
+calibration and its relation to the process optimum through the RCC theorem.
 
 Under the exact-transcription hypotheses of Theorem 3.1, the common lower
 bound for every admissible successful history is

@@ -1,5 +1,10 @@
 # Research with finite measurement data
 
+Use graph-state measurements to bound the cost of preparing a six-qubit
+cluster. In the cooling study, test whether a shorter program reaches the
+full three-qubit target and use joint counts to track the effect of the last
+bath refresh.
+
 With an active installation, run the commands below with its Python. After the
 [source quickstart](../README.md#install-from-source), run them from the
 checkout root with `.venv/bin/python` on macOS or Linux, or
@@ -8,10 +13,9 @@ second analysis.
 
 ## Six-qubit cluster state
 
-Which local measurements reveal the structure left after independent phase noise?
-Two Pauli settings measure alternating colors of the same six-qubit cluster.
-A computational-basis measurement uses the same total number of shots as the
-two color settings together.
+After independent phase noise, which measurements rule out cheaper
+preparations of the cluster state? Compare two alternating X/Z settings with
+a computational-basis measurement at the same total shot count.
 
 ```sh
 python -m rcc_refcert study template cluster --noise 1/20 --shots 10000 > cluster.json

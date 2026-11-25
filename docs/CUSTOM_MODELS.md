@@ -114,9 +114,9 @@ Run the second example from the checkout:
 qubits and four distinct physical channels: identity with halt, Pauli Z on the
 first qubit, and two noisy resets of that qubit followed by a rotation that
 moves it to the last position. The reset biases are $19/20$ and $1/20$. Each
-instruction has a two-bit codeword and costs one declared primitive slot,
-including halt. A reset together with its rotation is one primitive of this
-model; a hardware gate decomposition would define a different cost problem.
+instruction, including halt, has a two-bit codeword and costs one atomic slot.
+A reset and its rotation form one primitive operation in this model.
+A hardware gate decomposition would define a different cost problem.
 
 The reference and initial state are $I/16$. The complementary resets have a
 reference-preserving average. The weighted halting image is $\sigma/4$ and the
@@ -147,7 +147,7 @@ trials for a rank-one projector, with statistical failure budget $0.01$. The
 script binds the numerical constant before freezing that fixture's protocol.
 Real data must retain the actual protocol fixed before acquisition.
 
-Both paths produce an integer lower bound of **two primitive slots**. Four
+Both paths produce an integer lower bound of **two atomic slots**. Four
 reset-0 instructions followed by halt give a feasible five-slot program.
 For this particular model, a separate structural argument proves five slots
 are necessary: fewer than four resets leave a uniform qubit marginal whose

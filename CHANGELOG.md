@@ -3,7 +3,8 @@
 ## 0.4.0
 
 You can now plan a measurement around the preparation cost you want to rule
-out and bound differences in RCC between states measured in the same window.
+out and bound differences in RCC between states measured in the same classical
+window.
 
 - **Design a measurement and certify a lower bound.** Given a response or
   cost threshold and an expected hit rate, find the number of shots to take
@@ -16,12 +17,15 @@ out and bound differences in RCC between states measured in the same window.
   when their intervals separate. For a containing quantum window, the
   measurement gives a lower bound for each state. If a projection selects only part of the sample, you can also
   weight its contribution by the probability of retaining a shot.
-- **Compare measurement settings and preparation programs.** In the noisy
-  graph-state example, two local settings together certify a higher cost
-  than either alone. In the cooling study, compare programs against the full
-  three-qubit target and use joint counts to examine what the last bath
-  refresh changes. Both studies accept raw counts or joint Qiskit readouts
-  and can be recomputed from a shared bundle.
+- **Compare measurement settings and preparation programs.** For the same
+  noisy six-qubit cluster state, either local setting alone certifies at least
+  one slot in the default example. Combining the two raises the lower bound to
+  two slots. In the cooling study, a six-slot program is optimal for the full
+  three-qubit target at trace-distance tolerance 1/50. Joint counts track the
+  target and bath before and after the final refresh. Both studies accept raw
+  counts or joint Qiskit readouts and can be recomputed from a shared bundle. The
+  [IBM Sherbrooke example](docs/FINITE_DATA_STUDIES.md#check-the-mapping-on-a-hardware-file)
+  shows how to import hardware counts.
 - **See which gain certificate supports a cost bound.** An empty or invalid
   certificate now gives a diagnostic for the submitted input. To try the
   automatic certificate as well, set `on_gain_failure` to `"auto"`. The
@@ -30,7 +34,9 @@ out and bound differences in RCC between states measured in the same window.
   requests identify normalized trace distance as the required error measure.
 
 Cost comparisons now identify the model, complete target, tolerance and maximum
-remaining saving for the program attaining the upper endpoint. Window reports
+remaining saving for the program attaining the upper endpoint. In the
+[half-erasure benchmark](docs/COST_AND_WINDOWS.md#build-a-half-erasure-channel),
+the reachable states give an independent check on the optimal cost. Window reports
 give the uniform reference, number of action classes and conversion to
 R-structons. State-window and numerical-model inputs now require an integer
 action-class count of at least two. Shared cost and state-window bundles

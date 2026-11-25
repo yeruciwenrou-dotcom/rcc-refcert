@@ -13,21 +13,25 @@ abstract: >-
   be an exact target spectrum or finite measurement data collected under a
   prespecified protocol. The toolkit implements the Reference-Contingent
   Complexity (RCC) framework of Liu, Tian and Wu.
-  Structural fairness fixes the background resources, permitted controls and
-  their accounting before the target is chosen. Across devices, the comparison
-  declares the background resources on each side and calibrates charged
-  operations to a common cost scale. A terminal-state certificate
+  Structural fairness takes the structure each background reliably supplies
+  as its reference zero point. Controls and costs are fixed before target
+  selection. Measuring the resources used to generate additional structure
+  on a common scale makes circuit complexity comparable across settings.
+  A terminal-state certificate
   bounds the cost of every circuit that prepares the target to the stated
   accuracy. Researchers can build finite-control quantum models, verify
-  reference certificates and compare candidate preparations. Exact
-  diagonal-preserving models bound the remaining saving for a feasible program
-  attaining the upper endpoint and establish optimality when both endpoints meet. General matrix
-  models provide numerical candidate diagnostics. Window RCC resolves how
+  reference certificates and compare candidate preparations. In exact
+  diagonal-preserving models, the lower bound and the cost of a successful
+  program bracket the optimum. Their difference bounds the possible saving,
+  and equality proves the program optimal. General matrix models provide
+  numerical candidate diagnostics. Window RCC resolves how
   complexity is distributed across the subsystems of pure and mixed states
   at a common reference and control bandwidth, including the local and
   correlation contributions along a preparation. Researchers can plan a
-  measurement for a chosen cost threshold, compare measured-window RCC
-  from outcome counts, and share the inputs for independent recomputation.
+  measurement for a chosen cost threshold and use outcome counts to bound
+  the RCC difference between two states in the same classical measurement
+  window. A shared analysis bundle carries the inputs and results for
+  independent recomputation.
 keywords:
   - quantum circuit complexity
   - structure-fairness

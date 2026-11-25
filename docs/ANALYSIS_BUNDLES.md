@@ -99,10 +99,16 @@ if version == 2:
 (out / "fresh.json").write_text(json.dumps(verification["fresh_result"], indent=2) + "\n", encoding="utf-8")
 ```
 
-Choose the command for your calculation. For a cost task, `other-cost.json`
-is a second result from `cost analyze --output`. For a study, set the new
-search budget above the one reported by the first run. Plotting uses the
-`plots` extra.
+For a cost task, copy `received-analysis/request.json` to `other-task.json`.
+Edit the candidate programs, keeping the model, full target and tolerance fixed.
+Save the second result as JSON for the comparison below.
+
+```bash
+python -m rcc_refcert cost analyze other-task.json --format json --output other-cost.json
+```
+
+Choose the command for your calculation. For a study, set the new search
+budget above the one reported by the first run. Plotting uses the `plots` extra.
 
 | Calculation received | Continue from the verified data |
 |---|---|

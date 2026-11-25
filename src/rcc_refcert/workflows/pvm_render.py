@@ -87,6 +87,11 @@ def render_pvm(record, *, markdown=False, details=False):
         f"Joint sampling coverage is at least {decimal_string(100 * Fraction(record['coverage']['at_least']), 9)}%.",
     ]
     lines.append(window_scale_line(record["atomic_action_classes"]))
+    if any(batch["product"] for batch in record["batches"]):
+        lines.append(
+            "The classical correlation row bounds I(X:Y)/g_R, the contribution of "
+            "correlations between outcomes X and Y to RCC in the measured classical window."
+        )
     # A report can contain several references or measurements. Keep each
     # window attached to its declared support even when their labels coincide.
     contexts = {}
@@ -277,16 +282,16 @@ def export_pvm(record, csv_path, plot_path, overwrite):
         )
     product = any(b["product"] for b in record["batches"])
     title = (
-        "Window RCC and classical correlation"
+        "Window RCC and the classical correlation contribution"
         if product
-        else "Measured intervals and one-sided lower bounds"
+        else "Finite-sample bounds on window RCC"
     )
     fig.suptitle(title, fontweight="semibold")
     coverage = decimal_string(100 * Fraction(record["coverage"]["at_least"]), 9)
     ax.set_title(
         f"Joint sampling coverage at least {coverage}%", loc="left", fontsize=10
     )
-    quantity = "Value" if product else "Window RCC"
+    quantity = "State-side complexity" if product else "Window RCC"
     units = r"$\mathrm{st}_R$"
     if "atomic_action_classes" in record:
         units += rf", $\Gamma_R={record['atomic_action_classes']}$"

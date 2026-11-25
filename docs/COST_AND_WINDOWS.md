@@ -16,7 +16,7 @@ preparation step by step, and share either calculation for independent revalidat
 | Does a candidate reach my target, and how close is its cost to optimal? | [A complete cost task](#a-complete-cost-task) |
 | How does changing the tolerance affect the result? | [Cost tasks](#a-complete-cost-task) and [candidate comparisons](#candidate-comparisons) |
 | How do complexity profiles differ across subsystems or between states? | [Subsystem complexity profiles](#subsystem-complexity-profiles) |
-| What can my measured histogram reveal about a subsystem? | [Finite-sample windows](#finite-sample-windows) |
+| Can my counts resolve an RCC difference between two states in the same classical measurement window? | [Finite-sample windows](#finite-sample-windows) |
 | How do I analyze my own state or model? | [Matrix inputs](#your-own-matrix-and-tensor-labels) and [numerical models](#numerical-models-and-candidate-diagnostics) |
 | How do I save, share and verify the calculation? | [Reports and revalidation](#reports-limits-and-revalidation) |
 
@@ -198,7 +198,7 @@ $$
 
 The entropy deficit supplies the information numerator; the control bandwidth
 converts it to a complexity reading in R-structons, with
-$1 \mathrm{st}_R=g_R$ bits. Keeping the reference and bandwidth fixed makes
+$1\thinspace\mathrm{st}_R = g_R$ bits. Keeping the reference and bandwidth fixed makes
 these readings comparable across subsystems and preparation steps. Bipartitions
 also separate local and correlation contributions to this state-side complexity.
 The [scientific scope](SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
@@ -315,9 +315,10 @@ spectrum already fixes its global Dmax bound.
 
 ## Finite-sample windows
 
-Use a complete histogram when the laboratory or simulator reports an ideal
-projective measurement in a known setting. The workflow needs block ranks,
-the uniform reference on the declared support and the control bandwidth
+From a complete histogram of an ideal projective measurement, you can bound
+RCC in the measured classical window. Measure two states in that same window
+to bound their RCC difference in R-structons. The calculation uses the block
+ranks, the uniform reference on the declared support and the control bandwidth
 `g_R = log2(atomic_action_classes)`. You can study a window without giving
 a preparation model. These installed examples use synthetic counts.
 
@@ -363,8 +364,10 @@ Every tolerance and deterministic regrouping of one acquisition uses the same
 coverage event. Add `coarse_windows` to an entry to map **each** outcome of
 its parent measurement to a group. To obtain local windows, declare the two
 product axes, their block ranks and the joint outcome-to-coordinate map as in
-`product-counts`. The correlation interval bounds the classical correlation.
-Its lower endpoint also bounds the quantum mutual-information contribution.
+`product-counts`. For outcomes $X$ and $Y$ on the two subsystems, the
+correlation interval bounds their contribution $I(X:Y)/g_R$ to the measured
+window's RCC, in R-structons. Its lower endpoint also gives a lower bound on
+the quantum mutual-information contribution of those subsystems on the same scale.
 
 The `pvm-counts` example has counts (9600, 9400, 600, 400). At trace-distance
 tolerance 0.3, pooling outcomes 0 and 1 gives at least **0.34832863 one-shot

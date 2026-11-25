@@ -113,6 +113,10 @@ def _comparison_task(row):
     return f"{label.rstrip('.')}. Trace-distance tolerance: {row['epsilon_exact']}."
 
 
+def _slot_unit(count):
+    return "slot" if count == 1 else "slots"
+
+
 def render_workflow_result(result, *, format="text", details=False, width=80):
     if format == "json":
         return json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
@@ -155,17 +159,17 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
                     if witnesses
                     else "The program attaining the upper bound"
                 )
-                lines.append(
-                    f"  {program} can save at most {gap} {'slot' if gap == 1 else 'slots'}."
-                )
+                lines.append(f"  {program} can save at most {gap} {_slot_unit(gap)}.")
             if details:
                 lines.append(f"  Task identity: {row['task_core_digest']}")
             if "criterion_status" in row:
                 name, threshold = next(iter(result["criterion"].items()))
-                unit = " slots" if name == "additive_gap" else ""
-                lines.append(
-                    f"  {name.replace('_', ' ')} {threshold}{unit}: {row['criterion_status']}"
+                label = (
+                    "additive gap (slots)"
+                    if name == "additive_gap"
+                    else "multiplicative factor"
                 )
+                lines.append(f"  {label} <= {threshold}: {row['criterion_status']}")
     elif result["kind"] == "cost_analysis":
         cost = result["cost"]
         lines = [
@@ -178,22 +182,25 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
                 f"Cost interval: [{cost['lower_bound_slots']}, {cost['upper_bound_slots']}] atomic slots (halt included)"
             )
         elif cost["decision"] != "numerical_analysis":
+            lower = cost["lower_bound_slots"]
+            upper = cost["upper_bound_slots"]
             lines.append(
                 "Strict lower bound: unavailable"
-                if cost["lower_bound_slots"] is None
-                else f"Lower bound: {cost['lower_bound_slots']} atomic slots"
+                if lower is None
+                else f"Lower bound: {lower} atomic {_slot_unit(lower)}"
             )
             lines.append(
                 "Feasible upper bound: unavailable"
-                if cost["upper_bound_slots"] is None
-                else f"Feasible upper bound: {cost['upper_bound_slots']} atomic slots"
+                if upper is None
+                else f"Feasible upper bound: {upper} atomic {_slot_unit(upper)}"
             )
         lines.append(f"Target trace-distance tolerance: {cost['epsilon_exact']}")
-        if cost["additive_overhead_upper"] is not None:
+        gap = cost["additive_overhead_upper"]
+        if gap is not None:
             lines.append(
                 "Best supplied candidate attains the optimum."
-                if cost["additive_overhead_upper"] == 0
-                else f"Best supplied candidate is within {cost['additive_overhead_upper']} slots of the optimum."
+                if gap == 0
+                else f"The best supplied program costs at most {gap} {_slot_unit(gap)} more than the optimum."
             )
         selection = result.get("gain_selection")
         if selection:
@@ -230,9 +237,9 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
                     if c["evidence"] == "exact_rational"
                     else c["numerical_target_status"].replace("_", " ") + " (numerical)"
                 )
-                unit = "slot" if c["slots"] == 1 else "slots"
+                slots = c["slots"]
                 lines.append(
-                    f"  {c['id']}: {c['slots']} {unit}; trace distance {distance}; target {status}"
+                    f"  {c['id']}: {slots} {_slot_unit(slots)}; trace distance {distance}; target {status}"
                 )
         if result["epsilon_scan"]:
             lines.append("Tolerance scan:")

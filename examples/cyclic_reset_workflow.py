@@ -1,8 +1,8 @@
 """Verify a cyclic noisy-reset model, compute bounds, and share complete inputs.
 
-The counts are a synthetic fixture. Each reset-with-rotation and the halt
-action costs one declared primitive slot. The model-specific optimum is five
-slots; the RCC terminal bound supplied here is two slots.
+The counts are a synthetic fixture. Each instruction, including halt, costs
+one atomic slot. The model-specific optimum is five slots. The terminal RCC
+certificate gives a lower bound of two slots.
 """
 
 from __future__ import annotations
@@ -198,7 +198,7 @@ def run(
     result = {
         "model": model.name,
         "H4": {"outcome": report.outcome.value, "upper_constant": report.constant},
-        "cost_unit": "declared primitive slot, including halt",
+        "cost_unit": "atomic slot, including halt",
         "feasible_program_cost": N_QUBITS + 1,
         "feasible_program_target_error": float(
             np.max(np.abs(program_output(model, program) - target))
