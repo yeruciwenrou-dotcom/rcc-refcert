@@ -33,8 +33,9 @@ costs. For example, one device may supply a pure ancillary qubit, while another
 must first reset a qubit in a mixed state to obtain one. RCC treats structural
 fairness as a physical postulate. The structure each device reliably supplies
 sets its reference zero point. Before choosing a target, fix which controls are
-available and what each costs. A comparison across devices then includes the
-reset on the device that needs it.
+available and what each costs. On the device that needs a reset, charge it to
+the preparation. To compare devices, specify the resources supplied by each
+background and express the charged operations on a common calibrated cost scale.
 
 <a id="auditable-complexity-lower-bounds"></a>
 <a id="final-state-data-certify-a-lower-bound-on-optimal-complexity"></a>
@@ -58,9 +59,9 @@ circuit in the model falls short of the required accuracy.
 |---|---|
 | [Build a finite-control model for RCC certification](#work-with-your-own-model) | Specify what structure the background supplies and which operations incur a cost. Encode the reference state, quantum channels and allowed controls in a model you can submit for certification. |
 | [Verify a model's reference bound](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/docs/CUSTOM_MODELS.md#prepare-and-verify-a-candidate) | Check a certificate you already have or, for a stable model, generate and verify a numerical candidate. You can reuse the verified reference bound to calculate complexity lower bounds for different targets in the same model. |
-| [Certify a lower bound on optimal circuit complexity](#target-spectra-and-measured-counts) | Use a target spectrum or measurement counts to rule out circuits below a given cost. For an experiment, [plan how many shots to take](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/36fecb61b7a46139453d8d00b6c476dbdb47a3ad/docs/TERMINAL_BOUNDS.md#plan-a-fixed-sample-size) and use target and reference counts to certify a bound at the chosen confidence level. The [graph-state example](#graph-state-and-cooling-studies) compares the bounds from different measurement settings. |
-| [Compare preparation strategies](#preparation-costs-and-complexity-profiles) | Compare programs that reach the same target within tolerance. In exact diagonal-preserving models, matching lower and upper bounds establish optimality. The [cooling study](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/36fecb61b7a46139453d8d00b6c476dbdb47a3ad/docs/FINITE_DATA_STUDIES.md#three-qubit-algorithmic-cooling) shows when a shorter program suffices for the full three-qubit target. |
-| [Analyze pure-state complexity with window RCC](#compare-subsystem-complexity) | Compare pure states with the same global RCC value to see how their complexity is distributed across subsystems. Use your own density matrices to follow pure or mixed states during preparation, or [compare the same window in two states from measured counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/36fecb61b7a46139453d8d00b6c476dbdb47a3ad/docs/COST_AND_WINDOWS.md#finite-sample-windows). |
+| [Certify a lower bound on optimal circuit complexity](#target-spectra-and-measured-counts) | Use a target spectrum or measurement counts to rule out circuits below a given cost. For an experiment, [plan how many shots to take](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/TERMINAL_BOUNDS.md#plan-a-fixed-sample-size) and use target and reference counts to certify a bound at the chosen confidence level. The [graph-state example](#graph-state-and-cooling-studies) compares the bounds from different measurement settings. |
+| [Compare preparation strategies](#preparation-costs-and-complexity-profiles) | Compare programs that reach the same target within tolerance. For a program attaining the upper bound, the gap to the lower bound tells you how many slots it could still save. Matching bounds establish optimality in an exact diagonal-preserving model. The [cooling study](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/FINITE_DATA_STUDIES.md#three-qubit-algorithmic-cooling) shows when a shorter program suffices for the full three-qubit target. |
+| [Analyze pure-state complexity with window RCC](#compare-subsystem-complexity) | Compare pure states with the same global RCC value to see how their complexity is distributed across subsystems. Use your own density matrices to follow local and correlation contributions during preparation, or [compare the same window in two states from measured counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/COST_AND_WINDOWS.md#finite-sample-windows). |
 | [Share a calculation for independent verification](#reverify-a-shared-analysis) | Share the original inputs and results in a single bundle. A colleague can use it to recompute the result independently. |
 | [Reproduce the paper's reference calculations](#reference-cases) | Rerun the bundled cases and compare the outputs with the frozen reference results. The [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/docs/PAPER_MAP.md) links each calculation to the corresponding equations. |
 
@@ -68,7 +69,7 @@ circuit in the model falls short of the required accuracy.
 >
 > Choose the preparation cost you want to rule out and plan how many shots to take.
 > With counts for every outcome of a measurement, you can also bound the difference
-> in window RCC between two states. [See the 0.4.0 changes](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/36fecb61b7a46139453d8d00b6c476dbdb47a3ad/CHANGELOG.md#040).
+> in RCC between two states in that same classical measurement window. [See the 0.4.0 changes](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/CHANGELOG.md#040).
 
 ## Quick start
 
@@ -97,8 +98,8 @@ The template supplies a four-dimensional target spectrum and the model
 parameters. The integer lower bound is **one primitive slot**. Every circuit
 that prepares this target to the stated accuracy must use at least one slot.
 To run your own calculation, replace the spectrum and model parameters in
-`spectrum.json`, or follow the [measurement protocol](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/TERMINAL_BOUNDS.md#fixed-projector-counts)
-for projector counts. The [terminal-state guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/TERMINAL_BOUNDS.md)
+`spectrum.json`, or follow the [measurement protocol](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/TERMINAL_BOUNDS.md#fixed-projector-counts)
+for projector counts. The [terminal-state guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/TERMINAL_BOUNDS.md)
 describes the input fields.
 
 The installed package includes the [Python API](#python-api), command-line
@@ -107,14 +108,14 @@ tools and reference cases. The source checkout also includes example scripts,
 
 ### Install from source
 
-The [source archive for the 0.4.0 examples](https://github.com/yeruciwenrou-dotcom/rcc-refcert/archive/36fecb61b7a46139453d8d00b6c476dbdb47a3ad.zip)
+The [source archive for the 0.4.0 examples](https://github.com/yeruciwenrou-dotcom/rcc-refcert/archive/3f4788e739df3acc28ada0cf6c5484c14a398af1.zip)
 contains the code used below. Extract it and open the directory containing
 `quickstart.py`. With Git, you can get the same source revision by running:
 
 ```bash
 git clone https://github.com/yeruciwenrou-dotcom/rcc-refcert.git
 cd rcc-refcert
-git switch --detach 36fecb61b7a46139453d8d00b6c476dbdb47a3ad
+git switch --detach 3f4788e739df3acc28ada0cf6c5484c14a398af1
 ```
 
 From that directory, run the frozen reference calculations:
@@ -168,7 +169,7 @@ verification passes even though the local gain–cost sufficient test fails.
 The second uses a **reference-potential certificate (H.4)** for a four-qubit
 register, then computes bounds from an exact spectrum and synthetic counts.
 Both bound paths for this register return **two primitive slots**. The
-[complete cost workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#a-complete-cost-task) independently
+[complete cost workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/COST_AND_WINDOWS.md#a-complete-cost-task) independently
 verifies the five-slot optimum with gain exclusion and a matching program.
 
 Each command saves a bundle containing the model, certificate and results.
@@ -206,7 +207,7 @@ python3 -m rcc_refcert bound counts counts.json
 
 For real measurements, fix the protocol **before collecting data** with
 `bound prepare-protocol` and preserve its digest with the dataset. The
-[terminal-state guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/TERMINAL_BOUNDS.md)
+[terminal-state guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/TERMINAL_BOUNDS.md)
 explains the projector, sample-size and evidence requirements.
 
 Both routes use a uniform reference on an ideal support and exact transcription.
@@ -216,15 +217,16 @@ from the installed package.
 
 You can also measure the reference. Apply the same binary measurement to the
 target and reference, then use both hit counts to bound the preparation cost.
-In the [worked example](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/36fecb61b7a46139453d8d00b6c476dbdb47a3ad/docs/TERMINAL_BOUNDS.md#target-and-reference-counts-for-the-same-effect),
+In the [worked example](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/TERMINAL_BOUNDS.md#target-and-reference-counts-for-the-same-effect),
 550 target hits and 250 reference hits in 1,000 shots each certify at least
 one slot in the specified model, with at least 95% joint coverage.
 
 With counts for **all outcomes of one measurement**, you can also compare the
-window RCC of two states. The Bell/GHZ example uses the same two-qubit
-readout on a Bell pair and on a pair of qubits from a GHZ state. With 20,000
-synthetic shots per state, the Bell pair's RCC exceeds that of the GHZ pair
-by at least 0.37086784 R-structons in this window, at 99% joint coverage. See [finite-sample windows](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#finite-sample-windows)
+window RCC of two states. Measure a Bell pair and a reduced GHZ pair in the
+same Bell basis. With 20,000 synthetic shots per state, the Bell pair exceeds
+the GHZ pair by at least 0.37086784 R-structons **in that classical measurement
+window**, with at least 99% joint coverage. For the containing quantum window
+the same counts give a lower bound for each state and leave their ordering open. See [finite-sample windows](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/COST_AND_WINDOWS.md#finite-sample-windows)
 for the commands, protocol and example with your own counts.
 
 <a id="finite-data-studies"></a>
@@ -255,7 +257,7 @@ within trace distance 1/50, and the model rules out every cheaper program.
 The final refresh preserves the target qubit's polarization and erases its
 correlations with the bath. Joint counts let you examine both effects.
 To supply your own measurements, follow the register
-layouts and acquisition steps in the [finite-data guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/36fecb61b7a46139453d8d00b6c476dbdb47a3ad/docs/FINITE_DATA_STUDIES.md).
+layouts and acquisition steps in the [finite-data guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/FINITE_DATA_STUDIES.md).
 
 <a id="cost-and-window-workflows"></a>
 <a id="preparation-costs-and-subsystem-structure"></a>
@@ -274,10 +276,10 @@ python3 -m rcc_refcert bundle verify task.rccbundle
 
 At the default trace-distance tolerance of `1/10`, the four-qubit reset task
 returns **[5,5] atomic slots**, including halt. The
-[worked calculation](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#a-complete-cost-task)
+[worked calculation](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/COST_AND_WINDOWS.md#a-complete-cost-task)
 shows how the model excludes shorter programs and how a five-slot program
 meets the target. For a model supplied as matrices, the
-[numerical workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#numerical-models-and-candidate-diagnostics)
+[numerical workflow](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/COST_AND_WINDOWS.md#numerical-models-and-candidate-diagnostics)
 reports each candidate's cost and distance from the target.
 
 <a id="compare-state-organization"></a>
@@ -306,10 +308,10 @@ the two pairs it is 0. In the GHZ state either pair retains one shared
 classical bit, giving a reading of 1/2. These two states have the same global
 complexity and different subsystem complexity profiles.
 
-The [window guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#subsystem-complexity-profiles)
-works through the local and correlation contributions on that common scale. To use [your own density matrix](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels),
+The [window guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/COST_AND_WINDOWS.md#subsystem-complexity-profiles)
+works through the local and correlation contributions on that common scale. To use [your own density matrix](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels),
 supply the matrix, its tensor dimensions and the subsystems to compare.
-The [workflow notebook](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/RCC_Workflows_Quickstart.ipynb)
+The [workflow notebook](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/RCC_Workflows_Quickstart.ipynb)
 follows both the preparation and window calculations.
 
 ### Reverify a shared analysis
@@ -331,7 +333,7 @@ with a larger conservative constant than the one used in the original bound.
 
 A colleague can verify the bundle with the installed package. Use `--output`
 to save the verification report under a new filename. The
-[analysis-bundle guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/ANALYSIS_BUNDLES.md) explains result comparisons,
+[analysis-bundle guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/ANALYSIS_BUNDLES.md) explains result comparisons,
 exit codes and the original counts protocol. Exact historical scalar replay
 uses the producer's package version. Preparation-cost and known-state window
 bundles are readable from 0.3.0
@@ -358,8 +360,8 @@ Choose a notebook for the task you want to explore:
 | Tutorial | What you will do |
 |---|---|
 | [Models and certificates](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/RCC_Quickstart.ipynb) | Analyze finite-control models, verify reference certificates and reproduce paper calculations. |
-| [Terminal-state bounds](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/RCC_Bounds_Quickstart.ipynb) | Calculate bounds from exact spectra or fixed-projector counts, then save and replay the result. |
-| [Preparation costs and complexity profiles](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/RCC_Workflows_Quickstart.ipynb) | Compare preparation costs, use window RCC to study states and cooling trajectories, and share complete evidence. |
+| [Terminal-state bounds](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/RCC_Bounds_Quickstart.ipynb) | Calculate bounds from exact spectra or fixed-projector counts, then save and replay the result. |
+| [Preparation costs and complexity profiles](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/RCC_Workflows_Quickstart.ipynb) | Compare preparation costs, use window RCC to study states and cooling trajectories, and share complete evidence. |
 
 Select **Python (rcc-refcert)** as the kernel. Run all three commands with the
 same interpreter; on Windows, use `.venv\Scripts\python.exe`. These dependencies
@@ -384,13 +386,13 @@ still passes its supplied Bellman–Choi and reference-potential certificate che
 
 The [model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbdfd03aa2df3ad45081098477dc974dc002084/docs/MODEL_GUIDE.md) shows how to build a model with `Action`
 and `FiniteControlModel`, audit it, and verify supplied certificates. For
-target-state calculations, the [bounds guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/TERMINAL_BOUNDS.md) covers
+target-state calculations, the [bounds guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/TERMINAL_BOUNDS.md) covers
 `bound_from_spectrum`, `bound_from_counts`, `prepare_protocol`,
 `with_reference_certificate`, `validate_record` and `replay_record`.
 
 For preparation costs and subsystem complexity profiles, import from
 `rcc_refcert.workflows`.
-The [workflow guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c0a9eecd8fa5ce082b29bb30608acfb8c7b24ffe/docs/COST_AND_WINDOWS.md) introduces
+The [workflow guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/COST_AND_WINDOWS.md) introduces
 `analyze_cost`, `compare_cost_results`, `analyze_windows`, `export_probe` and
 `save_workflow_bundle` with executable examples.
 
@@ -586,7 +588,7 @@ For a calculation made with version 0.3.0, a copyable citation is:
 The GitHub **Cite this repository** button follows the paper preference in
 `CITATION.cff`; include the software version citation as well when reporting a
 calculation. Complete bundles can
-[record the source revision](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/c5ecafef6f80c0c4519db1dba19b9ca093268dc0/docs/ANALYSIS_BUNDLES.md#record-the-software-revision)
+[record the source revision](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/docs/ANALYSIS_BUNDLES.md#record-the-software-revision)
 for both the author and the recipient.
 
 For calculations made with a source checkout, record its full commit and
@@ -594,5 +596,5 @@ package version. To reproduce a source version, check out that commit or a
 release tag before installation. The software archive provides a separate DOI
 for each archived release as well as the all-versions DOI above.
 
-See the [Changelog](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/36fecb61b7a46139453d8d00b6c476dbdb47a3ad/CHANGELOG.md) for release changes and subsequent updates. The source code
+See the [Changelog](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/3f4788e739df3acc28ada0cf6c5484c14a398af1/CHANGELOG.md) for release changes and subsequent updates. The source code
 is available under the [MIT License](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.3.0/LICENSE).

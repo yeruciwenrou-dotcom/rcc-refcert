@@ -14,14 +14,18 @@ abstract: >-
   prespecified protocol. The toolkit implements the Reference-Contingent
   Complexity (RCC) framework of Liu, Tian and Wu.
   Structural fairness fixes the background resources, permitted controls and
-  their accounting before the target is chosen. A terminal-state certificate
+  their accounting before the target is chosen. Across devices, the comparison
+  declares the background resources on each side and calibrates charged
+  operations to a common cost scale. A terminal-state certificate
   bounds the cost of every circuit that prepares the target to the stated
   accuracy. Researchers can build finite-control quantum models, verify
   reference certificates and compare candidate preparations. Exact
-  diagonal-preserving models support two-sided cost intervals. General matrix
+  diagonal-preserving models bound the remaining saving for a feasible program
+  attaining the upper endpoint and establish optimality when both endpoints meet. General matrix
   models provide numerical candidate diagnostics. Window RCC resolves how
   complexity is distributed across the subsystems of pure and mixed states
-  at a common reference and control bandwidth. Researchers can plan a
+  at a common reference and control bandwidth, including the local and
+  correlation contributions along a preparation. Researchers can plan a
   measurement for a chosen cost threshold, compare measured-window RCC
   from outcome counts, and share the inputs for independent recomputation.
 keywords:
