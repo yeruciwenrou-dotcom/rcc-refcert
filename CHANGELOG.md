@@ -2,10 +2,31 @@
 
 ## 0.4.0
 
-- Plan fixed-shot acquisitions, audit general fixed effects with measured or exact reference responses, and propagate known binary readout errors.
-- Bound measured windows and classical correlations from complete histograms, including projected branches and retention-weighted contributions.
-- Compare local graph-state measurements and three-qubit cooling programs using editable raw counts, explicit register ordering and independent bundle replay.
-- Check user-supplied gain certificates, target tolerances and exact scalar inputs on the existing cost and terminal-state paths.
+You can now plan a measurement around the preparation cost you want to rule
+out and compare subsystem complexity using measured outcome counts.
+
+- **Design a measurement and certify a lower bound.** Given a response or
+  cost threshold and an expected hit rate, find the number of shots to take
+  and the number of hits needed to pass. Use the same binary measurement on
+  the target and reference, or supply a known reference response. The
+  calculation can account for known false-positive and false-negative rates.
+- **Compare window RCC from counts.** Use the counts for every outcome of a
+  projective measurement to put confidence bounds on RCC in the measured
+  window. For two states measured in the same window, you can bound the
+  difference. If a projection selects only part of the sample, you can also
+  weight its contribution by the probability of retaining a shot.
+- **Compare measurement settings and preparation programs.** In the noisy
+  graph-state example, two local settings together certify a higher cost
+  than either alone. In the cooling study, compare programs against the full
+  three-qubit target and use joint counts to examine what the last bath
+  refresh changes. Both studies accept raw counts or joint Qiskit readouts
+  and can be recomputed from a shared bundle.
+- **See which gain certificate supports a cost bound.** An empty or invalid
+  certificate now gives a diagnostic for the submitted input. To try the
+  automatic certificate as well, set `on_gain_failure` to `"auto"`. The
+  report records the original diagnostic and the certificate actually used.
+  Cost requests reject exact numbers with repeated signs. Terminal-state
+  requests identify normalized trace distance as the required error measure.
 
 Use 0.4.0 or later to verify the new finite-data bundles and cost requests that
 specify `on_gain_failure`. The [compatibility table](docs/ANALYSIS_BUNDLES.md)

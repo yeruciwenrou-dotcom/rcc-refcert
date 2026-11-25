@@ -11,21 +11,19 @@ abstract: >-
   complexity. Given a preparation model and final-state data, it computes a
   rigorous lower bound on optimal quantum circuit complexity. The inputs can
   be an exact target spectrum or finite measurement data collected under a
-  prespecified protocol. The graph-state study compares local measurements
-  at a common shot budget to find which correlations certify preparation
-  cost. The cooling study uses joint counts to resolve target polarization
-  and target–bath correlations, and compares programs against the full target. The toolkit
-  implements the Reference-Contingent Complexity (RCC) framework of Liu, Tian and Wu.
+  prespecified protocol. The toolkit implements the Reference-Contingent
+  Complexity (RCC) framework of Liu, Tian and Wu.
   Structural fairness fixes the background resources, permitted controls and
   their accounting before the target is chosen. A terminal-state certificate
   bounds the cost of every circuit that prepares the target to the stated
   accuracy. Researchers can build finite-control quantum models, verify
   reference certificates and compare candidate preparations. Exact
   diagonal-preserving models support two-sided cost intervals. General matrix
-  models provide numerical candidate diagnostics. Window RCC uses a common
-  reference and control bandwidth to compare the complexity profiles of pure
-  and mixed states and separate local and correlation contributions. Shared
-  analysis bundles support independent recomputation.
+  models provide numerical candidate diagnostics. Window RCC resolves how
+  complexity is distributed across the subsystems of pure and mixed states
+  at a common reference and control bandwidth. Researchers can plan a
+  measurement for a chosen cost threshold, compare measured-window RCC
+  from outcome counts, and share the inputs for independent recomputation.
 keywords:
   - quantum circuit complexity
   - structure-fairness
