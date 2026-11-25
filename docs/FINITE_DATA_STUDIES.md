@@ -1,5 +1,11 @@
 # Research with finite measurement data
 
+With an active installation, run the commands below with its Python. After the
+[source quickstart](../README.md#install-from-source), run them from the
+checkout root with `.venv/bin/python` on macOS or Linux, or
+`.venv\Scripts\python.exe` on Windows. Use a fresh output name when saving a
+second analysis.
+
 ## Six-qubit cluster state
 
 Which local measurements reveal the structure left after independent phase noise?
@@ -20,8 +26,13 @@ slots**. The noisy graph state and the uniform reference have identical
 computational-basis populations. More Z-basis shots can estimate those
 populations more precisely, but the two states still look the same in that
 basis. The alternating X/Z settings test the graph's stabilizer parities,
-where the states differ. Compare with `--shots 10` to see what limited
-sampling does to that contrast.
+where the states differ. Repeat with ten shots per color to see which bounds
+survive:
+
+```sh
+python -m rcc_refcert study template cluster --noise 1/20 --shots 10 > cluster-10.json
+python -m rcc_refcert study analyze cluster-10.json --csv cluster-10.csv --bundle cluster-10.rccbundle
+```
 
 With edges 01, 12, 34, 45, 03, 14, 25, the stabilizers are
 $K_i=X_i\prod_{j\sim i}Z_j$. Read X on sites 0, 2, 4 for A and on
@@ -129,7 +140,7 @@ carry `generation_epsilon`.
 If the cost search reaches its update limit, the report gives the interval
 obtained so far. To continue the search, rerun `study analyze` on the same
 input with `--max-dp-updates` set above the limit shown in that report.
-A saved bundle retains the original calculation and its limits.
+Save the extended search under a new name such as `cooling-extended.rccbundle`. The first bundle retains the original interval and search budget.
 
 ## Your counts and Qiskit registers
 

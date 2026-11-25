@@ -3,7 +3,7 @@
 ## 0.4.0
 
 You can now plan a measurement around the preparation cost you want to rule
-out and compare subsystem complexity using measured outcome counts.
+out and bound differences in RCC between states measured in the same window.
 
 - **Design a measurement and certify a lower bound.** Given a response or
   cost threshold and an expected hit rate, find the number of shots to take
@@ -12,8 +12,9 @@ out and compare subsystem complexity using measured outcome counts.
   calculation can account for known false-positive and false-negative rates.
 - **Compare window RCC from counts.** Use the counts for every outcome of a
   projective measurement to put confidence bounds on RCC in the measured
-  window. For two states measured in the same window, you can bound the
-  difference. If a projection selects only part of the sample, you can also
+  classical window. Two states measured in that same window can be ordered
+  when their intervals separate. For a containing quantum window, the
+  measurement gives a lower bound for each state. If a projection selects only part of the sample, you can also
   weight its contribution by the probability of retaining a shot.
 - **Compare measurement settings and preparation programs.** In the noisy
   graph-state example, two local settings together certify a higher cost
@@ -27,6 +28,13 @@ out and compare subsystem complexity using measured outcome counts.
   report records the original diagnostic and the certificate actually used.
   Cost requests reject exact numbers with repeated signs. Terminal-state
   requests identify normalized trace distance as the required error measure.
+
+Cost comparisons now identify the model, complete target, tolerance and maximum
+remaining saving for the program attaining the upper endpoint. Window reports
+give the uniform reference, number of action classes and conversion to
+R-structons. State-window and numerical-model inputs now require an integer
+action-class count of at least two. Shared cost and state-window bundles
+identify the software that calculated the saved result across versions.
 
 Use 0.4.0 or later to verify the new finite-data bundles and cost requests that
 specify `on_gain_failure`. The [compatibility table](docs/ANALYSIS_BUNDLES.md)

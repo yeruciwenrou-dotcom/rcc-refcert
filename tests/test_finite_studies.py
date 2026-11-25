@@ -689,3 +689,15 @@ def test_invalid_presentation_options_can_be_retried_without_overwrite(
     assert main([*args, *bad]) == 2
     assert list(tmp_path.iterdir()) == [input_path]
     assert main(args) == 0
+
+
+def test_weak_bath_report_in_a_redirected_command():
+    from rcc_refcert.workflows import render_workflow_result
+
+    result = analyze_study(study_template("cooling", bath="51/100", cycles=1))
+    report = " ".join(render_workflow_result(result).split())
+    report.encode("cp1252")
+    assert "uniform-C8" in report and "Gamma=3" in report
+    assert "1 st_R is approximately 1.584962501 bits" in report
+    assert "between 1 and 2 slots" in report
+    assert "no sample size through 512 shots" in report

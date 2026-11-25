@@ -232,3 +232,20 @@ def test_probe_parameter_change_has_an_identity_and_a_real_effect():
     request["probe"]["parameters"]["mixing"] = "0"
     with pytest.raises(InputError, match="identity"):
         analyze_windows(request)
+
+
+@pytest.mark.parametrize("gamma", ["5/2", "3/2", 1])
+def test_window_scale_requires_an_action_class_count(gamma):
+    request = load_workflow_template("window-state")
+    request["reference"]["gamma"] = gamma
+    with pytest.raises(InputError, match="integer action-class count"):
+        analyze_windows(request)
+
+
+@pytest.mark.parametrize("gamma", ["2", 3, 5])
+def test_integer_alphabet_can_have_noninteger_bandwidth(gamma):
+    request = load_workflow_template("window-state")
+    request["reference"]["gamma"] = gamma
+    scale = analyze_windows(request)["reference"]
+    assert scale["gamma_exact"] == str(gamma)
+    assert scale["g_bits"] == pytest.approx(np.log2(int(gamma)))

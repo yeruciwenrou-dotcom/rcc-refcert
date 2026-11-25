@@ -89,6 +89,27 @@ from the declared physical action classes. Codeword length, reference gain and
 this physical scale are recorded separately. Single-control-block exact
 recipes are supported here; existing multiblock model APIs remain available.
 
+### Build a half-erasure channel
+
+The [complete one-qubit request](../examples/half_erasure.json) starts with a
+uniform spin and targets the Z-basis populations (15/16, 1/16). Each column
+of the channel matrix gives the output probabilities for one input, in the
+order 0, 1. Its columns (1, 0) and (1/2, 1/2) leave 0 unchanged and halve the
+excited population. Each application costs one atomic slot. Returning the
+spin with `halt` costs one more.
+
+```bash
+.venv/bin/python -m rcc_refcert cost analyze examples/half_erasure.json --details
+```
+
+After one, two and three channel applications the excited populations are
+1/4, 1/8 and 1/16. At tolerance 1/10 the two-application program reaches the
+target and closes the interval at [3,3] slots. Remove that candidate from a
+copy of the JSON and the supplied programs give [3,4]. Keep all candidates
+and tighten `epsilon` to `"1/20"`: the interval is again [3,4]. Here the
+reachable populations give an independent check. Four slots are necessary
+at the tighter tolerance, while the computed lower bound is three.
+
 ## Cooling and the remaining optimality gap
 
 ```bash

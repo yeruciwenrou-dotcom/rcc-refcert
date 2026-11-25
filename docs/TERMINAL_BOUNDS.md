@@ -2,9 +2,10 @@
 
 The `bound` command and `rcc_refcert.bounds` API calculate a quantum circuit
 complexity lower bound for state preparation, measured in atomic resource
-slots. Supply a complete exact spectrum or counts from one projector selected
-before measurement, together with the
-model's reference and cost assumptions. The
+slots. Supply the model's reference and cost assumptions. For the target,
+use an exact spectrum or hits from a measurement fixed before acquisition.
+The fixed-effect design accepts matching target and reference counts, or a
+known reference response. The
 [scientific scope](SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
 explains how reference consistency, faithful transcription and reference
 admissibility qualify the resulting cost bound.
@@ -192,7 +193,7 @@ physical readout definition, sampling dates and model premises with the study.
   `.venv/bin/python -m rcc_refcert bound counts effect-low.json --bundle effect-low.rccbundle`.
   At this tolerance the contrast gives a zero lower bound, and the target
   acceptance falls below the hypothesis test's threshold.
-- For a **known reference response**, set `protocol.reference` to `{"kind":"exact","state_id":"uniform-C4","response":"1/4","source":"rank-one projector evaluated on I/4"}` and remove `data.reference`. A deterministic upper bound uses `upper_bound` with its supporting source. The target batch keeps its acquisition identity. A sampled reference with zero hits still contributes its statistical upper endpoint. A deterministic zero response on a full-rank uniform reference forces a zero effect on that support. Any target hits then give a support conflict.
+- For a **known reference response**, set `protocol.reference` to `{"kind":"exact","state_id":"uniform-C4","response":"1/4","source":"rank-one projector evaluated on I/4"}` and remove `data.reference`. A deterministic upper bound uses `upper_bound` with its supporting source. The target batch keeps its acquisition identity. A sampled reference with zero hits still contributes its statistical upper endpoint. A deterministic zero response on a full-rank uniform reference forces a zero effect on that support. With ideal readout, a single target hit then gives a support conflict. With a calibrated false-positive rate, observed hits can occur even when the ideal effect is zero. The calculation checks whether the calibrated target interval admits zero.
 - To compute **state-side information alone**, omit `task`. A declared task missing one of RCon, TC or RA retains the information and lists the missing process premise. A smoothing radius can cover several smaller generation tolerances. Changing the task tolerance produces a new derivation from the original sampling events.
 
 In Python, pass the same request to `rcc_refcert.bounds.bound_from_counts`. `prepare_effect_protocol` freezes a declaration, and `hoeffding_lower`, `hoeffding_upper` and `fixed_effect_information` expose the conservative scalar operations. Use `rcc_refcert.workflows.save_effect_bundle(path, request, result)` to share a Python calculation. The installed input schema is `bounds/data/fixed_effect_counts.schema.json`. The JSON result includes the exact endpoints, sampling ledger, each route's eligibility, the model qualifications in the input snapshot and the selected cost bound. [Bundle format and verification](ANALYSIS_BUNDLES.md#fixed-effect-counts)

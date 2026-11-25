@@ -451,7 +451,18 @@ def compare_cost_results(results, *, criterion=None):
             )
         key = (core, cost["epsilon_exact"])
         groups.setdefault(key, []).append(result)
-        rows.append({"run_id": result["run_id"], "task_core_digest": key[0], **cost})
+        row = {"run_id": result["run_id"], **cost}
+        if "effective_request" in result:
+            task = mapping(result["effective_request"], "comparison effective request")
+            model = mapping(task.get("model"), "comparison model")
+            target = mapping(task.get("target"), "comparison target")
+            source = mapping(
+                target.get("provenance", {}), "comparison target provenance"
+            )
+            row["model_id"] = text(model.get("id"), "comparison model id")
+            row["target_source"] = source.get("source")
+            row["target_digest"] = identity.get("target_digest")
+        rows.append(row)
     comparable = len(groups) == 1
     savings = []
     if comparable:

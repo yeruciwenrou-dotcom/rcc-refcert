@@ -75,6 +75,45 @@ installed environment's Python and to the bundle. Choose an unused report
 filename. The original bundle remains unchanged, and `--output` saves the
 full comparison report as JSON.
 
+### Use the verified data in a new calculation
+
+For a schema 2–5 bundle, verification writes the freshly calculated record
+under `fresh_result`. The archive also contains the ordinary request used by
+the command-line tools. From the directory containing the two files above,
+run the following Python once for each new output directory:
+
+```python
+import json
+from pathlib import Path
+from zipfile import ZipFile
+
+out = Path("received-analysis")
+out.mkdir()
+verification = json.loads(Path("received-verification.json").read_bytes())
+with ZipFile("received.rccbundle") as archive:
+    version = json.loads(archive.read("manifest.json"))["schema_version"]
+    request = json.loads(archive.read("request.json"))
+if version == 2:
+    request = request["original"]
+(out / "request.json").write_text(json.dumps(request, indent=2) + "\n", encoding="utf-8")
+(out / "fresh.json").write_text(json.dumps(verification["fresh_result"], indent=2) + "\n", encoding="utf-8")
+```
+
+Choose the command for your calculation. For a cost task, `other-cost.json`
+is a second result from `cost analyze --output`. For a study, set the new
+search budget above the one reported by the first run. Plotting uses the
+`plots` extra.
+
+| Calculation received | Continue from the verified data |
+|---|---|
+| Schema 2, candidate costs | `python -m rcc_refcert cost compare received-analysis/fresh.json other-cost.json` |
+| Schema 2, state windows or schema 4, projective counts | `python -m rcc_refcert window analyze received-analysis/request.json --csv received-analysis/windows.csv --plot received-analysis/windows.svg` |
+| Schema 3, fixed-effect counts | `python -m rcc_refcert bound counts received-analysis/request.json --bundle received-analysis/counts.rccbundle` |
+| Schema 5, cooling study | `python -m rcc_refcert study analyze received-analysis/request.json --max-dp-updates 2000000 --bundle received-analysis/extended.rccbundle` |
+
+Schema 1 carries model and proof arrays. Use the matrix-verification workflow
+below for those files.
+
 ## Export and check
 
 To create a bundle of your own, use the same quickstart environment and run

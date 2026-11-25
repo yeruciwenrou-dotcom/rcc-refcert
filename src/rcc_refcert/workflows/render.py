@@ -102,6 +102,17 @@ def _delivery_lines(result):
     return lines
 
 
+def _comparison_task(row):
+    model = row.get("model_id")
+    target = row.get("target_source") or row.get("target_digest")
+    label = (
+        f"Model {model}, full target: {target}"
+        if model and target
+        else f"Task {row['task_core_digest'][:12]}"
+    )
+    return f"{label.rstrip('.')}. Trace-distance tolerance: {row['epsilon_exact']}."
+
+
 def render_workflow_result(result, *, format="text", details=False, width=80):
     if format == "json":
         return json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
@@ -122,19 +133,38 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
             "Common task and tolerance: "
             + ("yes" if result["comparable_task"] else "no; displayed separately"),
         ]
+        lines.append("Cost unit: atomic slots, including halt.")
+        if result["comparable_task"]:
+            lines.append(_comparison_task(result["rows"][0]))
         for row in result["rows"]:
+            if not result["comparable_task"]:
+                lines.append(_comparison_task(row))
             lower = row["lower_bound_slots"]
             upper = row["upper_bound_slots"]
             lower_text = "unavailable" if lower is None else str(lower)
             upper_text = "unavailable" if upper is None else str(upper)
             lines.append(
-                f"{row['run_id']}: lower={lower_text}, upper={upper_text}; "
-                f"{_decision_label(row['decision'])}"
+                f"Run {row['run_id'] if details else row['run_id'][:12]}: "
+                f"lower={lower_text}, upper={upper_text}; {_decision_label(row['decision'])}."
             )
+            if row.get("additive_overhead_upper", 0) and upper is not None:
+                gap = row["additive_overhead_upper"]
+                witnesses = ", ".join(row.get("upper_witness_ids", ()))
+                program = (
+                    f"Upper-bound program ({witnesses})"
+                    if witnesses
+                    else "The program attaining the upper bound"
+                )
+                lines.append(
+                    f"  {program} can save at most {gap} {'slot' if gap == 1 else 'slots'}."
+                )
+            if details:
+                lines.append(f"  Task identity: {row['task_core_digest']}")
             if "criterion_status" in row:
                 name, threshold = next(iter(result["criterion"].items()))
+                unit = " slots" if name == "additive_gap" else ""
                 lines.append(
-                    f"  {name.replace('_', ' ')} {threshold}: {row['criterion_status']}"
+                    f"  {name.replace('_', ' ')} {threshold}{unit}: {row['criterion_status']}"
                 )
     elif result["kind"] == "cost_analysis":
         cost = result["cost"]

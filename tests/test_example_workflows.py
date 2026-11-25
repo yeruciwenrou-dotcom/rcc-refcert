@@ -107,3 +107,37 @@ def test_larger_fresh_constant_explains_unchanged_integer_bound(tmp_path):
         report["requests"]
     )
     assert path.read_bytes() == original
+
+
+def test_half_erasure_candidate_and_tolerance_change_the_conclusion():
+    from rcc_refcert.workflows import (
+        analyze_cost,
+        compare_cost_results,
+        render_workflow_result,
+    )
+
+    request = json.loads(
+        (
+            Path(__file__).resolve().parents[1] / "examples" / "half_erasure.json"
+        ).read_text()
+    )
+    closed = analyze_cost(request)
+    assert closed["cost"]["interval_slots"] == [3, 3]
+    short = request["candidates"].pop(1)
+    open_result = analyze_cost(request)
+    assert open_result["cost"]["interval_slots"] == [3, 4]
+    report = " ".join(
+        render_workflow_result(compare_cost_results([open_result, closed])).split()
+    )
+    for detail in (
+        "half-erasure-qubit",
+        "15/16",
+        "1/10",
+        "including halt",
+        "3-erasure-then-halt",
+        "at most 1 slot",
+    ):
+        assert detail in report
+    request["candidates"].append(short)
+    request["epsilon"] = "1/20"
+    assert analyze_cost(request)["cost"]["interval_slots"] == [3, 4]

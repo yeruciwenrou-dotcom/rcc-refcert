@@ -42,6 +42,7 @@ from .core import (
     mapping,
     read_json,
     require_int,
+    text,
 )
 from .gain import exclude_budgets, spectral_threshold
 from .states import StateInput
@@ -158,7 +159,8 @@ def _read_workflow(path, *, version=2):
     request = keys(
         payloads["request.json"], {"original", "effective"}, name="saved request"
     )
-    history = payloads["history.json"]
+    history = mapping(payloads["history.json"], "workflow history")
+    mapping(request["effective"], "saved effective request")
     if manifest["request_digest"] != digest(request["effective"]):
         raise BundleFormatError("workflow effective request digest mismatch")
     if manifest["kind"] != request["effective"].get("kind"):
@@ -234,27 +236,34 @@ def _check_cost_history(history, *, limits):
             raise InputError(
                 "history: gain certificate source or verification outcome differs"
             )
-    cert = history["gain_certificate"]
+    cert = mapping(history.get("gain_certificate"), "history.gain_certificate")
+    proposal = mapping(effective.get("gain_certificate"), "effective gain certificate")
     if any(
-        cert.get(k) != effective["gain_certificate"].get(k)
+        cert.get(k) != proposal.get(k)
         for k in ("model_digest", "envelopes", "initial_coefficient", "coefficients")
     ):
         raise InputError("history: gain evidence differs from the effective request")
     if cert.get("model_digest") != model.content_digest:
         raise InputError("history: gain certificate belongs to another model")
-    if cert.get("verification", {}).get("outcome") != "pass":
+    verification = mapping(cert.get("verification"), "history gain verification")
+    if verification.get("outcome") != "pass":
         raise InputError("history: a strict lower bound needs a passing gain check")
-    verification = cert["verification"]
-    if exact(verification["initial_minimum_exact"]) > exact(
+    if exact(verification.get("initial_minimum_exact")) > exact(
         cert["initial_coefficient"]
     ):
         raise InputError("history: initial coefficient contradicts its stored check")
     checks = verification.get("checks", [])
-    if len(checks) != sum(map(len, model.actions.values())):
+    if not isinstance(checks, list) or len(checks) != sum(
+        map(len, model.actions.values())
+    ):
         raise InputError("history: local gain check count mismatch")
     seen = set()
     for check in checks:
-        pair = (check["syntax"], check["action"])
+        mapping(check, "history gain check")
+        pair = (
+            text(check.get("syntax"), "check.syntax"),
+            text(check.get("action"), "check.action"),
+        )
         if pair in seen or pair[0] not in model.actions:
             raise InputError("history: repeated or unknown local gain check")
         action = model.lookup(*pair)
@@ -341,7 +350,7 @@ def _check_cost_history(history, *, limits):
             or saved["slots"] is not None
         ):
             raise InputError("history: invalid candidate status")
-    bound = history["gain_bound"]
+    bound = mapping(history.get("gain_bound"), "history.gain_bound")
     q = spectral_threshold(target.data, epsilon, model.limits)
     if exact(bound["threshold_exact"]) != q:
         raise InputError("history: spectral threshold disagrees with the full target")
@@ -435,9 +444,28 @@ def check_workflow_history(history, *, limits=None):
     }
     if not required <= set(history):
         raise InputError("history: required workflow fields are missing")
+    for field in (
+        "original_request",
+        "effective_request",
+        "execution",
+        "digests",
+        "producer",
+    ):
+        mapping(history[field], f"history.{field}")
+    text(history["producer"].get("version"), "history.producer.version")
+    if history["kind"] == "cost_analysis":
+        mapping(history.get("cost"), "history.cost")
+        if not isinstance(history.get("candidates"), list):
+            raise InputError("history.candidates: expected a list of candidate records")
+        for candidate in history["candidates"]:
+            mapping(candidate, "history candidate")
+        if not isinstance(history.get("epsilon_scan"), list):
+            raise InputError(
+                "history.epsilon_scan: expected a list of tolerance points"
+            )
     if history["kind"] != history["effective_request"].get("kind"):
         raise InputError("history: request kind mismatch")
-    if history["execution"].get("state") not in {"completed", "partial"}:
+    if history["execution"].get("state") not in ("completed", "partial"):
         raise InputError("history: invalid execution state")
     # Re-expand declarative inputs to check raw/effective object relationships.
     # This does not run any channel or create a new scientific result.
@@ -504,9 +532,10 @@ def save_workflow_bundle(path, request, result, *, overwrite=False):
         "rcc-refcert.finite-study",
     ):
         return save_measurement_bundle(path, request, result, overwrite=overwrite)
-    limits = WorkflowLimits.from_value(
-        result.get("effective_request", {}).get("limits")
+    effective = mapping(
+        mapping(result, "result").get("effective_request"), "effective_request"
     )
+    limits = WorkflowLimits.from_value(effective.get("limits"))
     check_workflow_history(result, limits=limits)
     if digest(request) != digest(result["original_request"]):
         raise InputError(
@@ -523,7 +552,7 @@ def save_workflow_bundle(path, request, result, *, overwrite=False):
         version=2,
         kind=result["kind"],
         request_digest=digest(result["effective_request"]),
-        author=producer(),
+        author=result["producer"],
         overwrite=overwrite,
     )
 
@@ -588,11 +617,20 @@ def inspect_workflow_bundle(path, *, limits=None):
             "history: raw or effective request differs from the saved input"
         )
     check_workflow_history(history, limits=limits)
+    manifest_producer = mapping(manifest["producer"], "manifest.producer")
+    text(manifest_producer.get("version"), "manifest.producer.version")
+    # Early schema-2 writers recorded the packaging environment in the manifest.
+    # Keep both declarations visible when inspecting such an archive.
     return {
         "schema": "rcc-refcert.bundle-inspection",
         "schema_version": 2,
         "kind": manifest["kind"],
-        "producer": manifest["producer"],
+        "producer": history["producer"],
+        **(
+            {"manifest_producer": manifest_producer}
+            if manifest_producer != history["producer"]
+            else {}
+        ),
         "record_consistency": "pass",
         "physical_revalidation": "not_run",
         "historical_decision": history["decision"],
@@ -651,7 +689,7 @@ def _scientific_result(result):
 
 def verify_workflow_bundle(path, *, limits=None, tol=None):
     limits = WorkflowLimits.from_value(limits)
-    inspect_workflow_bundle(path, limits=limits)
+    inspection = inspect_workflow_bundle(path, limits=limits)
     manifest, request, history = _read_workflow(path)
     if tol is not None:
         raise InputError(
@@ -718,6 +756,11 @@ def verify_workflow_bundle(path, *, limits=None, tol=None):
         "schema_version": 2,
         "kind": manifest["kind"],
         "producer": producer(),
+        **(
+            {"manifest_producer": inspection["manifest_producer"]}
+            if "manifest_producer" in inspection
+            else {}
+        ),
         "record_consistency": "pass",
         "fresh_verification": {
             "outcome": "pass" if complete else "inconclusive",

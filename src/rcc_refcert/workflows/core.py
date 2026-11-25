@@ -152,6 +152,16 @@ def exact(value, name="value", *, limits=None):
     return check_fraction(result, name, limits)
 
 
+def action_class_count(value):
+    """Parse a declared atomic alphabet size, including exact integer strings."""
+    count = exact(value, "reference.gamma")
+    if count.denominator != 1 or count < 2:
+        raise InputError(
+            "reference.gamma: expected an integer action-class count of at least 2"
+        )
+    return count.numerator
+
+
 def check_fraction(value, name, limits):
     if (
         max(value.numerator.bit_length(), value.denominator.bit_length())

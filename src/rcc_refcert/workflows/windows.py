@@ -16,8 +16,8 @@ import numpy as np
 from .core import (
     InputError,
     WorkflowLimits,
+    action_class_count,
     digest,
-    exact,
     exact_text,
     json_value,
     keys,
@@ -63,13 +63,11 @@ def reference_scale(reference, state):
     keys(reference, {"kind", "gamma", "source"}, name="reference")
     if reference["kind"] != "uniform_product_support":
         raise InputError("reference.kind: expected uniform_product_support")
-    gamma = exact(reference["gamma"], "reference.gamma")
-    if gamma < 2:
-        raise InputError("reference.gamma: require Gamma >= 2")
+    gamma = action_class_count(reference["gamma"])
     return {
         "kind": reference["kind"],
         "gamma_exact": exact_text(gamma),
-        "g_bits": math.log2(gamma.numerator) - math.log2(gamma.denominator),
+        "g_bits": math.log2(gamma),
         "source": text(reference["source"], "reference.source"),
         "dimension": state.dimension,
         "subsystem_dims": list(state.subsystem_dims),
@@ -525,6 +523,23 @@ def window_report_lines(result, *, details=False):
                 "  Numerical input checks unresolved: "
                 + profile["input_diagnostics"].get("reason", "invalid state")
             )
+            if details:
+                diagnostic = profile["input_diagnostics"]
+                if "trace_error" in diagnostic:
+                    tolerance = diagnostic["policy"]["tolerance"]
+                    lines.append(
+                        f"  Density tolerance {tolerance:.6g}: trace error {diagnostic['trace_error']:.6g}, "
+                        f"Hermiticity error {diagnostic['hermiticity_error']:.6g}, "
+                        f"minimum eigenvalue {diagnostic['minimum_eigenvalue']:.6g}."
+                    )
+                    lines.append(
+                        "  Check the normalization, Hermiticity and positivity of the input matrix."
+                    )
+                    if "perturbation_trace_norm_half" in diagnostic:
+                        lines.append(
+                            f"  Required correction {diagnostic['perturbation_trace_norm_half']:.6g}; "
+                            f"declared repair budget {diagnostic['policy']['repair_budget']:.6g}."
+                        )
             continue
         for q in [{"id": "global", **profile["global_quantity"]}, *profile["windows"]]:
             lines.append(

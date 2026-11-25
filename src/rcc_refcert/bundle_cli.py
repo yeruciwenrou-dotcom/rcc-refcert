@@ -26,7 +26,19 @@ def render_bundle_report(report: dict) -> str:
             f"Task: {report['kind']}",
             f"Stored record consistency: {report['record_consistency']}",
         ]
-        if report["schema"] == "rcc-refcert.bundle-inspection":
+        inspecting = report["schema"] == "rcc-refcert.bundle-inspection"
+        author = (
+            report["producer"]
+            if inspecting
+            else report["historical_result"]["producer"]
+        )
+        lines.append(f"Calculated with rcc-refcert {author['version']}.")
+        if "manifest_producer" in report:
+            pack = report["manifest_producer"]
+            lines.append(
+                f"The schema-2 manifest records a different environment (rcc-refcert {pack['version']})."
+            )
+        if inspecting:
             lines.extend(
                 [
                     f"Historical decision: {report['historical_decision']}",

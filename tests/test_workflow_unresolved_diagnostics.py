@@ -273,3 +273,18 @@ def test_partition_records_keep_normal_and_unresolved_controls(tmp_path, mode):
         assert profile["windows"] == []
         assert profile["partition"] is None
     assert path.read_bytes() == before
+
+
+def test_detailed_window_report_gives_density_residuals_and_thresholds():
+    from rcc_refcert.workflows import render_workflow_result
+
+    _, result = _unresolved("window")
+    text = " ".join(render_workflow_result(result, details=True).split())
+    for quantity in (
+        "trace error",
+        "Hermiticity error",
+        "minimum eigenvalue",
+        "1e-10",
+        "1e-18",
+    ):
+        assert quantity in text

@@ -14,6 +14,7 @@ from .studies import acquisition, apportioned, window_batch, windows
 from .templates import load_workflow_template
 
 AXES = ["q1", "q2", "q3"]
+WINDOW_ACTION_CLASSES = 3
 
 
 def design(params, limits):
@@ -122,7 +123,7 @@ def analyze(params, entries, counts, control, eps, alpha, limits, *, record_vers
             window_batch(entries[k], counts[k], AXES, delta, product=True)
             for k in stage_names
         ],
-        3,
+        WINDOW_ACTION_CLASSES,
         eps,
         limits,
     )

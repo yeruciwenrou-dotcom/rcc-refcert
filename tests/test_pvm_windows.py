@@ -470,6 +470,13 @@ def test_comparison_report_uses_both_window_intervals_in_either_input_order():
         assert (
             "0.3708678405 st_R higher for Bell pair than for GHZ reduced pair" in report
         )
+        for detail in (
+            "Gamma=4",
+            "1 st_R = 2 bits",
+            "uniform-C4",
+            "classical measurement window",
+        ):
+            assert detail in report
         assert report.count("supply a preparation model") == 1
         raw["comparisons"][0].reverse()
 

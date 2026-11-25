@@ -5,6 +5,7 @@ import io
 from collections import Counter
 from decimal import ROUND_CEILING
 from fractions import Fraction
+from math import log2
 from textwrap import TextWrapper
 
 from ..bounds.scalar import decimal_string
@@ -71,11 +72,49 @@ def _comparison_line(left, right, forward):
     return f"The measurements leave the ordering of {a} and {b} open in {scope}."
 
 
+def window_scale_line(classes):
+    bandwidth = log2(classes)
+    relation = "=" if classes & (classes - 1) == 0 else "is approximately"
+    return (
+        f"Window scale: Gamma={classes} action classes, g_R=log2({classes}) bits per slot. "
+        f"1 st_R {relation} {bandwidth:.10g} bits."
+    )
+
+
 def render_pvm(record, *, markdown=False, details=False):
     lines = [
         ("# " if markdown else "") + "Finite-sample window RCC",
         f"Joint sampling coverage is at least {decimal_string(100 * Fraction(record['coverage']['at_least']), 9)}%.",
     ]
+    lines.append(window_scale_line(record["atomic_action_classes"]))
+    # A report can contain several references or measurements. Keep each
+    # window attached to its declared support even when their labels coincide.
+    contexts = {}
+    for batch in record["batches"]:
+        context = (
+            batch["window_id"],
+            batch["measurement_id"],
+            batch["window_scope"],
+            batch["reference_id"],
+            batch["dimension"],
+        )
+        contexts.setdefault(context, []).append(batch["dataset_id"])
+    for (
+        window,
+        measurement,
+        scope,
+        reference,
+        dimension,
+    ), datasets in contexts.items():
+        kind = (
+            "classical measurement window"
+            if scope == "classical_blocks"
+            else "containing quantum window"
+        )
+        label = f"{window} ({', '.join(datasets)})" if len(contexts) > 1 else window
+        lines.append(
+            f"{label}: {kind} for {measurement}, uniform reference {reference} (support dimension {dimension})."
+        )
     missing_by_reason = {}
     rows = list(_rows(record))
     repeated = Counter((state, name) for state, name, *_ in rows)
@@ -115,7 +154,7 @@ def render_pvm(record, *, markdown=False, details=False):
         if batch["retention"]:
             r = batch["retention"]
             lines.append(
-                f"Of the shots, {r['retained']} were retained and {r['discarded']} discarded. The retention-weighted lower bound for the projected state is {r['discounted_state_lower_st_R']} st_R."
+                f"Of the shots, {r['retained']} were retained and {r['discarded']} discarded. The retention-weighted lower bound for the projected state is {decimal_string(Fraction(r['discounted_state_lower_st_R']), 9)} st_R."
             )
         for point in batch["process"]:
             cost = point["cost"]

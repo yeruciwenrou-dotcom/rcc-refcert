@@ -273,3 +273,33 @@ def test_cli_bad_inputs_and_budget(tmp_path):
     limited = _cli("cost", "analyze", str(path), "--format", "json", cwd=tmp_path)
     assert limited.returncode == 3
     assert json.loads(limited.stdout)["resource"] == "dp_cells"
+
+
+@pytest.mark.parametrize(
+    "field",
+    ["cost", "gain_certificate", "gain_bound", "producer", "execution", "candidates"],
+)
+def test_incomplete_cost_history_has_a_typed_input_error(tmp_path, field):
+    from rcc_refcert.workflows.core import InputError
+
+    request = load_workflow_template("cyclic-reset")
+    result = analyze_cost(request)
+    result[field] = None
+    with pytest.raises(InputError):
+        save_workflow_bundle(tmp_path / "incomplete.rccbundle", request, result)
+
+
+def test_repackaging_preserves_the_calculating_producer(tmp_path):
+    request = load_workflow_template("cyclic-reset")
+    result = analyze_cost(request)
+    result["producer"]["version"] = "0.3.0"
+    path = tmp_path / "repackaged.rccbundle"
+    save_workflow_bundle(path, request, result)
+    with zipfile.ZipFile(path) as archive:
+        assert (
+            json.loads(archive.read("manifest.json"))["producer"] == result["producer"]
+        )
+    assert inspect_analysis_bundle(path)["producer"] == result["producer"]
+    checked = verify_analysis_bundle(path)
+    assert checked["historical_results_supported"]
+    assert checked["same_version_replay"]["status"] == "different_producer_version"

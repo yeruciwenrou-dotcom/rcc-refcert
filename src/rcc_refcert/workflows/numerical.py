@@ -13,6 +13,7 @@ from .core import (
     InputError,
     UnsupportedContract,
     WorkflowLimits,
+    action_class_count,
     check_size,
     digest,
     exact,
@@ -299,10 +300,9 @@ def parse_numeric_model(document, *, limits=None):
     for field in ("initial_preparation", "auxiliary_systems", "output_rule"):
         text(cost[field], "cost." + field)
     ref = keys(doc["reference"], {"kind", "gamma", "source"}, name="reference")
-    if ref["kind"] != "uniform_product_support" or exact(ref["gamma"]) < 2:
-        raise UnsupportedContract(
-            "numeric cost: declare a uniform product reference and Gamma >= 2"
-        )
+    if ref["kind"] != "uniform_product_support":
+        raise UnsupportedContract("numeric cost: declare a uniform product reference")
+    action_class_count(ref["gamma"])
     text(ref["source"], "reference.source")
     if not np.allclose(reference, np.eye(output_dim) / output_dim, rtol=0, atol=tol):
         raise InputError(

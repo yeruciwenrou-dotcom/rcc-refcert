@@ -536,6 +536,13 @@ def render_effect_record(record, *, details=False):
                 "Zero-bound explanation: "
                 + _DIAGNOSTICS.get(reason, ZERO_EXPLANATIONS.get(reason, reason))
             )
+    elif (
+        record["missing_process_premises"] == ["task"]
+        and not record["support_diagnostic"]
+    ):
+        lines.append(
+            "To bound the preparation cost, supply the preparation model and target tolerance."
+        )
     else:
         lines.append(
             "Process cost unavailable: "

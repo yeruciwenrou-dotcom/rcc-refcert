@@ -511,6 +511,15 @@ def _cooling_lines(r, *, details):
             lines.append(
                 f"{subject} costs {_slots(program['slots'])} and finishes {verdict} tolerance (trace distance {reading})."
             )
+    from .pvm_render import window_scale_line
+    from .study_cooling import WINDOW_ACTION_CLASSES
+
+    first_batch = r["finite_windows"]["batches"][0]
+    lines.append(
+        f"Classical joint Z window on the target and bath, uniform reference "
+        f"{first_batch['reference_id']} (support dimension {first_batch['dimension']})."
+    )
+    lines.append(window_scale_line(WINDOW_ACTION_CLASSES))
     correlations = {
         b["dataset_id"]: b["product"]["classical_correlation_st_R"]
         for b in r["finite_windows"]["batches"]
