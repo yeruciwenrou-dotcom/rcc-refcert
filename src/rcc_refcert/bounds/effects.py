@@ -490,6 +490,11 @@ def render_effect_record(record, *, details=False):
     b = record["reference_response_upper_exact"]
     lines = []
     cost = record["cost"]
+    floor = record["information_lower_bits"]
+    if cost is None and floor is not None:
+        lines.append(
+            f"One-shot information lower bound: {decimal_string(Fraction(floor), 8)} bits"
+        )
     if cost is not None:
         lines.append(
             f"Continuous lower bound: {decimal_string(Fraction(cost['lower_bound_slots']), 8)} atomic slots"
@@ -537,7 +542,6 @@ def render_effect_record(record, *, details=False):
 
         classes = task["model"]["atomic_action_classes"]
         bandwidth = log2_interval(Fraction(classes))
-        floor = record["information_lower_bits"]
         if floor is not None:
             scaled = decimal_string(Fraction(floor) / bandwidth.upper, 8)
             lines.append(f"One-shot RCC readout >= {scaled} st_R.")
@@ -554,6 +558,10 @@ def render_effect_record(record, *, details=False):
             )
         if "method" in event:
             lines.append(f"    Endpoint method: {event['method']}")
+    route_labels = {
+        "fixed_effect_C15": "Fixed-effect witness (C.15)",
+        "hypothesis_test_C16_C17": "Hypothesis-test witness (C.16–C.17)",
+    }
     for route in record["routes"]:
         info = route["information_floor_bits"]
         result = (
@@ -561,7 +569,7 @@ def render_effect_record(record, *, details=False):
             if info
             else _DIAGNOSTICS.get(route["reason"], route["reason"])
         )
-        lines.append(f"{route['route']}: {result}")
+        lines.append(f"{route_labels[route['route']]}: {result}")
     if details:
         lines.extend(
             [

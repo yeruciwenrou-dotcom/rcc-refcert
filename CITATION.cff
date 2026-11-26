@@ -27,10 +27,11 @@ abstract: >-
   numerical candidate diagnostics. Window RCC resolves how
   complexity is distributed across the subsystems of pure and mixed states
   at a common reference and control bandwidth, including the local and
-  correlation contributions along a preparation. Researchers can plan a
-  measurement for a chosen cost threshold and use outcome counts to bound
-  the RCC difference between two states in the same classical measurement
-  window. A shared analysis bundle carries the inputs and results for
+  correlation contributions along a preparation. For a prespecified binary
+  measurement, researchers can plan a sample size for a preparation-cost
+  threshold and certify a lower bound from target and reference counts.
+  Complete outcome histograms give confidence bounds on the RCC difference
+  between two states in the same classical measurement window. A shared analysis bundle carries the inputs and results for
   independent recomputation.
 keywords:
   - quantum circuit complexity

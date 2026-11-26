@@ -300,7 +300,7 @@ def test_cooling_details_expose_actions_cost_and_windows_without_changing_result
     detailed = render_workflow_result(result, details=True)
     assert "Use --details" in summary
     assert "Step 1: R; cumulative cost 1 atomic slot" in detailed
-    assert "subsystem entropy=" in detailed
+    assert "entropy=" in detailed
     assert "Total correlation" in detailed
     assert result == before
     assert json.loads(render_workflow_result(result, format="json")) == before
@@ -311,7 +311,7 @@ def test_near_zero_display_preserves_json_and_csv_precision(tmp_path):
     quantity = result["profiles"][0]["windows"][0]
     quantity["entropy_bits"] = -2e-16
     before = deepcopy(result)
-    assert "subsystem entropy=~0 bits" in render_workflow_result(result)
+    assert "entropy=~0 bits" in render_workflow_result(result)
     assert json.loads(render_workflow_result(result, format="json")) == before
     path = tmp_path / "precision.csv"
     export_window_files(result, csv_path=path)

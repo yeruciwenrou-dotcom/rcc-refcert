@@ -1,10 +1,11 @@
 # Research with finite measurement data
 
-Which measurements reveal a stronger lower bound on the cost of preparing the
-same six-qubit cluster state? Compare either local setting with their joint
-evidence. For three-qubit cooling, test a shorter program against the complete
-target, then read the target, bath and their correlations from joint counts
-before and after the final refresh.
+For a noisy six-qubit cluster state, two local stabilizer settings can certify
+a preparation cost that computational-basis counts cannot resolve at the same
+total shot count. In three-qubit cooling, the final bath refresh preserves
+the target qubit's polarization while changing the full state. Joint counts
+let you follow the target, bath and correlation contributions through that
+step.
 
 Run the examples with your active interpreter. The [source quickstart](../README.md#install-from-source)
 covers the checkout and [Windows shell instructions](../README.md#install-from-pypi).
@@ -12,9 +13,10 @@ Choose a fresh output name for a second analysis.
 
 ## Six-qubit cluster state
 
-After independent phase noise, which measurements rule out cheaper
-preparations of the cluster state? Compare two alternating X/Z settings with
-a computational-basis measurement at the same total shot count.
+After independent phase noise, compare the lower bounds from each alternating
+X/Z setting, their combined evidence and a separate computational-basis
+measurement. The computational-basis acquisition uses as many shots as the
+two X/Z settings together.
 
 ```sh
 python -m rcc_refcert study template cluster --noise 1/20 --shots 10000 > cluster.json

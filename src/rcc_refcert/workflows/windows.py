@@ -490,6 +490,12 @@ def _window_number(value):
     return "~0" if abs(value) < 1e-12 else f"{value:.10g}"
 
 
+def _window_bits(value):
+    number = _window_number(value)
+    unit = "bit" if number == "1" else "bits"
+    return f"{number} {unit}"
+
+
 def window_report_lines(result, *, details=False):
     from .render import _decision_label
 
@@ -497,7 +503,7 @@ def window_report_lines(result, *, details=False):
     lines = [
         "RCC subsystem complexity profiles",
         f"Decision: {_decision_label(result['decision'])}",
-        f"Reference: uniform product support; Gamma={ref['gamma_exact']}; g_R={ref['g_bits']:.10g} bits",
+        f"Reference: uniform product support; Gamma={ref['gamma_exact']}; g_R={_window_bits(ref['g_bits'])} per atomic slot",
         f"Scale source: {ref['source']}",
         "C = entropy deficit / g_R: state-side complexity in st_R (1 st_R = g_R bits).",
         "The information numerator is log2(d_A) - S(rho_A); entropies are in bits.",
@@ -544,13 +550,13 @@ def window_report_lines(result, *, details=False):
             continue
         for q in [{"id": "global", **profile["global_quantity"]}, *profile["windows"]]:
             lines.append(
-                f"  {q['id']}: C={_window_number(q['rcc_main_term'])} st_R; subsystem entropy={_window_number(q['entropy_bits'])} bits; deficit={_window_number(q['entropy_deficit_bits'])} bits"
+                f"  {q['id']}: C={_window_number(q['rcc_main_term'])} st_R; entropy={_window_bits(q['entropy_bits'])}; deficit={_window_bits(q['entropy_deficit_bits'])}"
             )
         if profile["partition"] is not None:
             left = ", ".join(profile["partition"]["left"]["keep"])
             right = ", ".join(profile["partition"]["right"]["keep"])
             lines.append(
-                f"  Correlation contribution ({left} | {right}): {_window_number(profile['partition']['total_correlation_scaled'])} st_R; Total correlation: {_window_number(profile['partition']['total_correlation_bits'])} bits"
+                f"  Correlation contribution ({left} | {right}): {_window_number(profile['partition']['total_correlation_scaled'])} st_R; Total correlation: {_window_bits(profile['partition']['total_correlation_bits'])}"
             )
         if details:
             lines.append(f"  State identity: {profile['state_digest']}")

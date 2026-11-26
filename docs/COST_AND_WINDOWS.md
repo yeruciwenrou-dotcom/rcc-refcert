@@ -3,13 +3,13 @@
 
 # Preparation costs and complexity profiles
 
-How much does a preparation cost in a specified model, and how does complexity
-vary across its subsystems? The cost workflow bounds the optimum and checks
-candidate programs against a complete target. The window workflow computes
-subsystem RCC complexity profiles in pure and mixed states using a common
-reference and control bandwidth. Entropy deficits and correlations supply the
-information for these calibrated readings. You can analyze states directly or follow a
-preparation step by step, and share either calculation for independent revalidation.
+For a specified model and target, the cost workflow checks which candidate
+programs reach the target within tolerance. In exact diagonal-preserving
+models, it also bounds how much cheaper a successful program could be.
+Window RCC measures how complexity is distributed across the subsystems of a
+pure or mixed state at a common reference and control bandwidth. You can
+separate local and correlation contributions in one state or track them
+through a preparation, then share the calculation for independent verification.
 
 | Your question | Start here |
 |---|---|

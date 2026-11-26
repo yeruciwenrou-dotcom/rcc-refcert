@@ -14,6 +14,7 @@ from rcc_refcert.bounds import (
     load_template,
     prepare_effect_protocol,
     prepare_protocol,
+    render_record,
     replay_record,
     validate_record,
 )
@@ -177,6 +178,9 @@ def test_information_survives_missing_qualifications(request_data):
         assert r["decision"] == "information_only"
         assert r["information_lower_bits"] == full["information_lower_bits"]
         assert r["cost"] is None and r["missing_process_premises"] == [item]
+        assert render_record(r).splitlines()[0] == (
+            "One-shot information lower bound: 0.47457747 bits"
+        )
         assert all(route["cost"] is None for route in r["routes"])
         request_data.pop("task", None)
 
@@ -295,6 +299,7 @@ def test_uniform_support_consistency(request_data, b, diagnostic):
     r = bound_from_counts(request_data)
     assert r["decision"] == "support_conflict"
     assert r["support_diagnostic"] == diagnostic and r["cost"] is None
+    assert render_record(r).startswith("Process cost unavailable:")
 
 
 @pytest.mark.parametrize(

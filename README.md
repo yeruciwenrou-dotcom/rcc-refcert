@@ -10,12 +10,14 @@ lower bound on optimal quantum circuit complexity** from final-state data.
 Use the target state's exact spectrum or counts collected under a
 prespecified measurement protocol.
 
-You can model preparation with measurement, feed-forward and reset. When a
-feasible circuit meets the lower bound, its cost is optimal. A remaining gap
-gives the most a better circuit could save. A density matrix maps complexity
-across the subsystems of a pure or mixed state. Measurement histograms let you
-compare two states in the same measured classical window with finite-sample
-bounds. A colleague can independently verify the calculation from one bundle.
+You can verify reference bounds for models with measurement, feed-forward and
+reset. In exact diagonal-preserving models, a successful program is optimal
+when its cost meets the lower bound. An open gap limits how many slots a
+better program could save. Window RCC maps complexity across subsystems from
+the density matrix of a pure or mixed state. Complete outcome histograms give
+confidence bounds on the RCC difference between two states in the same
+classical measurement window. A colleague can independently recompute the
+results from one bundle.
 
 The toolkit is based on **Reference-Contingent Complexity (RCC)**, introduced by
 Liu, Tian and Wu in
@@ -66,7 +68,7 @@ the target and rare under the reference.
 | [Verify a model's reference bound](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/867c064e5f9134c48bc58eedfccb2df5487421a1/docs/CUSTOM_MODELS.md#prepare-and-verify-a-candidate) | Check a certificate you already have or, for a stable model, generate and verify a numerical candidate. You can reuse the verified reference bound to calculate complexity lower bounds for different targets in the same model. |
 | [Certify a lower bound on optimal circuit complexity](#target-spectra-and-measured-counts) | An exact target spectrum gives a cost below which no circuit in the model can prepare the target within tolerance. For an experiment, [plan how many shots to take](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/867c064e5f9134c48bc58eedfccb2df5487421a1/docs/TERMINAL_BOUNDS.md#plan-a-fixed-sample-size) and use target and reference counts to certify a bound at the chosen confidence level. The [graph-state example](#graph-state-and-cooling-studies) shows how the choice of measurement affects that bound. |
 | [Compare preparation strategies](#preparation-costs-and-complexity-profiles) | Find which programs reach the target within tolerance and compare their costs. In an exact diagonal-preserving model, a successful program is optimal when its cost matches the lower bound. A better program could save at most the gap between that cost and the lower bound. The [cooling study](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/867c064e5f9134c48bc58eedfccb2df5487421a1/docs/FINITE_DATA_STUDIES.md#three-qubit-algorithmic-cooling) proves that six slots are optimal for the full three-qubit target at trace-distance tolerance 1/50. |
-| [Measure pure-state complexity with window RCC](#compare-subsystem-complexity) | Map complexity across each pure state's subsystem windows and use the profiles to distinguish different internal structures. For pure or mixed states, use [your own density matrix](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/867c064e5f9134c48bc58eedfccb2df5487421a1/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels) to [separate the contributions of local structure and correlations between subsystems](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/867c064e5f9134c48bc58eedfccb2df5487421a1/docs/COST_AND_WINDOWS.md#read-local-and-correlation-contributions) and track both during preparation. With outcome counts, [bound the RCC difference between two states in the same classical measurement window](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/867c064e5f9134c48bc58eedfccb2df5487421a1/docs/COST_AND_WINDOWS.md#finite-sample-windows). |
+| [Measure pure-state complexity with window RCC](#compare-subsystem-complexity) | Subsystem profiles show how complexity is distributed within a pure state and where two states differ, even when their global RCC readings agree. For pure or mixed states, use [your own density matrix](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/867c064e5f9134c48bc58eedfccb2df5487421a1/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels) to [separate the contributions of local structure and correlations between subsystems](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/867c064e5f9134c48bc58eedfccb2df5487421a1/docs/COST_AND_WINDOWS.md#read-local-and-correlation-contributions) and track both during preparation. With outcome counts, [bound the RCC difference between two states in the same classical measurement window](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/867c064e5f9134c48bc58eedfccb2df5487421a1/docs/COST_AND_WINDOWS.md#finite-sample-windows). |
 | [Share a calculation for independent verification](#reverify-a-shared-analysis) | Share the original inputs and results in a single bundle. A colleague can use it to recompute the result independently. |
 | [Reproduce the paper's reference calculations](#reference-cases) | Rerun the bundled cases and compare the outputs with the frozen reference results. The [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/867c064e5f9134c48bc58eedfccb2df5487421a1/docs/PAPER_MAP.md) links each calculation to the corresponding equations. |
 
@@ -304,8 +306,8 @@ out the remaining systems and evaluates the reduced state relative to the
 declared reference and control scale. For the uniform product reference, the
 window RCC value is $C_{R,A}=[\log_2 d_A-S(\rho_A)]/g_R$. The control bandwidth
 $g_R=\log_2\Gamma_R$ converts the entropy deficit into a complexity reading in
-R-structons ($\mathrm{st}_R$). A bipartition separates its local and correlation
-contributions.
+R-structons ($\mathrm{st}_R$). For a complete bipartition, the global reading is the sum of
+the two local readings and the contribution from correlations between them.
 
 To try an editable state comparison in the same environment:
 
@@ -314,11 +316,11 @@ python3 -m rcc_refcert probe export w1-quantum-organization > windows.json
 python3 -m rcc_refcert window analyze windows.json --bundle windows.rccbundle
 ```
 
-On this four-qubit reference, two Bell pairs and a GHZ state both give a global
-reading of 2 R-structons. Within one Bell pair the reading is 1, and across
-the two pairs it is 0. In the GHZ state either pair retains one shared
-classical bit, giving a reading of 1/2. These two states have the same global
-RCC reading and different subsystem complexity profiles.
+At fixed dimension and control bandwidth, all pure states have the same global
+RCC reading for a uniform reference. Here two Bell pairs and a four-qubit GHZ
+state both give 2 R-structons. For the Bell pairs, a two-qubit window reads 1
+when it contains a whole pair and 0 when it contains one qubit from each pair.
+The corresponding GHZ windows both read 1/2.
 
 The [window guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/867c064e5f9134c48bc58eedfccb2df5487421a1/docs/COST_AND_WINDOWS.md#subsystem-complexity-profiles)
 works through the local and correlation contributions on that common scale. To use [your own density matrix](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/867c064e5f9134c48bc58eedfccb2df5487421a1/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels),

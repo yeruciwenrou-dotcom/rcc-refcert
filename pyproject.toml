@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rcc-refcert"
 dynamic = ["version"]
-description = "Study quantum circuit complexity using final-state lower bounds, verified preparation costs and subsystem RCC profiles"
+description = "Certify lower bounds on optimal quantum circuit complexity from final-state data, compare preparation costs and map complexity across subsystems"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
