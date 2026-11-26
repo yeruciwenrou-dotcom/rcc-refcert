@@ -82,6 +82,8 @@ def keys(
 
 @dataclass(frozen=True)
 class Task:
+    """A validated preparation task with a fixed model, target and tolerance."""
+
     declaration_json: str
     dimension: int
     gamma_classes: int

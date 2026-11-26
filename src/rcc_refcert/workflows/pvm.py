@@ -78,6 +78,7 @@ def _product_axes(measurement):
 
 
 def prepare_pvm_protocol(value):
+    """Freeze the measurement settings and sample design before observing PVM counts."""
     p = json_ready(
         keys(
             value,
@@ -444,6 +445,7 @@ def _window_difference_lower(left, right):
 
 
 def analyze_pvm_windows(request, *, limits=None):
+    """Bound measured classical windows from complete outcome counts and their sampling design."""
     limits = WorkflowLimits.from_value(limits)
     keys(
         request,

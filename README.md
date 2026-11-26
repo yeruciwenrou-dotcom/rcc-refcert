@@ -10,12 +10,12 @@ lower bound on optimal quantum circuit complexity** from final-state data.
 Use the target state's exact spectrum or counts collected under a
 prespecified measurement protocol.
 
-You can build your own quantum models and compare preparation strategies.
-A density matrix lets you map complexity across the subsystems of a pure or
-mixed state. Full outcome histograms give finite-sample bounds on the
-complexity visible to a chosen projective measurement and on the difference
-between two states' readings in that measurement. A colleague can independently
-verify the calculation from one bundle containing the inputs and results.
+You can model preparation with measurement, feed-forward and reset. When a
+feasible circuit meets the lower bound, its cost is optimal. A remaining gap
+gives the most a better circuit could save. A density matrix maps complexity
+across the subsystems of a pure or mixed state. Measurement histograms let you
+compare two states in the same measured classical window with finite-sample
+bounds. A colleague can independently verify the calculation from one bundle.
 
 The toolkit is based on **Reference-Contingent Complexity (RCC)**, introduced by
 Liu, Tian and Wu in
@@ -112,7 +112,7 @@ that prepares this target to the stated accuracy must use at least one slot.
 To run your own calculation, replace the spectrum and model parameters in
 `spectrum.json`, or follow the [measurement protocol](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/a1d753603eff2425c48cc26c51949ac851a9f43b/docs/TERMINAL_BOUNDS.md#fixed-projector-counts)
 for projector counts. The [terminal-state guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/a1d753603eff2425c48cc26c51949ac851a9f43b/docs/TERMINAL_BOUNDS.md)
-describes the input fields.
+describes the input fields. To see an optimal cost, follow the [five-slot cyclic reset](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/a1d753603eff2425c48cc26c51949ac851a9f43b/docs/COST_AND_WINDOWS.md#a-complete-cost-task). To compare pure states, start with [Bell and GHZ subsystem profiles](#compare-subsystem-complexity).
 
 The installed package includes the [Python API](#python-api), command-line
 tools and reference cases. The source checkout also includes example scripts,
@@ -136,9 +136,6 @@ From that directory, run the frozen reference calculations:
 python3 --version
 python3 quickstart.py --reproduce-only
 ```
-
-On Windows, or where your interpreter is named `python`, use `python` in place
-of `python3`.
 
 The script creates `.venv`, installs the locked verification dependencies,
 checks the frozen reference evidence, and writes fresh results to
@@ -351,12 +348,8 @@ A colleague needs only the bundle and a compatible installation of RCC RefCert
 to recompute the result. Use `--output` to save the verification report under
 a new filename. The
 [analysis-bundle guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/a1d753603eff2425c48cc26c51949ac851a9f43b/docs/ANALYSIS_BUNDLES.md) explains result comparisons,
-exit codes and the original counts protocol. Exact historical scalar replay
-uses the producer's package version. Preparation-cost and known-state window
-bundles are readable from 0.3.0
-(0.4.0 for requests using `on_gain_failure`). Use 0.4.0 or later for
-fixed-effect counts, measured windows and finite-data studies. The same
-verification command recomputes their results from the archived inputs.
+exit codes and which versions can verify each bundle. Exact historical scalar
+replay uses the producer's package version.
 
 ## Notebooks and Python API
 
@@ -605,7 +598,7 @@ The following citation identifies the 0.4.0 source revision used in the examples
 
 > Liu, HongZheng; Tian, YiNuo; and Wu, Zhiyue. *RCC RefCert: A Research Toolkit
 > for Structure-Fair Quantum Circuit Complexity*. Version 0.4.0, 2026.
-> [Source revision `7fe5dad`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/commit/a1d753603eff2425c48cc26c51949ac851a9f43b).
+> [Source revision `a1d7536`](https://github.com/yeruciwenrou-dotcom/rcc-refcert/commit/a1d753603eff2425c48cc26c51949ac851a9f43b).
 
 The GitHub **Cite this repository** button follows the paper preference in
 `CITATION.cff`; include the software version citation as well when reporting a

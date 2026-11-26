@@ -254,7 +254,7 @@ def _check_request_binding(request, model, certificate, binding, tolerance, cons
         model.reference_state, np.eye(task.dimension) / task.dimension
     ):
         raise InputError(
-            "bound requests require the declared nominal uniform reference"
+            "bound requests require the declared nominal uniform reference. Construct it with np.eye(d) / d and verify the binding again."
         )
     if task.reference_constant != max(
         Fraction(1), rational(constant, "verified constant")

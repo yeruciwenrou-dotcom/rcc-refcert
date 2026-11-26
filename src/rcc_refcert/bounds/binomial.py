@@ -8,7 +8,7 @@ from .scalar import BudgetError, InputError, Interval, rational, require_int
 
 CP = "clopper_pearson"
 HOEFFDING = "hoeffding"
-CP_MAX_N = 2048
+CP_MAX_N = 4096
 CP_BITS = 48
 GRID = 1 << CP_BITS
 

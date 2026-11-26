@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rcc-refcert"
 dynamic = ["version"]
-description = "Structure-fair quantum circuit complexity: rigorous lower bounds, preparation costs, subsystem complexity profiles, and reference certificates"
+description = "Study quantum circuit complexity using final-state lower bounds, verified preparation costs and subsystem RCC profiles"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -43,6 +43,8 @@ dependencies = [
 ]
 
 [project.urls]
+Documentation = "https://github.com/yeruciwenrou-dotcom/rcc-refcert#readme"
+Changelog = "https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/CHANGELOG.md"
 Paper = "https://arxiv.org/abs/2509.18205"
 Repository = "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 

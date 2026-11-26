@@ -144,6 +144,7 @@ def _record(
 
 
 def bound_from_spectrum(request: dict) -> dict:
+    """Compute a terminal lower-bound record from an exact target spectrum and declared task."""
     keys(request, {"task", "spectrum"}, "spectrum request")
     task = Task.from_dict(request["task"])
     info = spectral_information(request["spectrum"], task.dimension, task.epsilon)
@@ -151,6 +152,7 @@ def bound_from_spectrum(request: dict) -> dict:
 
 
 def bound_from_counts(request: dict) -> dict:
+    """Compute a terminal lower-bound record from a frozen measurement protocol and observed counts."""
     if isinstance(request, dict) and request.get("schema") == REQUEST:
         return analyze_effect_counts(request)
     keys(request, {"task", "protocol", "data"}, "counts request")
@@ -218,6 +220,22 @@ ZERO_EXPLANATIONS = {
 }
 
 
+def _enclosure_text(enclosure):
+    from decimal import ROUND_CEILING
+
+    lower = decimal_string(Fraction(enclosure["lower"]), 8)
+    upper = decimal_string(Fraction(enclosure["upper"]), 8, ROUND_CEILING)
+    return lower if lower == upper else f"[{lower}, {upper}]"
+
+
+def _scale_line(classes, bandwidth):
+    return (
+        f"Calibration: Gamma_R = {classes} atomic action classes, "
+        f"g_R = log2(Gamma_R) = {_enclosure_text(bandwidth)} bits per atomic slot. "
+        "One R-structon (st_R) represents g_R bits."
+    )
+
+
 def render_record(result: dict, *, details: bool = False) -> str:
     """Render one result; short display values were rounded down at construction."""
     if result.get("schema") == RECORD:
@@ -234,6 +252,32 @@ def render_record(result: dict, *, details: bool = False) -> str:
     lines.append(
         f"One-shot information input: {display['information_lower_bits']} bits (rounded down)"
     )
+    info = result["information"]
+    params = result["parameters"]
+    lines.append(
+        "One-shot RCC readout >= "
+        + decimal_string(Fraction(info["one_shot_readout_st_R"]["lower"]), 8)
+        + " st_R."
+    )
+    lines.append(
+        _scale_line(
+            result["model"]["atomic_action_classes"], params["bandwidth_bits_per_slot"]
+        )
+    )
+    if result["path"]["name"] == "spectrum":
+        lines.append(
+            f"Mean relative information D = {_enclosure_text(info['relative_entropy_bits'])} bits, "
+            f"plus spectral skew = {_enclosure_text(info['spectral_skew_bits'])} bits, "
+            f"minus smoothing loss = {_enclosure_text(info['smoothing_loss_bits'])} bits."
+        )
+        d = info["relative_entropy_bits"]
+        g = params["bandwidth_bits_per_slot"]
+        main = Interval(Fraction(d["lower"]), Fraction(d["upper"])) / Interval(
+            Fraction(g["lower"]), Fraction(g["upper"])
+        )
+        lines.append(
+            f"State-side main term C_R = D/g_R = {_enclosure_text(main.strings())} st_R."
+        )
     lines.append(
         f"Generation tolerance: {result['parameters']['generation_epsilon']} (trace distance)"
     )

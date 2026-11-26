@@ -520,10 +520,7 @@ def _cooling_lines(r, *, details):
         f"{first_batch['reference_id']} (support dimension {first_batch['dimension']})."
     )
     lines.append(window_scale_line(WINDOW_ACTION_CLASSES))
-    correlations = {
-        b["dataset_id"]: b["product"]["classical_correlation_st_R"]
-        for b in r["finite_windows"]["batches"]
-    }
+    batches = {b["dataset_id"]: b for b in r["finite_windows"]["batches"]}
     stages = {
         "shorter-program": f"After the {r['parameters']['cycles'] - 1}-cycle program",
         "after-compression": "After the last compression",
@@ -535,10 +532,25 @@ def _cooling_lines(r, *, details):
     )
     for name, stage in stages.items():
         point = r["observed_polarizations"][name]
-        correlation = correlations[r["sources"][name]["dataset_id"]]
+        batch = batches[r["sources"][name]["dataset_id"]]
+        product = batch["product"]
+        correlation = product["classical_correlation_st_R"]
         lines.append(
             f"{stage}, target-qubit polarization lies in {_cooling_interval(point['lower'], point['upper'])} "
             f"and classical target-bath correlations contribute {_cooling_interval(correlation['lower'], correlation['upper'])} st_R to the measured window."
+        )
+        windows = {
+            "target q1": product["marginals"]["q1"]["window_st_R"],
+            "bath": product["marginals"]["bath"]["window_st_R"],
+            "joint": batch["window"]["window_st_R"],
+        }
+        lines.append(
+            "  Measured RCC (st_R): "
+            + ", ".join(
+                f"{label} {_cooling_interval(v['lower'], v['upper'])}"
+                for label, v in windows.items()
+            )
+            + "."
         )
     calibrated = r["calibrated"]["polarization_lower"]
     if calibrated is None:

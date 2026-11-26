@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 from copy import deepcopy
+from dataclasses import replace
 from fractions import Fraction as Q
 from pathlib import Path
 
@@ -263,3 +264,62 @@ def test_result_representation_does_not_expand_user_input_budgets():
         rational("1e2096")
     with pytest.raises(BudgetError):
         rational(2**8192)
+
+
+@pytest.mark.parametrize("d", [8, 9, 16])
+def test_auto_identity_certificate_reports_the_actual_constant_budget(d):
+    from rcc_refcert import prepare_bellman_choi, with_reference_certificate
+
+    model, _, task = identity_halt(d)
+    eye = np.eye(d)
+    model = replace(
+        model,
+        actions_by_syntax={
+            "s": (
+                Action("continue", "0", "s", continue_kraus={("q", "q"): (eye,)}),
+                Action("halt", "1", None, halt_kraus={"q": (eye,)}),
+            )
+        },
+    )
+    proof = prepare_bellman_choi(model).certificate
+    with pytest.raises(
+        InputError, match=r"tol=1e-10.*constant_error_bound=.*threshold=1e-10"
+    ):
+        with_reference_certificate(task, model, proof, source="identity loop")
+    tol = 1e-9 if d < 16 else 1e-8
+    bound_task = with_reference_certificate(
+        task, model, proof, source="identity loop", tol=tol
+    )
+    binding = bound_task["model"]["reference_domination"]
+    assert binding["evidence"]["level"] == "numerical"
+    assert Q(binding["evidence"]["tolerance_exact"]) == Q.from_float(tol)
+    assert Q(binding["upper_constant"]) > 1
+    result = bound_from_spectrum({"task": bound_task, "spectrum": [1] + [0] * (d - 1)})
+    assert result["analysis_state"] == "complete"
+    if d == 16:
+        slack = BellmanChoiCertificate(
+            {("s", "q"): choi_from_kraus((eye,)) + np.eye(d * d) / (8 * d)}, 1.25
+        )
+        accepted = with_reference_certificate(
+            task, model, slack, source="identity loop with slack"
+        )
+        assert (
+            accepted["model"]["reference_domination"]["evidence"]["outcome"] == "pass"
+        )
+
+
+def test_terminal_adapter_suggests_canonical_uniform_reference():
+    from rcc_refcert import verify_bellman_choi
+
+    model, proof, task = identity_halt(6)
+    shifted = model.reference_state / model.reference_state.trace()
+    assert not np.array_equal(shifted, model.reference_state)
+    with pytest.raises(InputError, match=r"np.eye\(d\) / d"):
+        with_reference_certificate(
+            task, replace(model, reference_state=shifted), proof, source="test"
+        )
+    assert with_reference_certificate(task, model, proof, source="test")
+    # A nonuniform, full-rank reference remains valid for direct H.3 verification.
+    warm = np.diag([0.2] * 3 + [2 / 15] * 3)
+    direct = replace(model, initial_blocks={"q": warm}, reference_state=warm)
+    assert verify_bellman_choi(direct, proof).outcome.value == "pass"

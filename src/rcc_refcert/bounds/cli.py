@@ -102,6 +102,25 @@ def _invalid_constant(value):
 
 def run(arguments) -> int:
     try:
+        from ..workflows.cli import write_atomic
+
+        destinations = [
+            path.resolve()
+            for key in ("output", "bundle", "counts_request")
+            if (path := getattr(arguments, key, None)) is not None
+        ]
+        source = getattr(arguments, "input", None)
+        if len(set(destinations)) != len(destinations) or (
+            source is not None and source.resolve() in destinations
+        ):
+            raise InputError(
+                "Choose distinct paths for the input, report, counts request and bundle."
+            )
+        for path in destinations:
+            if path.exists() and not arguments.overwrite:
+                raise FileExistsError(
+                    f"{path} already exists. Use --overwrite or a new path."
+                )
         if arguments.bound_command == "template":
             result = load_template(arguments.name)
         else:
@@ -122,11 +141,10 @@ def run(arguments) -> int:
                 result = plan_counts(request)
                 destination = getattr(arguments, "counts_request", None)
                 if destination is not None and result["counts_request"] is not None:
-                    from ..workflows.cli import write_atomic
-
                     write_atomic(
                         destination,
                         json.dumps(result["counts_request"], indent=2) + "\n",
+                        overwrite=arguments.overwrite,
                     )
             elif arguments.bound_command == "replay":
                 result = replay_record(request)
@@ -146,7 +164,18 @@ def run(arguments) -> int:
                 if getattr(arguments, "bundle", None) is not None:
                     from ..workflows.bundles import save_effect_bundle
 
-                    save_effect_bundle(arguments.bundle, request, result)
+                    if request.get("schema") != REQUEST:
+                        raise InputError(
+                            "--bundle supports fixed-effect counts. Use an effect-counts request."
+                        )
+                    save_effect_bundle(
+                        arguments.bundle, request, result, overwrite=arguments.overwrite
+                    )
+        rendered = _render_result(arguments, result)
+        if arguments.output is None:
+            print(rendered, end="")
+        else:
+            write_atomic(arguments.output, rendered, overwrite=arguments.overwrite)
     except (
         OSError,
         ValueError,
@@ -176,37 +205,40 @@ def run(arguments) -> int:
             else f"{state}: {exc}"
         )
         return 2
+    return 0 if result.get("analysis_state", "complete") == "complete" else 2
+
+
+def _render_result(arguments, result):
     if arguments.output_format == "json" or arguments.bound_command in {
         "template",
         "prepare-protocol",
         "replay",
     }:
-        print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
-    elif arguments.bound_command == "plan":
-        descriptions = {
-            "power_met": "The design reaches the requested power.",
-            "fixed_n_below_power": "This fixed sample size falls short of the requested power.",
-            "search_limit_reached": "No sample size in the searched range reached the requested power.",
-            "threshold_unreachable": "The goal exceeds what this measurement can certify.",
-            "uninformative_readout": "This readout has the same response for both ideal outcomes.",
-            "empty_reference_readout_preimage": "The reference observations conflict with the declared readout.",
-            "zero_reference_requires_support_assessment": "The zero reference response requires a support assessment.",
-        }
-        print(descriptions[result["status"]])
-        if "samples" in result:
-            print(
-                f"Trials: {result['samples']} | counted outcome: {result['counted_outcome']}"
+        return json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
+    if arguments.bound_command != "plan":
+        return render_record(result, details=arguments.details)
+    descriptions = {
+        "power_met": "The design reaches the requested power.",
+        "fixed_n_below_power": "This fixed sample size falls short of the requested power.",
+        "search_limit_reached": "No sample size in the searched range reached the requested power.",
+        "threshold_unreachable": "The goal exceeds what this measurement can certify.",
+        "uninformative_readout": "This readout has the same response for both ideal outcomes.",
+        "empty_reference_readout_preimage": "The reference observations conflict with the declared readout.",
+        "zero_reference_requires_support_assessment": "The zero reference response requires a support assessment.",
+    }
+    lines = [descriptions[result["status"]]]
+    if "samples" in result:
+        lines.append(
+            f"Trials: {result['samples']} | counted outcome: {result['counted_outcome']}"
+        )
+        if result["minimum_hits"] <= result["maximum_hits"]:
+            lines.append(
+                f"Passing counts: {result['minimum_hits']} to {result['maximum_hits']} | design power >= {result['design_power_lower']}"
             )
-            if result["minimum_hits"] <= result["maximum_hits"]:
-                print(
-                    f"Passing counts: {result['minimum_hits']} to {result['maximum_hits']} | design power >= {result['design_power_lower']}"
-                )
-            else:
-                print("No count at this sample size meets the goal.")
-        elif result["status"] == "search_limit_reached":
-            print(
-                "Checked every sample size through", result["samples_evaluated_through"]
-            )
-    else:
-        print(render_record(result, details=arguments.details), end="")
-    return 0 if result.get("analysis_state", "complete") == "complete" else 2
+        else:
+            lines.append("No count at this sample size meets the goal.")
+    elif result["status"] == "search_limit_reached":
+        lines.append(
+            f"Checked every sample size through {result['samples_evaluated_through']}"
+        )
+    return "\n".join(lines) + "\n"

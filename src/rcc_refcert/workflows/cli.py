@@ -79,15 +79,12 @@ def add_commands(commands):
             help="text line width, 40–240 columns (default: 80)",
         )
         _output_options(analyze)
-        if name == "window":
-            analyze.add_argument(
-                "--plot",
-                type=Path,
-                help="save window values as SVG, PNG or PDF; requires the plots extra",
-            )
-            analyze.add_argument(
-                "--csv", type=Path, help="save window quantities as CSV"
-            )
+        analyze.add_argument(
+            "--plot",
+            type=Path,
+            help="save window values as SVG, PNG or PDF; requires the plots extra",
+        )
+        analyze.add_argument("--csv", type=Path, help="save window quantities as CSV")
         if name == "cost":
             compare = sub.add_parser(
                 "compare", help="compare saved cost result JSON files"
@@ -431,26 +428,41 @@ def run(arguments):
                         _delivery_failed(result, "csv", arguments.csv, exc)
                     else:
                         saved_outputs["csv"] = arguments.csv
-            elif arguments.command == "cost":
-                result = analyze_cost(request, limits=limits)
             else:
                 from .windows import analyze_windows, export_window_files
 
-                result = analyze_windows(request, limits=limits)
+                if arguments.command == "cost":
+                    result = analyze_cost(request, limits=limits)
+                    windows = result.get("windows") or {}
+                else:
+                    result = windows = analyze_windows(request, limits=limits)
                 for name, path in (("csv", arguments.csv), ("plot", arguments.plot)):
-                    if path is not None:
-                        try:
-                            export_window_files(
-                                result,
-                                **{f"{name}_path": path},
-                                overwrite=arguments.overwrite,
-                            )
-                        except OSError as exc:
-                            _delivery_failed(result, name, path, exc)
+                    if path is None:
+                        continue
+                    if windows.get("kind") not in ("window_analysis", "pvm_windows"):
+                        _delivery_failed(
+                            result,
+                            name,
+                            path,
+                            "This cost request has no computed trajectory windows.",
+                        )
+                        continue
+                    # Optional file delivery belongs to the parent run. Keep the nested scientific record intact.
+                    view = {**windows} if windows is not result else result
+                    try:
+                        export_window_files(
+                            view,
+                            **{f"{name}_path": path},
+                            overwrite=arguments.overwrite,
+                        )
+                    except OSError as exc:
+                        _delivery_failed(result, name, path, exc)
+                    else:
+                        stop = view.get("execution", {}).get("reason") or ""
+                        if name == "plot" and stop.startswith("optional_plot_"):
+                            _delivery_failed(result, name, path, stop)
                         else:
-                            stop = result.get("execution", {}).get("reason") or ""
-                            if name != "plot" or not stop.startswith("optional_plot_"):
-                                saved_outputs[name] = path
+                            saved_outputs[name] = path
             run_id = result["run_id"]
             if arguments.bundle is not None:
                 try:

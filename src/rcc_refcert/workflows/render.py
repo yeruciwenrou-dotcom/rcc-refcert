@@ -118,6 +118,7 @@ def _slot_unit(count):
 
 
 def render_workflow_result(result, *, format="text", details=False, width=80):
+    """Render a workflow result as a text or Markdown research report."""
     if format == "json":
         return json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
     if format not in {"text", "markdown"}:

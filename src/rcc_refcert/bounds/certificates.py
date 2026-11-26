@@ -126,14 +126,24 @@ def with_reference_certificate(
         model.reference_state, np.eye(task.dimension) / task.dimension
     ):
         raise InputError(
-            "the certificate reference must be the declared nominal uniform state"
+            "the certificate reference must be the declared nominal uniform state. Construct the model reference with np.eye(d) / d and verify the binding again."
         )
     model_hash = canonical_hash(_snapshot(model))
     certificate_hash = canonical_hash(_snapshot(certificate))
     report = verifier(model, certificate, tol=tol, limits=limits)
     if report.outcome is not CheckOutcome.PASS or report.constant is None:
+        evidence = [f"tol={tol:g}"]
+        for check in report.checks:
+            if check.outcome in (CheckOutcome.FAIL, CheckOutcome.INCONCLUSIVE):
+                evidence.append(f"{check.name}: {check.message}")
+        if report.constant_error_bound is not None:
+            evidence.append(f"constant_error_bound={report.constant_error_bound:.8g}")
+        if report.candidate_constant is not None:
+            budget = tol * max(1.0, report.candidate_constant)
+            evidence.append(f"constant correction threshold={budget:.8g}")
         raise InputError(
-            f"{method} verification is {report.outcome.value}; no usable upper constant"
+            f"{method} verification is {report.outcome.value}; no usable upper constant. "
+            + " | ".join(evidence)
         )
     if not math.isfinite(report.constant) or report.constant < 0:
         raise InputError("certificate returned an invalid upper constant")

@@ -210,7 +210,56 @@ def export_pvm(record, csv_path, plot_path, overwrite):
     from .cli import write_atomic
     from .windows import save_window_figure
 
-    rows = list(_rows(record))
+    by_event = {b["event_id"]: b for b in record["batches"]}
+    rows = []
+    for state, name, lo, hi, status, dataset, event in _rows(record):
+        retention = by_event[event]["retention"]
+        kept, discarded = (
+            (retention["retained"], retention["discarded"])
+            if retention
+            else (None, None)
+        )
+        kind = "conditional_window" if retention else "measured_window"
+        rows.append(
+            (state, name, lo, hi, status, dataset, event, kind, kept, discarded)
+        )
+    for event, batch in by_event.items():
+        r = batch["retention"]
+        if r:
+            rows.append(
+                (
+                    batch["state_id"],
+                    batch["window_id"],
+                    r["discounted_state_lower_st_R"],
+                    None,
+                    batch["status"],
+                    batch["dataset_id"],
+                    event,
+                    "retention_weighted_lower",
+                    r["retained"],
+                    r["discarded"],
+                )
+            )
+    for comparison in record.get("comparisons", []):
+        left, right = (by_event[event] for event in comparison["events"])
+        reverse = _window_difference_lower(right, left)
+        key = "state_id" if left["state_id"] != right["state_id"] else "dataset_id"
+        rows.append(
+            (
+                f"{left[key]} minus {right[key]}",
+                left["window_id"],
+                comparison["difference_lower_st_R"],
+                decimal_string(-Fraction(reverse), rounding=ROUND_CEILING)
+                if reverse is not None
+                else None,
+                "comparison",
+                f"{left['dataset_id']} minus {right['dataset_id']}",
+                " minus ".join(comparison["events"]),
+                "signed_difference",
+                None,
+                None,
+            )
+        )
     if csv_path is not None:
         stream = io.StringIO(newline="")
         writer = csv.writer(stream)
@@ -223,6 +272,9 @@ def export_pvm(record, csv_path, plot_path, overwrite):
                 "status",
                 "dataset_id",
                 "event_id",
+                "kind",
+                "retained",
+                "discarded",
             )
         )
         writer.writerows(rows)
@@ -248,10 +300,24 @@ def export_pvm(record, csv_path, plot_path, overwrite):
     labels, positions = [], []
     height = 0.0
     color = "#266c85"
-    for index, (state, name, lo, hi, _, dataset, _) in enumerate(rows):
+    single_retention = (
+        record["batches"][0]["retention"] if len(record["batches"]) == 1 else None
+    )
+    for index, (state, name, lo, hi, _, dataset, _, kind, kept, discarded) in enumerate(
+        rows
+    ):
         wrap = TextWrapper(width=38, max_lines=2, placeholder=f"… [row {index + 1}]")
         label = wrap.fill(f"{state} / {name}")
-        if repeated[state, name] > 1:
+        if kept is not None:
+            scope = (
+                "Retention-weighted lower bound"
+                if kind == "retention_weighted_lower"
+                else "Conditional window"
+            )
+            label += f"\n{scope}"
+            if single_retention is None:
+                label += f" · {kept:,} retained / {discarded:,} discarded"
+        if repeated[state, name] > 1 and kept is None:
             label += "\n" + wrap.fill(dataset)
         row_height = 0.13 + 0.21 * (1 + label.count("\n"))
         y = height + row_height / 2
@@ -259,10 +325,18 @@ def export_pvm(record, csv_path, plot_path, overwrite):
         labels.append(label)
         positions.append(y)
         if lo is not None:
-            ax.plot(float(lo), y, marker=">" if hi is None else "o", color=color)
+            ax.plot(
+                float(Fraction(lo)), y, marker=">" if hi is None else "o", color=color
+            )
             if hi is not None:
-                ax.hlines(y, float(lo), float(hi), color=color)
-                ax.plot(float(hi), y, marker="|", markersize=9, color=color)
+                ax.hlines(y, float(Fraction(lo)), float(Fraction(hi)), color=color)
+                ax.plot(float(Fraction(hi)), y, marker="|", markersize=9, color=color)
+        elif hi is not None:
+            ax.plot(float(Fraction(hi)), y, marker="<", color=color)
+    if all(row[7] != "signed_difference" for row in rows):
+        ax.set_xlim(left=0, right=max(0.01, ax.get_xlim()[1]))
+    else:
+        ax.axvline(0, color="0.55", linewidth=0.8)
     fig.set_size_inches(9, max(3.2, height + 1.65))
     ax.set_yticks(positions, labels)
     for label in ax.get_yticklabels():
@@ -275,6 +349,8 @@ def export_pvm(record, csv_path, plot_path, overwrite):
         ax.plot([], [], "|", color=color, markersize=9, label="Interval upper endpoint")
     if any(lo is not None and hi is None for _, _, lo, hi, *_ in rows):
         ax.plot([], [], ">", color=color, label="One-sided lower bound")
+    if any(lo is None and hi is not None for _, _, lo, hi, *_ in rows):
+        ax.plot([], [], "<", color=color, label="One-sided upper bound")
     handles, keys = ax.get_legend_handles_labels()
     if handles:
         fig.legend(
@@ -288,9 +364,10 @@ def export_pvm(record, csv_path, plot_path, overwrite):
     )
     fig.suptitle(title, fontweight="semibold")
     coverage = decimal_string(100 * Fraction(record["coverage"]["at_least"]), 9)
-    ax.set_title(
-        f"Joint sampling coverage at least {coverage}%", loc="left", fontsize=10
-    )
+    subtitle = f"Joint sampling coverage at least {coverage}%"
+    if single_retention:
+        subtitle += f"   |   {single_retention['retained']:,} retained / {single_retention['discarded']:,} discarded"
+    ax.set_title(subtitle, loc="left", fontsize=10)
     quantity = "State-side complexity" if product else "Window RCC"
     units = r"$\mathrm{st}_R$"
     if "atomic_action_classes" in record:

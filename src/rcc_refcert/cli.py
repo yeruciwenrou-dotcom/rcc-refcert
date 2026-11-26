@@ -182,6 +182,10 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     template.set_defaults(output_format="json", details=False)
+    template.add_argument("--output", type=Path, help="save the JSON template")
+    template.add_argument(
+        "--overwrite", action="store_true", help="replace existing outputs atomically"
+    )
     for name, help_text in (
         ("spectrum", "compute a lower bound from a complete exact spectrum"),
         (
@@ -202,6 +206,14 @@ def build_parser() -> argparse.ArgumentParser:
         command.add_argument(
             "--details", action="store_true", help="include calculation diagnostics"
         )
+        command.add_argument(
+            "--output", type=Path, help="save the report instead of printing it"
+        )
+        command.add_argument(
+            "--overwrite",
+            action="store_true",
+            help="replace existing outputs atomically",
+        )
         if name == "plan":
             command.add_argument(
                 "--counts-request",
@@ -217,7 +229,7 @@ def build_parser() -> argparse.ArgumentParser:
             command.add_argument(
                 "--bundle",
                 type=Path,
-                help="save a fixed-effect request and result for independent recomputation",
+                help="save evidence for fixed-effect counts only (target and reference protocol)",
             )
         _add_format_argument(command)
     bundle = commands.add_parser(

@@ -75,7 +75,7 @@ def test_text_width_markdown_json_and_csv_use_stored_values(tmp_path):
     windows = analyze_windows(export_probe("w1-quantum-organization"))
     path = tmp_path / "values.csv"
     export_window_files(windows, csv_path=path)
-    assert len(path.read_text().splitlines()) == 7
+    assert len(path.read_text().splitlines()) == 11
     with path.open(encoding="utf-8", newline="") as stream:
         rows = list(csv.DictReader(stream))
     expected = [
@@ -83,6 +83,17 @@ def test_text_width_markdown_json_and_csv_use_stored_values(tmp_path):
         for profile in windows["profiles"]
         for window in profile["windows"]
     ]
+    for kind, key in (
+        ("global", "global_quantity"),
+        ("partition_correlation", "partition"),
+    ):
+        added = [row for row in rows if row["kind"] == kind]
+        for row, profile in zip(added, windows["profiles"], strict=True):
+            quantity = (
+                "rcc_main_term" if kind == "global" else "total_correlation_scaled"
+            )
+            assert float(row["reading_st_R"]) == profile[key][quantity]
+    rows = [row for row in rows if row["kind"] == "subsystem"]
     assert len(rows) == len(expected)
     for row, (state_id, window) in zip(rows, expected, strict=True):
         assert row["state"] == state_id
@@ -305,6 +316,59 @@ def test_near_zero_display_preserves_json_and_csv_precision(tmp_path):
     path = tmp_path / "precision.csv"
     export_window_files(result, csv_path=path)
     with path.open(newline="") as stream:
-        row = next(csv.DictReader(stream))
+        row = next(r for r in csv.DictReader(stream) if r["kind"] == "subsystem")
     assert float(row["entropy_bits"]) == -2e-16
     assert result == before
+
+
+def test_field_errors_identify_the_object_and_keys():
+    from rcc_refcert.workflows.core import InputError, keys
+
+    for value, message in (
+        ({}, "missing a, b"),
+        ({"a": 1, "b": 2, "q": 0}, "unexpected q"),
+        ({"z": 0, "c": 0}, "missing a, b | unexpected c, z"),
+    ):
+        with pytest.raises(InputError) as err:
+            keys(value, {"b", "a"}, name="cost.model")
+        assert str(err.value) == "cost.model: " + message
+    assert keys({"a": 1}, {"a"}) == {"a": 1}
+
+
+def test_bound_output_protection_and_cost_trajectory_files(tmp_path):
+    from rcc_refcert.cli import main
+
+    request = tmp_path / "spectrum.json"
+    report = tmp_path / "bound.txt"
+    assert main(["bound", "template", "spectrum", "--output", str(request)]) == 0
+    assert main(["bound", "spectrum", str(request), "--output", str(report)]) == 0
+    saved = report.read_text()
+    assert saved.index("Integer-slot lower bound") < saved.index("One-shot RCC")
+    assert "spectral skew" in saved and "R-structon" in saved
+    assert main(["bound", "spectrum", str(request), "--output", str(report)]) == 2
+    assert (
+        main(
+            ["bound", "spectrum", str(request), "--output", str(report), "--overwrite"]
+        )
+        == 0
+    )
+    assert (
+        main(
+            ["bound", "spectrum", str(request), "--output", str(request), "--overwrite"]
+        )
+        == 2
+    )
+    assert report.read_text() == saved
+    trajectory = tmp_path / "trajectory.json"
+    trajectory.write_text(json.dumps(export_probe("w3-cooling-trajectory")))
+    out = tmp_path / "trajectory.csv"
+    assert main(["cost", "analyze", str(trajectory), "--csv", str(out)]) == 0
+    with out.open(newline="") as f:
+        rows = list(csv.DictReader(f))
+    global_values = {
+        r["state"]: float(r["reading_st_R"]) for r in rows if r["kind"] == "global"
+    }
+    assert global_values["target-program:1"] == pytest.approx(
+        global_values["target-program:2"]
+    )
+    assert len(global_values) == 16 and len(rows) == 64

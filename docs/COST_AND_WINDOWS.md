@@ -30,6 +30,13 @@ or substitute its Python path in the commands below.
 
 ## A complete cost task
 
+There are two routes through the four-qubit cyclic-reset example. The
+[finite-control calculation](CUSTOM_MODELS.md#cyclic-noisy-reset-register)
+verifies a reference-domination constant, then uses the final state to exclude
+every program below two slots. The diagonal cost workflow below also bounds
+the gain of the available actions and checks a five-slot program. Its lower
+and upper endpoints meet at **[5, 5]** for the same complete target.
+
 Run in a new directory with the environment where you installed the package:
 
 ```bash
@@ -88,6 +95,29 @@ In these recipes, each action costs one slot, including halt. The reference scal
 from the declared physical action classes. Codeword length, reference gain and
 this physical scale are recorded separately. Single-control-block exact
 recipes are supported here; existing multiblock model APIs remain available.
+
+You can combine independently established integer endpoints with the public
+Python API. This example uses both endpoints of the cyclic-reset calculation.
+
+```python
+from rcc_refcert.workflows import analyze_cost, compose_interval, load_workflow_template
+
+run = analyze_cost(load_workflow_template("cyclic-reset"))
+core = run["digests"]["task_core"]
+cost = run["cost"]
+interval = compose_interval(cost["lower_bound_slots"], cost["upper_bound_slots"],
+                            core_digest=core, lower_core=core, upper_core=core,
+                            epsilon=cost["epsilon_exact"])
+print(interval["interval_slots"])  # [5, 5]
+```
+
+For independently obtained evidence, pass each endpoint's actual task digest.
+The model, initial state, complete target, metric and charging rules must
+match. The upper endpoint needs a program verified to reach that target.
+Supply `epsilon_upper <= epsilon <= epsilon_lower` when tolerances differ.
+A lower endpoint obtained from counts retains its original sampling coverage.
+The function composes supplied endpoints. External circuits need their own
+feasibility and cost check.
 
 ### Build a half-erasure channel
 
@@ -267,8 +297,10 @@ W3 is a preparation task, so send its request to **`cost analyze`**:
 
 ```bash
 python -m rcc_refcert probe export w3-cooling-trajectory > trajectory.json
-python -m rcc_refcert cost analyze trajectory.json --details --bundle trajectory.rccbundle
+python -m rcc_refcert cost analyze trajectory.json --details --bundle trajectory.rccbundle --csv trajectory.csv --plot trajectory.svg
 ```
+
+The CSV and figure show the global reading, subsystem readings and the partition correlation for each program step. Figures require the `plots` extra. The Python entry point is `rcc_refcert.workflows.export_window_files`.
 
 Its window profiles use the states produced by each candidate, with the step,
 action and cumulative cost recorded together. Set `windows.steps` to a list
@@ -314,6 +346,14 @@ subsystem complexity profiles even when global spectra coincide; a known full
 spectrum already fixes its global Dmax bound.
 
 ## Finite-sample windows
+
+A prespecified binary event or a small set of coarse outcome bins can be
+analyzed directly from counts, without reconstructing a density matrix. A
+complete computational-basis measurement on $n$ qubits can have $2^n$
+outcomes. This PVM interface supports up to 256 declared outcomes. The sample
+size needed to resolve a rare event and the resources needed to qualify a
+preparation model are separate costs. The Python interface is
+`rcc_refcert.workflows.analyze_pvm_windows`.
 
 From a complete histogram of an ideal projective measurement, you can bound
 RCC in the measured classical window. Measure two states in that same window

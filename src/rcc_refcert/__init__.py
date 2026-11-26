@@ -14,8 +14,11 @@ from .bellman_choi import BellmanChoiCertificate, BellmanChoiReport, verify_bell
 from .bounds import (
     bound_from_counts,
     bound_from_spectrum,
+    plan_counts,
+    prepare_effect_protocol,
     prepare_protocol,
     replay_record,
+    with_reference_certificate,
 )
 from .bundle import (
     inspect_analysis_bundle,
@@ -85,7 +88,9 @@ __all__ = [
     "inspect_analysis_bundle",
     "linear_value_choi_envelopes",
     "minimum_domination_constant",
+    "plan_counts",
     "prepare_bellman_choi",
+    "prepare_effect_protocol",
     "prepare_protocol",
     "replay_record",
     "require_valid_model",
@@ -93,4 +98,5 @@ __all__ = [
     "verify_analysis_bundle",
     "verify_bellman_choi",
     "verify_reference_potential",
+    "with_reference_certificate",
 ]

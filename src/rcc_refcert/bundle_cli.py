@@ -39,12 +39,18 @@ def render_bundle_report(report: dict) -> str:
                 f"The schema-2 manifest records a different environment (rcc-refcert {pack['version']})."
             )
         if inspecting:
-            lines.extend(
-                [
-                    f"Historical decision: {report['historical_decision']}",
-                    "Inspect checks the saved record. Use bundle verify to recompute the result.",
-                ]
-            )
+            if report["schema_version"] == 5:
+                lines.append(f"Study: {report['historical_decision']}")
+            else:
+                lines.append(f"Historical decision: {report['historical_decision']}")
+            if report["schema_version"] in (4, 5):
+                lines.append(
+                    "Inspect checks the saved input bindings. Use bundle verify to recompute the conclusions."
+                )
+            else:
+                lines.append(
+                    "Inspect checks the saved record. Use bundle verify to recompute the result."
+                )
         else:
             if report["schema_version"] == 3:
                 from .bounds.api import render_record as render_result

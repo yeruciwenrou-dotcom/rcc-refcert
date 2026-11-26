@@ -7,6 +7,7 @@ from .core import InputError
 
 
 def load_workflow_template(name):
+    """Return a fresh runnable request for a named cost or window template."""
     if name in ("pvm-counts", "bell-ghz-counts", "product-counts", "retained-counts"):
         from .pvm_templates import pvm_template
 

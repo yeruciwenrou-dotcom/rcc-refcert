@@ -206,6 +206,7 @@ def normalize_window_request(request, *, limits=None):
 
 
 def analyze_windows(request, *, limits=None):
+    """Measure global and subsystem RCC for states on the declared reference scale."""
     from .api import producer
     from .pvm import REQUEST, analyze_pvm_windows
 
@@ -562,23 +563,45 @@ def window_report_lines(result, *, details=False):
 
 
 def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=False):
+    """Export global, subsystem and correlation readings or measured-window intervals to CSV and figures."""
     from .cli import write_atomic
 
     if result.get("kind") == "pvm_windows":
         from .pvm_render import export_pvm
 
         return export_pvm(result, csv_path, plot_path, overwrite)
-    rows = [
-        {
-            "state": p["id"],
-            "window": q["id"],
-            "entropy_bits": q["entropy_bits"],
-            "deficit_bits": q["entropy_deficit_bits"],
-            "rcc_main_term": q["rcc_main_term"],
-        }
-        for p in result["profiles"]
-        for q in p["windows"]
-    ]
+    rows = []
+    for profile in result["profiles"]:
+        state = profile["id"]
+        quantities = [("subsystem", q["id"], q) for q in profile["windows"]]
+        if profile["global_quantity"] is not None:
+            quantities.insert(0, ("global", "global", profile["global_quantity"]))
+        for kind, label, q in quantities:
+            rows.append(
+                {
+                    "state": state,
+                    "window": label,
+                    "entropy_bits": q["entropy_bits"],
+                    "deficit_bits": q["entropy_deficit_bits"],
+                    "rcc_main_term": q["rcc_main_term"],
+                    "kind": kind,
+                    "reading_st_R": q["rcc_main_term"],
+                }
+            )
+        partition = profile["partition"]
+        if partition is not None:
+            left, right = (
+                ", ".join(partition[side]["keep"]) for side in ("left", "right")
+            )
+            rows.append(
+                {
+                    "state": state,
+                    "window": f"correlation ({left} | {right})",
+                    "kind": "partition_correlation",
+                    "correlation_bits": partition["total_correlation_bits"],
+                    "reading_st_R": partition["total_correlation_scaled"],
+                }
+            )
     if csv_path is not None:
         stream = io.StringIO(newline="")
         writer = csv.DictWriter(
@@ -589,6 +612,9 @@ def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=Fals
                 "entropy_bits",
                 "deficit_bits",
                 "rcc_main_term",
+                "kind",
+                "correlation_bits",
+                "reading_st_R",
             ],
         )
         writer.writeheader()
@@ -600,13 +626,69 @@ def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=Fals
     if figure is None:
         return
     fig, ax = figure
-    ax.barh(range(len(rows)), [r["rcc_main_term"] for r in rows], color="#266c85")
-    ax.set_yticks(range(len(rows)), [f"{r['state']} / {r['window']}" for r in rows])
-    ax.invert_yaxis()
-    ax.set_xlabel(
-        f"Window RCC complexity C [st_R] (Gamma={result['reference']['gamma_exact']})"
-    )
-    ax.set_title("Complexity profiles across subsystems")
+    calibration = rf"$\mathrm{{st}}_R$, $\Gamma_R={result['reference']['gamma_exact']}$"
+    profiles = result["profiles"]
+    groups = {}
+    for p in profiles:
+        program, sep, step = p["id"].rpartition(":")
+        if not sep or "step" not in p or step != str(p["step"]):
+            groups = {}
+            break
+        groups.setdefault(program, {})[p["id"]] = p["step"]
+    if 0 < len(groups) <= 4:
+        fig.clear()
+        fig.set_size_inches(9, 3 * len(groups) + 1.2)
+        panels = fig.subplots(len(groups), 1, sharex=True, sharey=True, squeeze=False)
+        for (program, states), panel in zip(groups.items(), panels[:, 0]):
+            series = {}
+            for row in rows:
+                if row["state"] in states:
+                    series.setdefault((row["kind"], row["window"]), {})[
+                        row["state"]
+                    ] = row["reading_st_R"]
+            for (kind, label), values in series.items():
+                panel.plot(
+                    list(states.values()),
+                    [values.get(state, float("nan")) for state in states],
+                    marker="o",
+                    markersize=4,
+                    linestyle="--" if kind == "partition_correlation" else "-",
+                    label=f"subsystem: {label}"
+                    if kind == "subsystem" and label == "global"
+                    else label,
+                )
+            panel.set_title(program, loc="left", fontsize=10, parse_math=False)
+            panel.set_axisbelow(True)
+            panel.grid(axis="y", color="0.9", linewidth=0.7)
+        handles, labels = panels[0, 0].get_legend_handles_labels()
+        if handles:
+            fig.legend(
+                handles, labels, loc="outside lower center", ncols=3, frameon=False
+            )
+        panels[-1, 0].set_xlabel("Preparation step")
+        fig.supylabel(f"State-side RCC contribution ({calibration})")
+        fig.suptitle("Complexity through the preparation", fontweight="semibold")
+    else:
+        colors = {
+            "global": "#233858",
+            "subsystem": "#31778a",
+            "partition_correlation": "#a25124",
+        }
+        ax.barh(
+            range(len(rows)),
+            [r["reading_st_R"] for r in rows],
+            color=[colors[r["kind"]] for r in rows],
+        )
+        ax.set_yticks(range(len(rows)), [f"{r['state']} / {r['window']}" for r in rows])
+        for label in ax.get_yticklabels():
+            label.set_parse_math(False)
+        ax.invert_yaxis()
+        ax.set_xlabel(f"State-side RCC contribution ({calibration})")
+        ax.set_title(
+            "Complexity profiles across subsystems", loc="left", fontweight="semibold"
+        )
+        ax.set_axisbelow(True)
+        ax.grid(axis="x", color="0.9", linewidth=0.7)
     save_window_figure(fig, plot_path, overwrite)
 
 

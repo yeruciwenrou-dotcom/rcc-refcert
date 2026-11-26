@@ -1,15 +1,14 @@
 # Research with finite measurement data
 
-Use graph-state measurements to bound the cost of preparing a six-qubit
-cluster. In the cooling study, test whether a shorter program reaches the
-full three-qubit target and use joint counts to track the effect of the last
-bath refresh.
+Which measurements reveal a stronger lower bound on the cost of preparing the
+same six-qubit cluster state? Compare either local setting with their joint
+evidence. For three-qubit cooling, test a shorter program against the complete
+target, then read the target, bath and their correlations from joint counts
+before and after the final refresh.
 
-With an active installation, run the commands below with its Python. After the
-[source quickstart](../README.md#install-from-source), run them from the
-checkout root with `.venv/bin/python` on macOS or Linux, or
-`.venv\Scripts\python.exe` on Windows. Use a fresh output name when saving a
-second analysis.
+Run the examples with your active interpreter. The [source quickstart](../README.md#install-from-source)
+covers the checkout and [Windows shell instructions](../README.md#install-from-pypi).
+Choose a fresh output name for a second analysis.
 
 ## Six-qubit cluster state
 
@@ -146,6 +145,12 @@ obtained so far. To continue the search, rerun `study analyze` on the same
 input with `--max-dp-updates` set above the limit shown in that report.
 Save the extended search under a new name such as `cooling-extended.rccbundle`. The first bundle retains the original interval and search budget.
 
+At each stage the cooling report shows the target-qubit, bath and joint classical
+window RCC and the contribution from their measured correlations in the same
+$\mathrm{st}_R$ units. Overlapping intervals leave the ordering of those
+readings open. The independent model calculation identifies which operation
+preserves target polarization and where the bath correlations are removed.
+
 ## Your counts and Qiskit registers
 
 For cluster measurements, keep the [cluster model](#cluster-model) when
@@ -223,6 +228,8 @@ and 291 on c3. Both bit orders preserve the shot total. This example
 checks the archived register data and makes no assumption about its physical
 preparation cost.
 [Original hardware counts](https://github.com/TriumDesigns/emergent-spacetime-quantum-circuits/blob/68850e5e7ae94f1e90200b6e4d764eff8d33a932/Emergence-quantum-exp/exp-1-4-qubit-emergence/run_emergence_ibm%20%20raw%20result%20counts%20and%20data.txt)
+
+The [redistribution notice](../NOTICE.md) identifies the source and license of the four-qubit hardware counts.
 
 ## References
 

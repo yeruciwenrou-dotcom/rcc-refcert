@@ -490,3 +490,35 @@ def test_comparison_report_uses_both_window_intervals_in_either_input_order():
         freeze(entry)
     report = render_workflow_result(analyze_windows(raw), format="markdown")
     assert "leave the ordering of Bell pair and GHZ reduced pair open" in report
+
+
+def test_retention_export_separates_conditional_interval_and_discounted_lower(tmp_path):
+    import csv
+
+    from rcc_refcert.workflows import analyze_pvm_windows, export_window_files
+
+    request = fixture("retained-counts")
+    result = analyze_pvm_windows(request)
+    path = tmp_path / "retention.csv"
+    export_window_files(result, csv_path=path)
+    with path.open(newline="") as f:
+        rows = list(csv.DictReader(f))
+    conditional, discounted = rows[0], rows[-1]
+    assert conditional["kind"] == "conditional_window" and conditional["upper_st_R"]
+    assert (
+        discounted["kind"] == "retention_weighted_lower"
+        and discounted["upper_st_R"] == ""
+    )
+    assert float(discounted["lower_st_R"]) == pytest.approx(0.35268060472)
+    assert (discounted["retained"], discounted["discarded"]) == ("20000", "5000")
+    entry = request["batches"][0]
+    entry["protocol"]["samples"] = 4096
+    entry["protocol"]["retention"]["method"] = "clopper_pearson"
+    entry["data"].update(counts={"00": 2048, "11": 2048}, discarded=0)
+    freeze(entry)
+    assert analyze_pvm_windows(request)["batches"][0]["retention"]["retained"] == 4096
+    entry["protocol"]["samples"] += 1
+    from rcc_refcert.bounds import BudgetError
+
+    with pytest.raises(BudgetError):
+        freeze(entry)

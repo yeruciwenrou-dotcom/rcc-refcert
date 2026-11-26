@@ -17,12 +17,9 @@ terminal-state evidence.
 
 ## First calculation
 
-Follow the [source quickstart](../README.md#install-from-source), then run these
-commands from the checkout root. On Windows, use `.venv\Scripts\python.exe`.
-If your shell is Windows PowerShell 5.1, run the `>` examples in Command Prompt.
-These commands also work outside a checkout with the
-[PyPI package](../README.md#install-from-pypi). Use the interpreter from your
-active installation.
+Use your installed interpreter or the one from the [source quickstart](../README.md#install-from-source).
+The [installation example](../README.md#install-from-pypi) covers Windows PowerShell 5.1.
+With 0.4.0, `--output` writes the report directly in UTF-8.
 
 ```bash
 .venv/bin/python -m rcc_refcert bound template spectrum > spectrum.json
@@ -50,6 +47,27 @@ counts and replay.
 Follow the [Jupyter setup](../README.md#jupyter-notebook) to install the
 optional dependencies and register **Python (rcc-refcert)** with the same
 interpreter that runs the package.
+
+### Equal entropy, different one-shot complexity evidence
+
+Fix the three-qubit reference at $I/8$ and the trace-distance radius at $1/20$.
+Both spectra below have entropy 2 bits and relative entropy 1 bit. The second
+has a more populated leading eigenstate. Its spectral skew
+$S(\rho)-H_{\min}(\rho)$ adds one bit to the unsmoothed one-shot information.
+
+```python
+from rcc_refcert.bounds import spectral_information
+
+for spectrum in (["1/4"] * 4 + [0] * 4, ["1/2"] + ["1/8"] * 4 + [0] * 3):
+    terms = spectral_information(spectrum, 8, "1/20").as_dict()
+    print(terms["spectral_skew_bits"]["lower"], terms["information_bits"]["lower"])
+```
+
+After smoothing, the two readings are about 0.925999 and 1.847997 bits. At
+$\Gamma_R=2$, one R-structon represents one bit, so these numbers also give
+the calibrated one-shot readings in $\mathrm{st}_R$. To obtain a bound in
+atomic slots, the preparation task supplies the transcription and reference
+overheads for the cost inversion.
 
 ## Model and exact-input contract
 
@@ -216,6 +234,26 @@ Use `protocol.target.method` to choose `clopper_pearson` or `hoeffding` before a
 
 For a **preparation-cost goal**, supply your qualified `task`, match the target and reference IDs in the protocol, and set `goal` to e.g. `{"cost_above_slots":"0"}`. The planner uses the same smoothing radius, reference upper response and cost inversion as the counts report. A known ideal reference response or upper bound needs its source. For a sampled reference, use its original frozen arm and attach its bound raw batch as `reference_data`. The target sample is then a new, fixed-size IID acquisition conditional on the prior reference data. The output retains that reference event and its share of the joint failure budget.
 
+For example, plan a measurement that rules out a zero-slot preparation in
+the fixed eight-output model. The design assumes a target hit rate of 0.9,
+a rank-one measurement on $I/4$, and 90% design power.
+
+```python
+from rcc_refcert import plan_counts
+from rcc_refcert.bounds import load_template
+
+design = load_template("sample-plan")
+design["task"] = load_template("counts")["task"]
+design["protocol"]["target"]["state_id"] = design["task"]["target"]["id"]
+design["goal"] = {"cost_above_slots": "0"}
+plan = plan_counts(design)
+print(plan["samples"], plan["minimum_hits"])  # 8 trials, at least 6 hits
+```
+
+Use `plan["counts_request"]` for the acquisition. Eight trials were fixed in
+advance. Six or more hits certify at least one atomic slot at 95% coverage
+under this declared model and protocol.
+
 In a `max_samples` search, the planner writes `planned-counts.json` when it
 finds a design with the requested power. Choose an unused output name. If the
 search reaches its limit first, the report gives the largest sample size
@@ -253,7 +291,12 @@ For ideal acceptance probability $p$, a known false-positive rate $f$ and false-
 
 Raw counts describe the observed readout. Each arm's response refers to the ideal binary effect. A sampled arm uses the one-sided observed interval appropriate to its role and the sign of the slope. The calculator intersects its inverse image with $[0,1]$. A constant readout can leave the full interval feasible. An empty intersection gives a readout conflict and no process cost. A deterministic reference response already refers to the ideal effect. With a negative slope the planning report counts the observed **reject** label as favourable evidence. The record retains the observed endpoint, its direction, and the inferred ideal interval. A matrix inferred with finite calibration uncertainty requires a different feasible-set calculation.
 
-**Arithmetic and scale.** Clopper–Pearson uses integer binomial-tail comparisons to enclose the endpoint on a grid of spacing $2^{-48}$, up to 2,048 observations per sampled arm. Power planning supports up to 1,024 target trials with observed design probabilities of at most 128 denominator bits. Exact comparisons determine design power against the requested level. Text and JSON display conservative rounded power values. Python callers can use `plan_counts`, `clopper_pearson_lower`, `clopper_pearson_upper` and `binary_readout_preimage` from `rcc_refcert.bounds`. [Paper-to-code map](PAPER_MAP.md#terminal-state-calculation-interfaces)
+**Arithmetic and scale.** Clopper–Pearson uses integer binomial-tail comparisons to enclose the endpoint on a grid of spacing $2^{-48}$, up to 4,096 observations per sampled arm. Power planning supports up to 1,024 target trials with observed design probabilities of at most 128 denominator bits. Exact comparisons determine design power against the requested level. Text and JSON display conservative rounded power values. Python callers can use `plan_counts`, `clopper_pearson_lower`, `clopper_pearson_upper` and `binary_readout_preimage` from `rcc_refcert.bounds`. The top-level package also exports `plan_counts`, `prepare_effect_protocol` and
+`with_reference_certificate`. Use exact fractions or decimal strings for portable
+JSON inputs. The `bound` command exits with status 2 for invalid, unsupported
+or budget-limited requests. `bound counts --bundle` accepts fixed-effect
+requests. `--output` writes a text or JSON report, and `--overwrite` allows
+an existing output to be replaced. [Paper-to-code map](PAPER_MAP.md#terminal-state-calculation-interfaces)
 
 ## Fixed eight-output model
 

@@ -488,36 +488,7 @@ def render_effect_record(record, *, details=False):
     p = request["protocol"]
     a = record["target_response_lower_exact"]
     b = record["reference_response_upper_exact"]
-    lines = [
-        f"Fixed effect {p['effect']['id']} | target {p['target']['state_id']} | reference {p['reference']['state_id']}",
-        f"Target response >= {decimal_string(Fraction(a), 8) if a is not None else 'unavailable'}; reference response <= {decimal_string(Fraction(b), 8, ROUND_CEILING) if b is not None else 'unavailable'} ({record['reference_source']})",
-        f"Joint sampling coverage >= {record['coverage']['coverage_at_least_exact']}",
-    ]
-    if request.get("task"):
-        task = request["task"]
-        lines.append(
-            f"Model {task['model']['id']}, generation tolerance {task['target']['epsilon']} (trace distance)"
-        )
-    lines.append(f"Smoothing radius: {request['derivation']['smoothing_radius']}")
-    for event in record["coverage"]["events"]:
-        lines.append(
-            f"  {event['role']}: {event['origin']}, dataset {event['dataset_id']}, failure budget {event['delta']}"
-        )
-        if "observed_endpoint_exact" in event:
-            direction = event["endpoint"]
-            lines.append(
-                f"    Observed {direction} endpoint: {event['observed_endpoint_exact']} | compatible ideal interval: {event['ideal_feasible_interval']}"
-            )
-        if "method" in event:
-            lines.append(f"    Endpoint method: {event['method']}")
-    for route in record["routes"]:
-        info = route["information_floor_bits"]
-        result = (
-            f">= {decimal_string(Fraction(info['lower']), 8)} bits"
-            if info
-            else _DIAGNOSTICS.get(route["reason"], route["reason"])
-        )
-        lines.append(f"{route['route']}: {result}")
+    lines = []
     cost = record["cost"]
     if cost is not None:
         lines.append(
@@ -551,6 +522,46 @@ def render_effect_record(record, *, details=False):
                 or ", ".join(record["missing_process_premises"])
             )
         )
+    lines += [
+        f"Fixed effect {p['effect']['id']} | target {p['target']['state_id']} | reference {p['reference']['state_id']}",
+        f"Target response >= {decimal_string(Fraction(a), 8) if a is not None else 'unavailable'}; reference response <= {decimal_string(Fraction(b), 8, ROUND_CEILING) if b is not None else 'unavailable'} ({record['reference_source']})",
+        f"Joint sampling coverage >= {record['coverage']['coverage_at_least_exact']}",
+    ]
+    if request.get("task"):
+        task = request["task"]
+        lines.append(
+            f"Model {task['model']['id']}, generation tolerance {task['target']['epsilon']} (trace distance)"
+        )
+        from .api import _scale_line
+        from .scalar import log2_interval
+
+        classes = task["model"]["atomic_action_classes"]
+        bandwidth = log2_interval(Fraction(classes))
+        floor = record["information_lower_bits"]
+        if floor is not None:
+            scaled = decimal_string(Fraction(floor) / bandwidth.upper, 8)
+            lines.append(f"One-shot RCC readout >= {scaled} st_R.")
+        lines.append(_scale_line(classes, bandwidth.strings()))
+    lines.append(f"Smoothing radius: {request['derivation']['smoothing_radius']}")
+    for event in record["coverage"]["events"]:
+        lines.append(
+            f"  {event['role']}: {event['origin']}, dataset {event['dataset_id']}, failure budget {event['delta']}"
+        )
+        if "observed_endpoint_exact" in event:
+            direction = event["endpoint"]
+            lines.append(
+                f"    Observed {direction} endpoint: {event['observed_endpoint_exact']} | compatible ideal interval: {event['ideal_feasible_interval']}"
+            )
+        if "method" in event:
+            lines.append(f"    Endpoint method: {event['method']}")
+    for route in record["routes"]:
+        info = route["information_floor_bits"]
+        result = (
+            f">= {decimal_string(Fraction(info['lower']), 8)} bits"
+            if info
+            else _DIAGNOSTICS.get(route["reason"], route["reason"])
+        )
+        lines.append(f"{route['route']}: {result}")
     if details:
         lines.extend(
             [

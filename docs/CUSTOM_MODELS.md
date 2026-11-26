@@ -28,9 +28,7 @@ these commands from the checkout root:
 .venv/bin/python -m rcc_refcert bundle verify alternating.rccbundle
 ```
 
-All commands in this guide use that environment. On Windows, substitute
-`.venv\Scripts\python.exe`. If you installed the checkout into your own active
-environment, use its interpreter instead. Candidate preparation and complete bundles are available from version 0.2.0.
+Use the [installation instructions](../README.md#install-from-source) for your platform's interpreter. Candidate preparation and complete bundles are available from version 0.2.0.
 
 The example builds a **Bellman–Choi certificate (H.3)**, a set of matrices
 used to bound the code-weighted sum of terminating outputs relative to the
@@ -152,8 +150,8 @@ reset-0 instructions followed by halt give a feasible five-slot program.
 For this particular model, a separate structural argument proves five slots
 are necessary: fewer than four resets leave a uniform qubit marginal whose
 trace distance from the target marginal is $0.45$. The example demonstrates the
-certificate-to-bound workflow; its general RCC bound is weaker than that
-specialized structural argument.
+certificate-to-bound workflow; the [exact gain and candidate workflow](COST_AND_WINDOWS.md#a-complete-cost-task)
+certifies the matching five-slot lower and upper endpoints for this task.
 
 ## Adapt the examples to your inputs
 
@@ -221,6 +219,31 @@ Both calculations use binary64 arithmetic.
 
 The examples export the H.4 route for the register. A different route or
 tolerance should be recorded as a distinct analysis with its own inputs.
+
+### Bind a numerical reference to a terminal task
+
+Use `from rcc_refcert import with_reference_certificate` to carry an H.3 or
+H.4 upper constant into a bound. For a uniform reference of dimension `d`,
+construct the model with `np.eye(d) / d`. The adapter binds the actual matrix
+entries. In dimension six, renormalizing this matrix by its floating-point
+trace changes entries by about 2.8 × 10⁻¹⁷. Rebuild the model with the canonical
+reference and verify the certificate again before freezing the measurement
+protocol. A genuinely nonuniform reference, such as a Gibbs state, can go
+through direct H.3/H.4 verification. The terminal adapter currently implements
+the uniform-reference contract.
+
+For an identity channel with equal continuation and halt weights, the automatic
+H.3 candidate at dimensions eight and nine needs constant corrections of about
+2.33 × 10⁻¹⁰ and 3.73 × 10⁻¹⁰. Both exceed the default threshold near 10⁻¹⁰.
+The diagnostic reports the propagated error bound and the threshold
+`tol * max(1, candidate_constant)`. In these examples, repeating verification
+with an explicit `tol=1e-9` accepts a conservative upper constant that includes
+the reserved numerical allowance. At dimension sixteen this candidate needs
+about 3.73 × 10⁻⁹. Alternatively, on that same identity model the Choi envelope
+`J(identity) + np.eye(d*d)/(8*d)` with a proposed constant of 1.25 has enough
+slack to pass at the default tolerance. Choose the proof or tolerance for the
+model at hand. The bound records the verified upper constant, tolerance and
+numerical evidence level.
 
 ## Choose a computation budget
 

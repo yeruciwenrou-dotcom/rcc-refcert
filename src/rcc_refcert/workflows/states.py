@@ -24,6 +24,8 @@ from .core import (
 
 @dataclass(frozen=True)
 class StateInput:
+    """A tensor-labelled quantum state with exact diagonal or numerical matrix input."""
+
     kind: str
     data: tuple
     subsystem_dims: tuple[int, ...]

@@ -204,7 +204,7 @@ def test_prior_reference_preserved_and_billed_once():
 
 def test_resources_degenerate_design_and_strict_threshold():
     with pytest.raises(BudgetError):
-        clopper_pearson_lower(10, 2049, "1/20")
+        clopper_pearson_lower(10, 4097, "1/20")
     q = load_template("sample-plan")
     q["max_samples"] = 1025
     with pytest.raises(BudgetError):
@@ -266,3 +266,27 @@ def test_response_planning_keeps_the_declared_uniform_support():
         plan_counts(request)
     request["protocol"]["reference"]["kind"] = "upper_bound"
     assert plan_counts(request)["status"] == "power_met"
+
+
+def test_exact_analysis_accepts_4096_while_planning_keeps_its_own_budget():
+    n = 4096
+    lo = clopper_pearson_lower(n // 2, n, "1/40")
+    assert F("0.48") < lo.lower <= lo.upper < F("0.49")
+    assert lo.upper - lo.lower <= F(1, 2**48)
+    assert clopper_pearson_lower(0, n, "1/40").upper == 0
+    assert clopper_pearson_upper(n, n, "1/40").lower == 1
+    none = clopper_pearson_upper(0, n, "1/40")
+    assert (1 - none.upper) ** n <= F(1, 40) <= (1 - none.lower) ** n
+    request = load_template("effect-counts")
+    for role, hits in (("target", n), ("reference", 0)):
+        request["protocol"][role].update(method="clopper_pearson", samples=n)
+        request["data"][role]["counts"] = {"yes": hits, "no": n - hits}
+    rebind(request)
+    assert replay_record(bound_from_counts(request))["matches"]
+    request["protocol"]["target"]["samples"] = 4097
+    with pytest.raises(BudgetError):
+        prepare_effect_protocol(request["protocol"])
+    plan = load_template("sample-plan")
+    plan["max_samples"] = 1025
+    with pytest.raises(BudgetError):
+        plan_counts(plan)

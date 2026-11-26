@@ -33,6 +33,14 @@ window.
   Cost requests reject exact numbers with repeated signs. Terminal-state
   requests identify normalized trace distance as the required error measure.
 
+Terminal reports put the atomic-slot floor beside the calibrated one-shot
+reading and show how spectral skew and smoothing affect it. Exact binomial
+analysis accepts up to 4,096 observations per sampled arm. Cooling reports
+give target, bath, joint and correlation intervals at each stage. Window
+exports now include global readings, partition correlations and the lower
+bound after accounting for discarded shots. Use `cost analyze --plot` or
+`--csv` on a trajectory, or `bound --help` for file output on terminal tasks.
+
 Cost comparisons now identify the model, complete target, tolerance and maximum
 remaining saving for the program attaining the upper endpoint. In the
 [half-erasure benchmark](docs/COST_AND_WINDOWS.md#build-a-half-erasure-channel),

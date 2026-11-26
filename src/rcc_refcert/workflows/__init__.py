@@ -5,23 +5,25 @@ from .bundles import save_effect_bundle, save_workflow_bundle
 from .core import WorkflowLimits
 from .numerical import serialize_numeric_model
 from .probes import export_probe, list_probes, load_probe
-from .pvm import prepare_pvm_protocol
+from .pvm import analyze_pvm_windows, prepare_pvm_protocol
 from .readouts import import_readout, qiskit_readout
 from .render import render_workflow_result
 from .states import StateInput
 from .studies import analyze_study, prepare_study_protocol, study_template
 from .templates import load_workflow_template
-from .windows import analyze_windows
+from .windows import analyze_windows, export_window_files
 
 __all__ = [
     "StateInput",
     "WorkflowLimits",
     "analyze_cost",
+    "analyze_pvm_windows",
     "analyze_study",
     "analyze_windows",
     "compare_cost_results",
     "compose_interval",
     "export_probe",
+    "export_window_files",
     "import_readout",
     "list_probes",
     "load_probe",

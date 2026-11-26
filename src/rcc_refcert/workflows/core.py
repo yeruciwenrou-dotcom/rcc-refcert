@@ -21,6 +21,8 @@ MAX_JSON_BYTES = 32 * 1024 * 1024
 
 @dataclass(frozen=True)
 class WorkflowLimits:
+    """Resource budgets for workflow enumeration, states and numerical operations."""
+
     max_dp_cells: int = 100_000
     max_dp_updates: int = 1_000_000
     max_fraction_bits: int = 65_536
@@ -68,8 +70,15 @@ def mapping(value, name):
 
 def keys(value, required, optional=(), name="object"):
     obj = mapping(value, name)
-    if set(required) - set(obj) or set(obj) - set(required) - set(optional):
-        raise InputError(f"{name}: missing or unknown fields; check the template")
+    missing = sorted(set(required) - set(obj))
+    unexpected = sorted(set(obj) - set(required) - set(optional), key=str)
+    problems = []
+    if missing:
+        problems.append("missing " + ", ".join(missing))
+    if unexpected:
+        problems.append("unexpected " + ", ".join(map(str, unexpected)))
+    if problems:
+        raise InputError(f"{name}: " + " | ".join(problems))
     return obj
 
 

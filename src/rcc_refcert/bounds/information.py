@@ -62,6 +62,7 @@ class SpectralInformation:
 def spectral_information(
     values: Sequence[Scalar], dimension: int, epsilon: Scalar
 ) -> SpectralInformation:
+    """Enclose the smoothed one-shot information and its spectral terms for a uniform reference."""
     d = require_int(dimension, "dimension", 1)
     if d > 4096:
         raise BudgetError("reference spectrum dimension exceeds 4096")
@@ -183,6 +184,7 @@ def fixed_effect_information(
 def projection_information(
     occupancy_lower: Scalar, rank: int, dimension: int, smoothing_radius: Scalar
 ) -> Interval:
+    """Enclose the information floor from a projector occupancy lower bound and smoothing radius."""
     d = require_int(dimension, "dimension", 1)
     k = require_int(rank, "rank", 1)
     if k > d:

@@ -416,6 +416,7 @@ def analyze_cost(request, *, limits=None):
 
 
 def compare_cost_results(results, *, criterion=None):
+    """Compare cost analyses with matching task identities and the chosen tolerance criterion."""
     if not isinstance(results, (list, tuple)) or not results or len(results) > 256:
         raise InputError("comparison: supply one to 256 cost results")
     rows, groups = [], {}
