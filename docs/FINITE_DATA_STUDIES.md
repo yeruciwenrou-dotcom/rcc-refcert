@@ -223,3 +223,15 @@ and 291 on c3. Both bit orders preserve the shot total. This example
 checks the archived register data and makes no assumption about its physical
 preparation cost.
 [Original hardware counts](https://github.com/TriumDesigns/emergent-spacetime-quantum-circuits/blob/68850e5e7ae94f1e90200b6e4d764eff8d33a932/Emergence-quantum-exp/exp-1-4-qubit-emergence/run_emergence_ibm%20%20raw%20result%20counts%20and%20data.txt)
+
+## References
+
+- **Graph-state measurements.** Huangjun Zhu and Masahito Hayashi,
+  [Efficient Verification of Hypergraph States](https://doi.org/10.1103/PhysRevApplied.12.054047),
+  *Physical Review Applied* **12**, 054047 (2019).
+- **Asymptotic limits of heat-bath algorithmic cooling.** Sadegh Raeisi and Michele Mosca,
+  [Asymptotic Bound for Heat-Bath Algorithmic Cooling](https://doi.org/10.1103/PhysRevLett.114.100404),
+  *Physical Review Letters* **114**, 100404 (2015).
+- **IBM Sherbrooke counts.** Ankitkumar Patel,
+  [Emergent Spacetime Signatures from Minimal Quantum Circuits: Entanglement, Entropy, and Real-Hardware Evidence](https://github.com/TriumDesigns/emergent-spacetime-quantum-circuits/blob/68850e5e7ae94f1e90200b6e4d764eff8d33a932/Emergent%20spacetime%20signatures%20on%20IBM%20quantum%20computer.pdf)
+  (2025). The 1,024 shots used to check register order come from the four-qubit experiment.
