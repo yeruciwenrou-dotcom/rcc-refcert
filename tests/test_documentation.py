@@ -247,7 +247,14 @@ def test_local_document_links_resolve() -> None:
         for label, target in links:
             url = urlsplit(target)
             ref = None
-            if url.netloc:
+            if url.netloc == "raw.githubusercontent.com" and url.path.startswith(repo):
+                ref, relative = unquote(url.path.removeprefix(repo)).split("/", 1)
+                dest = ROOT / relative
+                if ref == "v" + rcc_refcert.__version__:
+                    assert _git_document(ref, relative) is not None, (
+                        f"Embedded asset depends on a release tag that is unavailable: {target}"
+                    )
+            elif url.netloc:
                 if url.netloc != "github.com" or not url.path.startswith(repo):
                     continue
                 parts = unquote(url.path.removeprefix(repo)).split("/", 2)
