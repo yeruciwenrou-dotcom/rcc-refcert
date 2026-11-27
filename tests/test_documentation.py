@@ -3,7 +3,9 @@ import os
 import re
 import subprocess
 import sys
+from functools import cache
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 import pytest
 
@@ -190,27 +192,104 @@ def test_notebook_cells_have_valid_unique_ids() -> None:
     assert len(cell_ids) == len(set(cell_ids))
 
 
-def test_local_document_links_resolve() -> None:
-    documents = (
-        "README.md",
-        "CONTRIBUTING.md",
-        "docs/SCIENTIFIC_SCOPE.md",
-        "docs/END_TO_END_EXAMPLE.md",
-        "docs/PAPER_MAP.md",
-        "docs/CONVENTIONS.md",
-        "docs/MODEL_GUIDE.md",
-        "docs/OUTPUT_CONTRACT.md",
+@cache
+def _git_document(ref, relative):
+    # Source archives and shallow CI clones only carry the current file tree.
+    if not (ROOT / ".git").exists():
+        return None
+    command = ["git", "-C", str(ROOT)]
+    if subprocess.run(
+        [*command, "cat-file", "-e", f"{ref}^{{commit}}"],
+        capture_output=True,
+        check=False,
+    ).returncode:
+        return None
+    kind = subprocess.run(
+        [*command, "cat-file", "-t", f"{ref}:{relative}"],
+        check=False,
+        capture_output=True,
+        text=True,
     )
-    for relative in documents:
-        path = ROOT / relative
-        text = path.read_text(encoding="utf-8")
-        for target in re.findall(r"\[[^]]+\]\(([^)]+)\)", text):
-            if "://" in target or target.startswith("#"):
-                continue
-            file_target = target.partition("#")[0]
-            assert (path.parent / file_target).is_file(), (
-                f"broken link in {relative}: {target}"
-            )
+    assert kind.returncode == 0, f"{ref}:{relative}"
+    if kind.stdout.strip() == "tree" or not relative.lower().endswith(".md"):
+        return ""
+    return subprocess.check_output([*command, "show", f"{ref}:{relative}"]).decode()
+
+
+def _anchors(markdown):
+    anchors = set(re.findall(r'(?:id|name)="([^"]+)"', markdown))
+    headings = {}
+    for title in re.findall(
+        r"^#{1,6} (.+)$",
+        re.sub(r"^```.*?^```[^\n]*", "", markdown, flags=re.MULTILINE | re.DOTALL),
+        flags=re.MULTILINE,
+    ):
+        base = re.sub(r"[^\w -]", "", title.strip().lower()).replace(" ", "-")
+        n = headings.get(base, 0)
+        anchors.add(f"{base}-{n}" if n else base)
+        headings[base] = n + 1
+    return anchors
+
+
+def test_local_document_links_resolve() -> None:
+    repo = "/yeruciwenrou-dotcom/rcc-refcert/"
+    paths = [
+        ROOT / n
+        for n in ("README.md", "CHANGELOG.md", "CONTRIBUTING.md", ".zenodo.json")
+    ]
+    for path in [*paths, *(ROOT / "docs").glob("*.md")]:
+        source = path.read_text(encoding="utf-8")
+        if path.suffix == ".json":
+            fields = json.loads(source)
+            source = fields["description"] + "\n" + fields["notes"]
+        links = re.findall(r"\[([^]\n]*)\]\(([^)\s]+)\)", source)
+        links += [("", url) for url in re.findall(r'href="([^"]+)"', source)]
+        for label, target in links:
+            url = urlsplit(target)
+            ref = None
+            if url.netloc == "raw.githubusercontent.com" and url.path.startswith(repo):
+                ref, relative = unquote(url.path.removeprefix(repo)).split("/", 1)
+                dest = ROOT / relative
+                if ref == "v" + rcc_refcert.__version__:
+                    assert _git_document(ref, relative) is not None, (
+                        f"Embedded asset depends on a release tag that is unavailable: {target}"
+                    )
+            elif url.netloc:
+                if url.netloc != "github.com" or not url.path.startswith(repo):
+                    continue
+                parts = unquote(url.path.removeprefix(repo)).split("/", 2)
+                if parts[0] == "commit":
+                    displayed = re.search(
+                        r"(?<![0-9a-f])[0-9a-f]{7,40}(?![0-9a-f])", label
+                    )
+                    if displayed:
+                        assert parts[1].startswith(displayed[0]), (path, target, label)
+                if parts[0] not in ("blob", "tree") or len(parts) < 3:
+                    continue
+                _, ref, relative = parts
+                dest = ROOT / relative
+            else:
+                if url.scheme:
+                    continue
+                dest = (path.parent / unquote(url.path)).resolve() if url.path else path
+            historical = _git_document(ref, relative) if ref else None
+            if historical is None:
+                assert dest.exists(), (path, target)
+            if url.fragment and dest.suffix.lower() == ".md":
+                document = (
+                    historical
+                    if historical is not None
+                    else dest.read_text(encoding="utf-8")
+                )
+                assert unquote(url.fragment) in _anchors(document), (path, target)
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    pin = "v" + rcc_refcert.__version__
+    assert f"git switch --detach {pin}\n" in readme
+    assert f"/archive/refs/tags/{pin}.zip" in readme
+    assert f"/releases/tag/{pin}" in readme
+    assert 'id="040"' in (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    if _git_document(pin, "examples/half_erasure.json") is None:
+        assert (ROOT / "examples/half_erasure.json").is_file()
 
 
 def test_public_text_omits_internal_revision_vocabulary() -> None:

@@ -3,28 +3,36 @@
 
 # Preparation costs and complexity profiles
 
-How much does a preparation cost in a specified model, and how does complexity
-vary across its subsystems? The cost workflow bounds the optimum and checks
-candidate programs against a complete target. The window workflow computes
-subsystem RCC complexity profiles in pure and mixed states using a common
-reference and control bandwidth. Entropy deficits and correlations supply the
-information for these calibrated readings. You can analyze states directly or follow a
-preparation step by step, and share either calculation for independent revalidation.
+For a specified model and target, the cost workflow checks which candidate
+programs reach the target within tolerance. In exact diagonal-preserving
+models, it also bounds how much cheaper a successful program could be.
+Window RCC measures how complexity is distributed across the subsystems of a
+pure or mixed state at a common reference and control bandwidth. You can
+separate local and correlation contributions in one state or track them
+through a preparation, then share the calculation for independent verification.
 
 | Your question | Start here |
 |---|---|
 | Does a candidate reach my target, and how close is its cost to optimal? | [A complete cost task](#a-complete-cost-task) |
 | How does changing the tolerance affect the result? | [Cost tasks](#a-complete-cost-task) and [candidate comparisons](#candidate-comparisons) |
 | How do complexity profiles differ across subsystems or between states? | [Subsystem complexity profiles](#subsystem-complexity-profiles) |
+| Can my counts resolve an RCC difference between two states in the same classical measurement window? | [Finite-sample windows](#finite-sample-windows) |
 | How do I analyze my own state or model? | [Matrix inputs](#your-own-matrix-and-tensor-labels) and [numerical models](#numerical-models-and-candidate-diagnostics) |
 | How do I save, share and verify the calculation? | [Reports and revalidation](#reports-limits-and-revalidation) |
 
-Use **rcc-refcert 0.3.0 or later** with Python 3.10 or later. Install from
-[PyPI](../README.md#install-from-pypi) or follow the
-[source quickstart](../README.md#install-from-source), then activate that environment
-or substitute its Python path in the commands below.
+[Install RCC RefCert 0.4.0 from PyPI](../README.md#install-from-pypi) with Python
+3.10 or later. Run the commands below with that interpreter. The
+[source archive](../README.md#install-from-source) also includes example scripts
+and the editable half-erasure request.
 
 ## A complete cost task
+
+There are two routes through the four-qubit cyclic-reset example. The
+[finite-control calculation](CUSTOM_MODELS.md#cyclic-noisy-reset-register)
+verifies a reference-domination constant, then uses the final state to exclude
+every program below two slots. The diagonal cost workflow below also bounds
+the gain of the available actions and checks a five-slot program. Its lower
+and upper endpoints meet at **[5, 5]** for the same complete target.
 
 Run in a new directory with the environment where you installed the package:
 
@@ -85,6 +93,52 @@ from the declared physical action classes. Codeword length, reference gain and
 this physical scale are recorded separately. Single-control-block exact
 recipes are supported here; existing multiblock model APIs remain available.
 
+You can combine independently established integer endpoints with the public
+Python API. This example uses both endpoints of the cyclic-reset calculation.
+
+```python
+from rcc_refcert.workflows import analyze_cost, compose_interval, load_workflow_template
+
+run = analyze_cost(load_workflow_template("cyclic-reset"))
+core = run["digests"]["task_core"]
+cost = run["cost"]
+interval = compose_interval(cost["lower_bound_slots"], cost["upper_bound_slots"],
+                            core_digest=core, lower_core=core, upper_core=core,
+                            epsilon=cost["epsilon_exact"])
+print(interval["interval_slots"])  # [5, 5]
+```
+
+For independently obtained evidence, pass each endpoint's actual task digest.
+The model, initial state, complete target, metric and charging rules must
+match. The upper endpoint needs a program verified to reach that target.
+Supply `epsilon_upper <= epsilon <= epsilon_lower` when tolerances differ.
+A lower endpoint obtained from counts retains its original sampling coverage.
+If a lower-bound record has no common task digest, `lower_core=None` skips
+the automatic identity check for that endpoint. Record how the entries above
+match, including the external circuit’s verified cost and feasibility. If
+the records leave the task identity unresolved, report the endpoints separately.
+
+### Build a half-erasure channel
+
+The [complete one-qubit request](../examples/half_erasure.json) starts with a
+uniform spin and targets the Z-basis populations (15/16, 1/16). Each column
+of the channel matrix gives the output probabilities for one input, in the
+order 0, 1. Its columns (1, 0) and (1/2, 1/2) leave 0 unchanged and halve the
+excited population. Each application costs one atomic slot. Returning the
+spin with `halt` costs one more.
+
+```bash
+python -m rcc_refcert cost analyze examples/half_erasure.json --details
+```
+
+After one, two and three channel applications the excited populations are
+1/4, 1/8 and 1/16. At tolerance 1/10 the two-application program reaches the
+target and closes the interval at [3,3] slots. Remove that candidate from a
+copy of the JSON and the supplied programs give [3,4]. Keep all candidates
+and tighten `epsilon` to `"1/20"`: the interval is again [3,4]. Here the
+reachable populations give an independent check. Four slots are necessary
+at the tighter tolerance, while the computed lower bound is three.
+
 ## Cooling and the remaining optimality gap
 
 ```bash
@@ -92,8 +146,9 @@ python -m rcc_refcert cost template algorithmic-cooling > cooling.json
 python -m rcc_refcert cost analyze cooling.json --format json --output cooling-result.json
 ```
 
-The three-qubit model refreshes the two bath qubits at probability `9/10` and
-compresses with the basis permutation exchanging `011` and `100`. The complete
+Each refresh replaces both bath qubits with independent states whose
+ground-state probability is `9/10`. Compression exchanges the basis states
+`011` and `100`. The complete
 target is produced by `R(CR)^3H`, with target-qubit probability `3078/3125`.
 Here, R denotes bath refresh, C reversible compression, and H halt.
 
@@ -112,6 +167,22 @@ code-weighted gain–cost test (H.70) checks a sufficient local condition; its
 failure does not invalidate an independently verified unweighted gain
 certificate.
 
+For an exact-cost request, omit `gain_certificate` or set it to `"auto"` to
+verify the preset certificate (or a reference envelope for a custom model).
+To test your own certificate, supply an object with an `envelopes` entry.
+An empty object or a failed inequality returns a diagnostic for that input.
+Set `"on_gain_failure": "auto"` to also try the automatic certificate.
+The result retains the original diagnostic and names the verified certificate
+that supports the lower bound in `gain_selection`.
+
+To reuse a verified certificate with the same model, copy its input from the
+effective request. The top-level `result["gain_certificate"]` also contains the
+verification checks for the audit record.
+
+```python
+request["gain_certificate"] = result["effective_request"]["gain_certificate"]
+```
+
 ## Candidate comparisons
 
 Save machine results with `--format json --output result.json`, then use:
@@ -120,21 +191,25 @@ Save machine results with `--format json --output result.json`, then use:
 python -m rcc_refcert cost compare result-a.json result-b.json
 ```
 
-Candidates can be ranked as improvements only for a common full task and
-tolerance. Models, target directions, support, tensor axes and costs are bound
-to the task identity. Equal spectra alone do not identify equal targets.
-Different tasks are displayed separately.
+`cost compare` checks which runs used the same model, complete target and
+tolerance. It reports results for different tasks separately, even when their
+target spectra agree. The task identity includes the target's basis and tensor
+axes, its support and the model's cost rules.
 
-For a reported interval `[L,U]`, L is the lower bound and U is the cost of the
-best supplied feasible candidate. `U-L` bounds that candidate's additive
-overhead relative to the optimum; `U/L` gives a multiplicative bound when `L>0`.
-A zero lower bound has
-no multiplicative ratio. A missing upper bound is not a proof of
-unreachability. `L>U` is an evidence conflict and produces no valid interval.
-The comparison API accepts an explicit `criterion={"additive_gap": 1}` or
-`criterion={"multiplicative_factor": "3/2"}`; it attaches the requested decision
-to each eligible row. Comparisons read supplied result records; shared evidence
-can be reverified using its complete bundle.
+For the same task, the report answers two questions. How many slots can you
+save by switching to the best program already supplied? How much could any
+better program save? In a run with interval `[L,U]`, the best feasible
+program costs U slots and a better one could save at most `U-L`. When `L>0`,
+its cost is at most `U/L` times the optimum. Crossed endpoints (`L>U`)
+signal conflicting evidence.
+
+Use `cost compare --additive-gap 0` to test optimality, or supply
+`criterion={"additive_gap": 0}` to the Python API. A closed interval such as
+`[5,5]` certifies the optimum. With `[4,5]`, a five-slot program's optimality
+remains unresolved. `criterion_status` records `certified` or `unresolved`,
+and `meets_criterion` is respectively `true` or `null`. Positive additive
+gaps and multiplicative factors use the same evidence rule. Shared results
+can be reverified from their complete bundles.
 
 <a id="state-windows-and-probes"></a>
 <a id="subsystem-entropy-and-correlations"></a>
@@ -153,7 +228,7 @@ $$
 
 The entropy deficit supplies the information numerator; the control bandwidth
 converts it to a complexity reading in R-structons, with
-$1 \mathrm{st}_R=g_R$ bits. Keeping the reference and bandwidth fixed makes
+$1\thinspace\mathrm{st}_R = g_R$ bits. Keeping the reference and bandwidth fixed makes
 these readings comparable across subsystems and preparation steps. Bipartitions
 also separate local and correlation contributions to this state-side complexity.
 The [scientific scope](SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
@@ -222,8 +297,10 @@ W3 is a preparation task, so send its request to **`cost analyze`**:
 
 ```bash
 python -m rcc_refcert probe export w3-cooling-trajectory > trajectory.json
-python -m rcc_refcert cost analyze trajectory.json --details --bundle trajectory.rccbundle
+python -m rcc_refcert cost analyze trajectory.json --details --bundle trajectory.rccbundle --csv trajectory.csv --plot trajectory.svg
 ```
+
+The CSV and figure show the global reading, subsystem readings and the partition correlation for each program step. Figures require the `plots` extra. The Python entry point is `rcc_refcert.workflows.export_window_files`.
 
 Its window profiles use the states produced by each candidate, with the step,
 action and cumulative cost recorded together. Set `windows.steps` to a list
@@ -239,13 +316,18 @@ cooling = analyze_cost(export_probe("w3-cooling-trajectory"))
 print(render_workflow_result(cooling["windows"]))
 ```
 
-The eight-action target program defines the complete target; the six-action
-candidate attains the optimum at the default tolerance. Refresh removes entropy
-and resets target–bath correlation, changing the RCC profile; reversible
-compression redistributes local and correlation contributions at a fixed global
-RCC value. Changing `p` changes the bath model,
-and changing `cycles` changes the target construction. Keep the model, target
-and tolerance fixed when comparing candidate costs.
+The eight-action program defines the full target. The six-action candidate
+reaches it within the default tolerance and attains the model's lower bound.
+To see what a paid operation does, compare the first refresh with the
+compression that follows it. Compression permutes the eight populations,
+so the global entropy and global RCC stay fixed. The target qubit becomes
+more polarized and the target and bath become correlated. The operation
+costs one slot even though the change in global RCC is zero. The next
+refresh replaces the bath and removes those correlations.
+
+Changing `p` changes the bath model, and changing `cycles` changes the
+target construction. Keep the model, target and tolerance fixed when
+comparing candidate costs.
 
 ### Read local and correlation contributions
 
@@ -262,6 +344,87 @@ inputs and one-shot corrections described in the
 Overlapping windows do not sum to the global quantity. Windows distinguish
 subsystem complexity profiles even when global spectra coincide; a known full
 spectrum already fixes its global Dmax bound.
+
+## Finite-sample windows
+
+A prespecified binary event or a small set of coarse outcome bins can be
+analyzed directly from counts, without reconstructing a density matrix. A
+complete computational-basis measurement on $n$ qubits can have $2^n$
+outcomes. This PVM interface supports up to 256 declared outcomes. The sample
+size needed to resolve a rare event and the resources needed to qualify a
+preparation model are separate costs. The Python interface is
+`rcc_refcert.workflows.analyze_pvm_windows`.
+
+From a complete histogram of an ideal projective measurement, you can bound
+RCC in the measured classical window. Measure two states in that same window
+to bound their RCC difference in R-structons. The calculation uses the block
+ranks, the uniform reference on the declared support and the control bandwidth
+`g_R = log2(atomic_action_classes)`. You can study a window without giving
+a preparation model. These installed examples use synthetic counts.
+
+| Template | Question answered |
+|---|---|
+| `bell-ghz-counts` | What difference in window RCC do the Bell-basis counts certify between a Bell pair and a reduced GHZ pair? |
+| `pvm-counts` | Which group of outcomes certifies the strongest one-shot information floor at the requested tolerance, and what preparation budget does it exclude? |
+| `product-counts` | How much of the joint computational-basis reading comes from the two marginals and how much from correlations? |
+| `retained-counts` | What window information survives a projection, and how much remains after weighting by the probability of retention? |
+
+```bash
+python -m rcc_refcert window template bell-ghz-counts > pair.json
+python -m rcc_refcert window analyze pair.json --csv pair.csv --bundle pair.rccbundle
+python -m rcc_refcert bundle verify pair.rccbundle
+```
+
+Each state contributes 20,000 shots. The Bell pair puts all of them in
+$\Phi^+$, and the GHZ reduced pair splits evenly between $\Phi^+$ and
+$\Phi^-$. The Bell lower endpoint exceeds the GHZ upper endpoint by at least
+0.37086784 R-structons at 99% joint coverage. This compares the two states
+on the **same Bell-basis classical window**. With `window_scope` set to
+`containing_quantum`, the measurement supplies a lower bound for the larger
+window. Its upper endpoint and the corresponding ordering remain open.
+
+For your own experiment, replace the acquisition fields in a template. Before
+sampling, save the bare object at `batches[0].protocol` to `protocol.json`
+and run:
+
+```bash
+python -m rcc_refcert window prepare-protocol protocol.json > frozen.json
+```
+
+The [installed request schema](../src/rcc_refcert/workflows/data/pvm_request.schema.json) describes the fields. Keep the returned protocol and SHA-256 digest with the dataset. Specify the
+state, reference, setting and projector source, every outcome and its positive
+rank, the fixed IID trial count, and the failure budget. For observed data set
+`data.origin` to `observed_counts`, copy the dataset identity and protocol
+digest, and supply integer counts for the declared outcomes. Missing histogram
+entries count as zero once the total reconciles with the fixed trial count.
+The declared ranks must sum to the reference dimension. The experiment
+supplies the evidence for the physical readout, support and reference.
+
+Every tolerance and deterministic regrouping of one acquisition uses the same
+coverage event. Add `coarse_windows` to an entry to map **each** outcome of
+its parent measurement to a group. To obtain local windows, declare the two
+product axes, their block ranks and the joint outcome-to-coordinate map as in
+`product-counts`. For outcomes $X$ and $Y$ on the two subsystems, the
+correlation interval bounds their contribution $I(X:Y)/g_R$ to the measured
+window's RCC, in R-structons. Its lower endpoint also gives a lower bound on
+the quantum mutual-information contribution of those subsystems on the same scale.
+
+The `pvm-counts` example has counts (9600, 9400, 600, 400). At trace-distance
+tolerance 0.3, pooling outcomes 0 and 1 gives at least **0.34832863 one-shot
+bits** at 99% coverage. The supplied eight-action model converts this to at
+least one integer slot. Supply model qualifications for the target state to
+obtain a cost. Different settings may strengthen the same task by taking the
+largest valid floor. The request reports each task and its tolerance separately.
+
+For a projected branch, include all discarded trials. The retained outcomes
+estimate the normalized projected state's window, using the retained sample
+size. A separate one-sided retention endpoint (Hoeffding or Clopper–Pearson)
+or a supplied known retention probability weights the state-side lower bound.
+Zero retained observations leave the conditional window undetermined. A known
+zero retention probability gives an exactly zero weighted contribution.
+The parent preparation's unconditional process cost needs additional evidence.
+See the [paper-to-code derivation](PAPER_MAP.md#finite-histogram-calculation)
+and [bundle verification](ANALYSIS_BUNDLES.md#complete-projective-readouts).
 
 ## Your own matrix and tensor labels
 
@@ -287,18 +450,23 @@ Qiskit qubit 0 is the least significant axis. For a qubit density matrix `dm`,
 keep its array and name axes from highest qubit index to zero:
 
 ```python
-state = StateInput.numeric(dm.data, (2,) * n,
-                           tuple(f"q{i}" for i in reversed(range(n))))
+state = StateInput.numeric(
+    dm.data, (2,) * n, tuple(f"q{i}" for i in reversed(range(n))),
+    policy={"mode": "roundoff_only", "tolerance": 1e-10, "repair_budget": 1e-10},
+)
 ```
 
 For a QuTiP density operator `rho`, preserve tensor order:
 
 ```python
-state = StateInput.numeric(rho.full(), tuple(rho.dims[0]), tuple(labels))
+state = StateInput.numeric(
+    rho.full(), tuple(rho.dims[0]), tuple(labels),
+    policy={"mode": "roundoff_only", "tolerance": 1e-10, "repair_budget": 1e-10},
+)
 ```
 
-Check imported axes with an asymmetric product state before interpreting a
-window. These are array conversion recipes; neither library is required.
+The examples allow roundoff corrections up to the declared budget. Check the
+axis order with an asymmetric product state before interpreting a window.
 See the official [Qiskit bit-order guide](https://quantum.cloud.ibm.com/docs/en/qiskit/bit-ordering)
 and [QuTiP quantum-object documentation](https://qutip.readthedocs.io/en/stable/apidoc/quantumobject.html).
 
@@ -367,17 +535,33 @@ columns by default; `--width 120` changes presentation only. Optional graphics
 and CSV come from saved window quantities:
 
 ```bash
-python -m pip install ".[plots]"
+python -m pip install "rcc-refcert[plots]==0.4.0"
 python -m rcc_refcert window analyze windows.json --csv profile.csv --plot profile.svg
 python -m rcc_refcert window analyze windows.json --format markdown --output report.md
 ```
 
-Install `.[plots]` from this checkout; ordinary analysis only needs NumPy.
-Plotting supports SVG, PNG and PDF and is limited to 128 displayed rows.
-Missing optional plotting dependencies preserve the computed scientific result
-and mark the presentation step partial. Output files are exclusive by default;
-`--overwrite` explicitly selects atomic replacement. Inputs and output paths
-must remain distinct.
+The plots extra exports SVG, PNG and PDF for up to 128 rows. In known-state
+and trajectory CSV files, `kind == "subsystem"` selects the subsystem rows
+from the 0.3.0 export. All row types give the calibrated value in `reading_st_R`.
+
+**Read a measured window.** Each figure row corresponds to one CSV row.
+The CSV identifies the dataset, sampling event and window scope. The `quantity`
+column distinguishes the original measurement window, a coarse-graining, a
+product marginal and the classical correlation. For example, a coarse window
+and a subsystem can share the label A. The report and figure identify both by
+what they measure. Repeated measurements of the same quantity carry the dataset
+name in the figure.
+A dot and an end cap mark the lower and upper endpoints. A right-pointing
+triangle marks a lower bound. An unresolved ordering leaves both difference
+endpoints empty.
+
+**Read a retained branch.** A diamond at zero marks the exact contribution
+of a branch with known zero retention probability. If retention is estimated
+from counts, observing zero retained shots gives a one-sided lower bound of zero.
+
+Use distinct paths for inputs and outputs. To replace a previous output, add
+`--overwrite`. If an optional export fails, the report identifies the affected
+file and the other results remain available.
 
 ### Computation budgets
 
@@ -411,9 +595,11 @@ reports its own status separately.
 
 ### Execution status
 
-Cost and window analysis exits: 0 completed, 1 partial, 2 invalid or unsupported
-input, 3 preflight resource limit, 130 interrupted. A fresh run identifier accompanies
-each result or failure. A failed candidate alone does not mean failed execution.
+Cost and window analyses exit 0 on completion, 1 for a partial result, 2 for
+input errors, 3 for a preflight resource limit and 130 on interruption. With
+the default certificate policy, a failed inequality returns `certificate_failed`
+(exit 1) and a malformed certificate returns `invalid_input` (exit 2).
+Each result or failure carries a run identifier.
 An unresolved numerical input or tolerance comparison returns a partial result
 and exit 1. A definite numerical candidate miss remains a completed analysis.
 If bundle saving fails after calculation, the CLI still delivers the scientific
@@ -421,7 +607,8 @@ result, records the delivery error and exits 1.
 
 ### Share and reverify a workflow
 
-Workflow bundles use container schema 2. `inspect` checks archive integrity,
+Preparation-cost and known-state window bundles use container schema 2.
+`inspect` checks archive integrity,
 object bindings and stored-result consistency; it does not rerun the physical
 model. `verify` rebuilds the recipe, checks evidence, executes candidates and
 recalculates windows from the saved effective inputs. It preserves author
@@ -436,8 +623,12 @@ window and partition readouts. Numeric evidence retains empty rigorous cost endp
 The recipient's resource ceilings constrain the first reconstruction as well as
 fresh calculation; the author's saved limits and input identity remain intact.
 
-Schema-1 model/certificate/spectrum/counts bundles from 0.2.0 retain their
-existing validation path. A 0.2 reader rejects schema 2; recipients need the
-new workflow version. A changed numerical policy constitutes a new task,
-so workflow verification uses the saved policy. See
-[bundle semantics](ANALYSIS_BUNDLES.md) for the original evidence contracts.
+A changed numerical policy defines a new task, so schema-2 verification uses
+the saved policy. Schema-1 model and certificate bundles, including their
+spectrum and projector-count requests, remain readable from 0.2.0.
+
+Finite-sample projective readouts use **container schema 4** and require
+0.4.0 or later. `inspect` checks the archive and its acquisition bindings.
+`verify` starts from the saved counts and recomputes the sampling coverage,
+window bounds, retention contributions and any eligible preparation-cost
+bounds. The [bundle guide](ANALYSIS_BUNDLES.md) lists the reader for each format.

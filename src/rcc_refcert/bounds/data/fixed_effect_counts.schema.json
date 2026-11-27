@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fixed-effect counts request, version 1",
+  "description": "The calculator checks frozen identities, exact probabilities, sample totals and process qualifications.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema","schema_version","protocol","data","derivation"],
+  "properties": {
+    "schema": {"const":"rcc-refcert.fixed-effect-counts"}, "schema_version": {"const":1},
+    "task": {"type":["object","null"], "required":["model","target"], "additionalProperties":false, "properties":{
+      "model":{"type":"object","description":"Terminal-bound model declaration. Missing RCon, TC or RA qualification retains state-side results."},
+      "target":{"type":"object","additionalProperties":false,"required":["id","metric","epsilon"],"properties":{
+        "id":{"$ref":"#/$defs/text"},"epsilon":{"$ref":"#/$defs/probability"},"metric":{"const":"normalized_trace_distance"}}}
+    }},
+    "protocol": {
+      "type":"object","additionalProperties":false,"required":["schema","schema_version","effect","target","reference"],
+      "properties":{
+        "schema":{"const":"rcc-refcert.fixed-effect-protocol"},"schema_version":{"const":1},
+        "effect":{"type":"object","additionalProperties":false,"required":["id","setting","readout","accept","reject","support","selection"],
+          "properties":{"calibration":{"type":"object","additionalProperties":false,"required":["kind","false_positive","false_negative","source"],
+          "properties":{"kind":{"const":"known_binary"},"false_positive":{"$ref":"#/$defs/probability"},"false_negative":{"$ref":"#/$defs/probability"},"source":{"$ref":"#/$defs/text"}}},"id":{"$ref":"#/$defs/text"},"setting":{"$ref":"#/$defs/text"},"readout":{"$ref":"#/$defs/text"},
+            "accept":{"$ref":"#/$defs/text"},"reject":{"$ref":"#/$defs/text"},"support":{"const":"no_leakage"},"selection":{"const":"predeclared"}}},
+        "target":{"$ref":"#/$defs/sampling"},
+        "reference":{"oneOf":[{"$ref":"#/$defs/sampling"},{"type":"object","additionalProperties":false,
+          "required":["kind","state_id","response","source"],"properties":{"kind":{"enum":["exact","upper_bound"]},
+          "state_id":{"$ref":"#/$defs/text"},"response":{"$ref":"#/$defs/probability"},"source":{"$ref":"#/$defs/text"}}}]}
+      }
+    },
+    "data":{"type":"object","additionalProperties":false,"required":["target"],"properties":{
+      "target":{"$ref":"#/$defs/batch"},"reference":{"$ref":"#/$defs/batch"}}},
+    "derivation":{"type":"object","additionalProperties":false,"required":["smoothing_radius"],"properties":{
+      "smoothing_radius":{"$ref":"#/$defs/probability"},"eta":{"$ref":"#/$defs/probability"}}}
+  },
+  "if":{"properties":{"protocol":{"properties":{"reference":{"properties":{"method":{"enum":["hoeffding","clopper_pearson"]},"kind":{"const":"counts"}}}}}}},
+  "then":{"properties":{"data":{"required":["reference"]}}},
+  "else":{"properties":{"data":{"not":{"required":["reference"]}}}},
+  "$defs":{
+    "text":{"type":"string","minLength":1,"maxLength":4096},
+    "probability":{"oneOf":[{"type":"number","minimum":0,"maximum":1},{"type":"string","minLength":1,"description":"Exact decimal or rational, parsed in [0,1]."}]},
+    "sampling":{"type":"object","additionalProperties":false,"required":["kind","state_id","dataset_id","event_id","samples","delta","sampling"],
+      "properties":{"method":{"enum":["hoeffding","clopper_pearson"]},"kind":{"const":"counts"},"state_id":{"$ref":"#/$defs/text"},"dataset_id":{"$ref":"#/$defs/text"},
+        "event_id":{"$ref":"#/$defs/text"},"samples":{"type":"integer","minimum":1,"maximum":1000000000000},
+        "delta":{"$ref":"#/$defs/probability"},"sampling":{"const":"fixed_n_iid"}}},
+    "batch":{"type":"object","additionalProperties":false,"required":["arm_sha256","dataset_id","origin","counts"],
+      "properties":{"arm_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},"dataset_id":{"$ref":"#/$defs/text"},
+        "origin":{"enum":["synthetic_fixture","simulation","observed_counts"]},"counts":{"type":"object","minProperties":2,"maxProperties":2,
+        "additionalProperties":{"type":"integer","minimum":0,"maximum":1000000000000}}}}
+  }
+}

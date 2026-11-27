@@ -1,0 +1,31 @@
+{
+  "title": "Measuring the Capabilities of Quantum Computers",
+  "creators": [
+    "Timothy Proctor",
+    "Kenneth Rudinger",
+    "Erik Nielsen",
+    "Kevin Young",
+    "Robin Blume-Kohout"
+  ],
+  "dataset_doi": "10.5281/zenodo.5197499",
+  "paper_doi": "10.1038/s41567-021-01409-7",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "archive": "measuring-the-capabilities-of-quantum-computers.zip",
+  "archive_md5": "ded4ec8e5975ffe607c337dd8e5c0cae",
+  "member": "supplement/data/ibmq_vigo/11_06_19/data/dataset.txt",
+  "line_number_including_header": 4,
+  "device": "ibmq_vigo",
+  "spec": "spec0.txt",
+  "depth": 0,
+  "target": "00101",
+  "shots": 1024,
+  "display_order": [
+    "Q0",
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4"
+  ],
+  "conversion": "Transcribed the 12 nonzero outcome-count pairs from one pyGSTi row to JSON, preserving the printed bit strings and counts. The companion layout names the five-bit field vigo and returns the axes in source order."
+}

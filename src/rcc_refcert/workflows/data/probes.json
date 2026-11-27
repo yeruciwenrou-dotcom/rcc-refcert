@@ -11,7 +11,7 @@
       "RCC manuscript v4: reference complexity and subsystem windows"
     ],
     "state_requirements": "Complete normalized density matrices or an exact diagonal process with explicit tensor axes.",
-    "required_information": "Full state data; a single observable expectation does not in general determine window entropy.",
+    "required_information": "Density matrices and tensor axes for both states, evaluated at the same reference and control bandwidth.",
     "reference": "Uniform product support with explicitly declared Gamma.",
     "quantities": [
       "entropy_bits",
@@ -19,7 +19,7 @@
       "rcc_main_term",
       "total_correlation_bits"
     ],
-    "interpretation": "Window profiles characterize organization at the chosen subsystem resolution.",
+    "interpretation": "States with the same global RCC value can have different subsystem complexity profiles.",
     "numerical_policy": {
       "mode": "roundoff_only",
       "tolerance": 1e-10,
@@ -28,10 +28,10 @@
     "bundle_requirements": "Save complete effective input, original input, numerical policy and result in schema 2.",
     "trajectory_selection": "All states unless a step selection is supplied.",
     "probe_id": "w1-quantum-organization",
-    "title": "Quantum organization at a fixed global spectrum",
-    "research_question": "Where is purity organized across subsystems?",
-    "distinguishes": "Paired Bell modules and GHZ organization",
-    "known_counterexample": "Paired Bell and GHZ states have the same global spectrum at every common mixing value. Complete-state comparisons can also distinguish them.",
+    "title": "Subsystem complexity of two Bell pairs and a GHZ state",
+    "research_question": "How do paired Bell modules and a GHZ state differ in subsystem complexity at the same global RCC value?",
+    "distinguishes": "Two Bell pairs and a four-qubit GHZ state",
+    "known_counterexample": "The states have equal global spectra at each common mixing value. At the defaults, the Bell pairs concentrate window complexity in 12 and 34, while GHZ distributes it equally across all three windows. At full mixing the states coincide.",
     "parameter_defaults": {
       "gamma": 4,
       "mixing": "0"
@@ -2368,7 +2368,7 @@
       "RCC manuscript v4: reference complexity and subsystem windows"
     ],
     "state_requirements": "Complete normalized density matrices or an exact diagonal process with explicit tensor axes.",
-    "required_information": "Full state data; a single observable expectation does not in general determine window entropy.",
+    "required_information": "Density matrices and tensor axes for both states, evaluated at the same reference and control bandwidth.",
     "reference": "Uniform product support with explicitly declared Gamma.",
     "quantities": [
       "entropy_bits",
@@ -2376,7 +2376,7 @@
       "rcc_main_term",
       "total_correlation_bits"
     ],
-    "interpretation": "Window profiles characterize organization at the chosen subsystem resolution.",
+    "interpretation": "At the default noise levels, the states have the same global RCC value and different module readings.",
     "numerical_policy": {
       "mode": "roundoff_only",
       "tolerance": 1e-10,
@@ -2385,8 +2385,8 @@
     "bundle_requirements": "Save complete effective input, original input, numerical policy and result in schema 2.",
     "trajectory_selection": "All states unless a step selection is supplied.",
     "probe_id": "w2-noise-distribution",
-    "title": "Concentrated and distributed phase noise",
-    "research_question": "How is an equal global entropy increase distributed between modules?",
+    "title": "Window RCC under concentrated and distributed phase noise",
+    "research_question": "How does phase-noise distribution change subsystem complexity at a fixed global RCC value?",
     "distinguishes": "One noisy module versus two partially noisy modules",
     "known_counterexample": "The cross-13 window is a null control. Matched global entropy can coexist with different complete spectra and different one-shot information.",
     "parameter_defaults": {
@@ -4735,7 +4735,7 @@
       "RCC manuscript v4: reference complexity and subsystem windows"
     ],
     "state_requirements": "Complete normalized density matrices or an exact diagonal process with explicit tensor axes.",
-    "required_information": "Full state data; a single observable expectation does not in general determine window entropy.",
+    "required_information": "States along the cooling program's trajectory, reduced to each selected window.",
     "reference": "Uniform product support; Gamma=3 from the declared physical action classes.",
     "quantities": [
       "entropy_bits",
@@ -4743,7 +4743,7 @@
       "rcc_main_term",
       "total_correlation_bits"
     ],
-    "interpretation": "Window profiles characterize organization at the chosen subsystem resolution.",
+    "interpretation": "Compare the cost of each program step with its effect on the target, bath and correlation contributions to complexity.",
     "numerical_policy": {
       "mode": "roundoff_only",
       "tolerance": 1e-10,
@@ -4752,8 +4752,8 @@
     "bundle_requirements": "Save complete effective input, original input, numerical policy and result in schema 2.",
     "trajectory_selection": "All states unless a step selection is supplied.",
     "probe_id": "w3-cooling-trajectory",
-    "title": "Cooling through local purity and correlation",
-    "research_question": "How do compression and refresh redistribute entropy deficit?",
+    "title": "Subsystem complexity along a cooling program",
+    "research_question": "How do bath refresh and reversible compression change local and correlation contributions to complexity?",
     "distinguishes": "Reversible compression versus bath refresh along one candidate",
     "known_counterexample": "These diagonal states carry classical correlation. Reversible compression preserves the global spectrum; halt adds cost while preserving the state.",
     "parameter_defaults": {

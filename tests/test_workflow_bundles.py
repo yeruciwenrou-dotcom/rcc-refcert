@@ -12,11 +12,13 @@ from pathlib import Path
 import pytest
 
 from rcc_refcert.bundle import inspect_analysis_bundle, verify_analysis_bundle
+from rcc_refcert.limits import ResourceLimitError
 from rcc_refcert.workflows import (
     analyze_cost,
     load_workflow_template,
     save_workflow_bundle,
 )
+from rcc_refcert.workflows.bundles import _scientific_result
 from rcc_refcert.workflows.core import canonical_bytes, digest
 
 
@@ -59,6 +61,102 @@ def test_independent_replay(tmp_path, name):
     assert verified["fresh_result"]["cost"] == original["cost"]
     assert verified["fresh_result"]["run_id"] != original["run_id"]
     assert path.read_bytes() == before
+
+
+def test_scan_replay_with_recipient_limits(tmp_path):
+    request = load_workflow_template("algorithmic-cooling")
+    request["epsilon_values"] = ["1/100", "1/50"]
+    result = analyze_cost(request)
+    path = tmp_path / "scan.rccbundle"
+    save_workflow_bundle(path, request, result)
+    before = path.read_bytes()
+
+    run = _cli(
+        "bundle",
+        "verify",
+        str(path),
+        "--max-matrix-elements",
+        "524288",
+        "--format",
+        "json",
+        cwd=tmp_path,
+    )
+    report = json.loads(run.stdout)
+    assert run.returncode == 0, report.get("same_version_replay", run.stderr)
+    assert report["fresh_verification"]["outcome"] == "pass"
+    assert report["historical_results_supported"] is True
+    assert report["same_version_replay"]["status"] == "match"
+    author, recipient = report["historical_result"], report["fresh_result"]
+    assert author == result
+    for entry in (author, recipient):
+        for point in entry["epsilon_scan"]:
+            expected = {
+                **entry["effective_request"],
+                "epsilon": point["epsilon_exact"],
+                "epsilon_values": [],
+            }
+            assert point["request_digest"] == digest(expected)
+    for saved, fresh in zip(
+        author["epsilon_scan"], recipient["epsilon_scan"], strict=True
+    ):
+        assert saved["request_digest"] != fresh["request_digest"]
+        assert {k: v for k, v in saved.items() if k != "request_digest"} == {
+            k: v for k, v in fresh.items() if k != "request_digest"
+        }
+    assert path.read_bytes() == before
+
+
+@pytest.mark.parametrize(
+    "field", ["request_digest", "cost", "gain_bound", "candidates"]
+)
+def test_scan_history_checks_request_and_science(tmp_path, field):
+    request = load_workflow_template("algorithmic-cooling")
+    request["epsilon_values"] = ["1/100", "1/50"]
+    result = analyze_cost(request)
+    science = _scientific_result(result)
+    saved, other = result["epsilon_scan"]
+    assert saved[field] != other[field]
+    saved[field] = other[field]
+    assert (science == _scientific_result(result)) == (field == "request_digest")
+    with pytest.raises(ValueError, match="history:"):
+        save_workflow_bundle(tmp_path / "scan.rccbundle", request, result)
+
+
+@pytest.mark.parametrize("updates", [3, 9])
+def test_insufficient_updates_for_primary_or_scan(tmp_path, updates):
+    request = load_workflow_template("algorithmic-cooling")
+    request.update(epsilon="1/2", epsilon_values=["0"])
+    result = analyze_cost(request)
+    assert result["gain_bound"]["updates"] == 9
+    assert result["epsilon_scan"][0]["gain_bound"]["updates"] == 45
+    path = tmp_path / "scan.rccbundle"
+    save_workflow_bundle(path, request, result)
+    with pytest.raises(ResourceLimitError) as caught:
+        verify_analysis_bundle(path, limits={"max_dp_updates": updates})
+    assert caught.value.resource == "dp_updates"
+    assert caught.value.estimate > caught.value.limit == updates
+
+
+def test_insufficient_fraction_bits_for_history(tmp_path):
+    request = load_workflow_template("cyclic-reset")
+    request["model"]["parameters"] = {"qubits": 1, "p": "3/4"}
+    request.update(epsilon="0", candidates=[], epsilon_values=[])
+    certificate = analyze_cost(request)["effective_request"]["gain_certificate"]
+    certificate["coefficients"]["s"]["reset-0"] = "1537/1024"
+    request["gain_certificate"] = certificate
+    result = analyze_cost(request)
+    path = tmp_path / "cost.rccbundle"
+    save_workflow_bundle(path, request, result)
+    with pytest.raises(ResourceLimitError) as caught:
+        verify_analysis_bundle(path, limits={"max_fraction_bits": 16})
+    assert caught.value.resource == "fraction_bits"
+    assert caught.value.estimate > caught.value.limit == 16
+    assert (
+        verify_analysis_bundle(path, limits={"max_fraction_bits": 22})[
+            "historical_results_supported"
+        ]
+        is True
+    )
 
 
 @pytest.mark.parametrize("field", ["lower", "error", "coefficient", "target", "cost"])
@@ -175,3 +273,33 @@ def test_cli_bad_inputs_and_budget(tmp_path):
     limited = _cli("cost", "analyze", str(path), "--format", "json", cwd=tmp_path)
     assert limited.returncode == 3
     assert json.loads(limited.stdout)["resource"] == "dp_cells"
+
+
+@pytest.mark.parametrize(
+    "field",
+    ["cost", "gain_certificate", "gain_bound", "producer", "execution", "candidates"],
+)
+def test_incomplete_cost_history_has_a_typed_input_error(tmp_path, field):
+    from rcc_refcert.workflows.core import InputError
+
+    request = load_workflow_template("cyclic-reset")
+    result = analyze_cost(request)
+    result[field] = None
+    with pytest.raises(InputError):
+        save_workflow_bundle(tmp_path / "incomplete.rccbundle", request, result)
+
+
+def test_repackaging_preserves_the_calculating_producer(tmp_path):
+    request = load_workflow_template("cyclic-reset")
+    result = analyze_cost(request)
+    result["producer"]["version"] = "0.3.0"
+    path = tmp_path / "repackaged.rccbundle"
+    save_workflow_bundle(path, request, result)
+    with zipfile.ZipFile(path) as archive:
+        assert (
+            json.loads(archive.read("manifest.json"))["producer"] == result["producer"]
+        )
+    assert inspect_analysis_bundle(path)["producer"] == result["producer"]
+    checked = verify_analysis_bundle(path)
+    assert checked["historical_results_supported"]
+    assert checked["same_version_replay"]["status"] == "different_producer_version"

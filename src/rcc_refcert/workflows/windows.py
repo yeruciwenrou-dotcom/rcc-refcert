@@ -16,8 +16,8 @@ import numpy as np
 from .core import (
     InputError,
     WorkflowLimits,
+    action_class_count,
     digest,
-    exact,
     exact_text,
     json_value,
     keys,
@@ -63,13 +63,11 @@ def reference_scale(reference, state):
     keys(reference, {"kind", "gamma", "source"}, name="reference")
     if reference["kind"] != "uniform_product_support":
         raise InputError("reference.kind: expected uniform_product_support")
-    gamma = exact(reference["gamma"], "reference.gamma")
-    if gamma < 2:
-        raise InputError("reference.gamma: require Gamma >= 2")
+    gamma = action_class_count(reference["gamma"])
     return {
         "kind": reference["kind"],
         "gamma_exact": exact_text(gamma),
-        "g_bits": math.log2(gamma.numerator) - math.log2(gamma.denominator),
+        "g_bits": math.log2(gamma),
         "source": text(reference["source"], "reference.source"),
         "dimension": state.dimension,
         "subsystem_dims": list(state.subsystem_dims),
@@ -208,7 +206,12 @@ def normalize_window_request(request, *, limits=None):
 
 
 def analyze_windows(request, *, limits=None):
+    """Measure global and subsystem RCC for states on the declared reference scale."""
     from .api import producer
+    from .pvm import REQUEST, analyze_pvm_windows
+
+    if isinstance(request, dict) and request.get("schema") == REQUEST:
+        return analyze_pvm_windows(request, limits=limits)
 
     original, effective, states, scale, limits = normalize_window_request(
         request, limits=limits
@@ -487,17 +490,22 @@ def _window_number(value):
     return "~0" if abs(value) < 1e-12 else f"{value:.10g}"
 
 
+def _window_bits(value):
+    number = _window_number(value)
+    unit = "bit" if number == "1" else "bits"
+    return f"{number} {unit}"
+
+
 def window_report_lines(result, *, details=False):
-    from .render import _decision_label
+    from .render import _decision_label, density_check_lines
 
     ref = result["reference"]
-    lines = [
-        "RCC subsystem complexity profiles",
-        f"Decision: {_decision_label(result['decision'])}",
-        f"Reference: uniform product support; Gamma={ref['gamma_exact']}; g_R={ref['g_bits']:.10g} bits",
-        f"Scale source: {ref['source']}",
-        "C = entropy deficit / g_R: state-side complexity in st_R (1 st_R = g_R bits).",
-        "The information numerator is log2(d_A) - S(rho_A); entropies are in bits.",
+    lines = ["RCC subsystem complexity profiles"]
+    if result["decision"] != "window_analysis":
+        lines.append(f"Decision: {_decision_label(result['decision'])}")
+    lines += [
+        f"Reference: uniform product support; Gamma={ref['gamma_exact']}; g_R={_window_bits(ref['g_bits'])} per atomic slot",
+        "C is the state-side RCC reading in st_R (1 st_R = g_R bits).",
     ]
     records = {record["id"]: record for record in result["effective_request"]["states"]}
     for profile in result["profiles"]:
@@ -517,45 +525,84 @@ def window_report_lines(result, *, details=False):
         if metadata:
             lines.append(f"  {metadata}")
         if profile["global_quantity"] is None:
-            lines.append(
-                "  Numerical input checks unresolved: "
-                + profile["input_diagnostics"].get("reason", "invalid state")
-            )
+            reason, *checks = density_check_lines(profile["input_diagnostics"], details)
+            lines.append("  Numerical input checks unresolved: " + reason)
+            lines.extend("  " + check for check in checks)
             continue
         for q in [{"id": "global", **profile["global_quantity"]}, *profile["windows"]]:
             lines.append(
-                f"  {q['id']}: C={_window_number(q['rcc_main_term'])} st_R; subsystem entropy={_window_number(q['entropy_bits'])} bits; deficit={_window_number(q['entropy_deficit_bits'])} bits"
+                f"  {q['id']}: C={_window_number(q['rcc_main_term'])} st_R; entropy={_window_bits(q['entropy_bits'])}; deficit={_window_bits(q['entropy_deficit_bits'])}"
             )
         if profile["partition"] is not None:
             left = ", ".join(profile["partition"]["left"]["keep"])
             right = ", ".join(profile["partition"]["right"]["keep"])
             lines.append(
-                f"  Correlation contribution ({left} | {right}): {_window_number(profile['partition']['total_correlation_scaled'])} st_R; Total correlation: {_window_number(profile['partition']['total_correlation_bits'])} bits"
+                f"  Correlation contribution ({left} | {right}): {_window_number(profile['partition']['total_correlation_scaled'])} st_R"
+            )
+            lines.append(
+                f"  Total correlation: {_window_bits(profile['partition']['total_correlation_bits'])}"
             )
         if details:
             lines.append(f"  State identity: {profile['state_digest']}")
+    lines.append(f"Scale source: {ref['source']}")
     lines.append(
-        "Entropies use binary64 logarithms. Values below 1e-12 in magnitude "
-        "display as ~0; JSON and CSV retain the original values. "
-        "Mixed-state total correlation includes classical correlation."
+        "For each subsystem A, C = [log2(d_A) - S(rho_A)] / g_R. Entropies are in bits."
     )
+    if details:
+        lines.append(
+            "Entropies use binary64 logarithms. Values below 1e-12 in magnitude display as ~0. JSON and CSV retain the original values."
+        )
+    elif any("~0 " in line for line in lines):
+        lines.append("Values displayed as ~0 have magnitude below 1e-12.")
+    if any(p.get("partition") is not None for p in result["profiles"]):
+        lines.append(
+            "For mixed states, total correlation can include classical correlations."
+        )
     return lines
 
 
 def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=False):
-    from .cli import write_atomic
+    """Export global, subsystem and correlation readings or measured-window intervals to CSV and figures."""
+    from .cli import validate_output_paths, write_atomic
 
-    rows = [
-        {
-            "state": p["id"],
-            "window": q["id"],
-            "entropy_bits": q["entropy_bits"],
-            "deficit_bits": q["entropy_deficit_bits"],
-            "rcc_main_term": q["rcc_main_term"],
-        }
-        for p in result["profiles"]
-        for q in p["windows"]
-    ]
+    if csv_path is not None and plot_path is not None:
+        validate_output_paths((), (csv_path, plot_path))
+    if result.get("kind") == "pvm_windows":
+        from .pvm_render import export_pvm
+
+        return export_pvm(result, csv_path, plot_path, overwrite)
+    rows = []
+    for profile in result["profiles"]:
+        state = profile["id"]
+        quantities = [("subsystem", q["id"], q) for q in profile["windows"]]
+        if profile["global_quantity"] is not None:
+            quantities.insert(0, ("global", "global", profile["global_quantity"]))
+        for kind, label, q in quantities:
+            rows.append(
+                {
+                    "state": state,
+                    "window": label,
+                    "entropy_bits": q["entropy_bits"],
+                    "deficit_bits": q["entropy_deficit_bits"],
+                    "rcc_main_term": q["rcc_main_term"],
+                    "kind": kind,
+                    "reading_st_R": q["rcc_main_term"],
+                }
+            )
+        partition = profile["partition"]
+        if partition is not None:
+            left, right = (
+                ", ".join(partition[side]["keep"]) for side in ("left", "right")
+            )
+            rows.append(
+                {
+                    "state": state,
+                    "window": f"correlation ({left} | {right})",
+                    "kind": "partition_correlation",
+                    "correlation_bits": partition["total_correlation_bits"],
+                    "reading_st_R": partition["total_correlation_scaled"],
+                }
+            )
     if csv_path is not None:
         stream = io.StringIO(newline="")
         writer = csv.DictWriter(
@@ -566,6 +613,9 @@ def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=Fals
                 "entropy_bits",
                 "deficit_bits",
                 "rcc_main_term",
+                "kind",
+                "correlation_bits",
+                "reading_st_R",
             ],
         )
         writer.writeheader()
@@ -573,9 +623,92 @@ def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=Fals
         write_atomic(csv_path, stream.getvalue(), overwrite=overwrite)
     if plot_path is None:
         return
-    destination = Path(plot_path)
-    if destination.suffix.lower() not in {".svg", ".png", ".pdf"}:
+    figure = window_figure(result, plot_path, len(rows))
+    if figure is None:
+        return
+    fig, ax = figure
+    calibration = rf"$\mathrm{{st}}_R$, $\Gamma_R={result['reference']['gamma_exact']}$"
+    profiles = result["profiles"]
+    groups = {}
+    for p in profiles:
+        program, sep, step = p["id"].rpartition(":")
+        if not sep or "step" not in p or step != str(p["step"]):
+            groups = {}
+            break
+        groups.setdefault(program, {})[p["id"]] = p["step"]
+    if 0 < len(groups) <= 4:
+        fig.clear()
+        fig.set_size_inches(9, 3 * len(groups) + 1.2)
+        panels = fig.subplots(len(groups), 1, sharex=True, sharey=True, squeeze=False)
+        legend_series = {}
+        for (program, states), panel in zip(groups.items(), panels[:, 0]):
+            series = {}
+            for row in rows:
+                if row["state"] in states:
+                    series.setdefault((row["kind"], row["window"]), {})[
+                        row["state"]
+                    ] = row["reading_st_R"]
+            for (kind, label), values in series.items():
+                (artist,) = panel.plot(
+                    list(states.values()),
+                    [values.get(state, float("nan")) for state in states],
+                    marker="o",
+                    markersize=4,
+                    linestyle="--" if kind == "partition_correlation" else "-",
+                    label=f"subsystem: {label}"
+                    if kind == "subsystem" and label == "global"
+                    else label,
+                )
+                legend_series.setdefault((kind, label), artist)
+            panel.set_title(program, loc="left", fontsize=10, parse_math=False)
+            panel.set_axisbelow(True)
+            panel.grid(axis="y", color="0.9", linewidth=0.7)
+        if legend_series:
+            handles = list(legend_series.values())
+            legend = fig.legend(
+                handles,
+                ["series"] * len(handles),
+                loc="outside lower center",
+                ncols=3,
+                frameon=False,
+            )
+            for label, artist in zip(legend.get_texts(), handles):
+                label.set_text(artist.get_label())
+                label.set_parse_math(False)
+        panels[-1, 0].set_xlabel("Preparation step")
+        fig.supylabel(f"State-side RCC contribution ({calibration})")
+        fig.suptitle("Complexity through the preparation", fontweight="bold")
+    else:
+        colors = {
+            "global": "#233858",
+            "subsystem": "#31778a",
+            "partition_correlation": "#a25124",
+        }
+        ax.barh(
+            range(len(rows)),
+            [r["reading_st_R"] for r in rows],
+            color=[colors[r["kind"]] for r in rows],
+        )
+        ax.set_yticks(range(len(rows)), [f"{r['state']} / {r['window']}" for r in rows])
+        for label in ax.get_yticklabels():
+            label.set_parse_math(False)
+        ax.invert_yaxis()
+        ax.set_xlabel(f"State-side RCC contribution ({calibration})")
+        ax.set_title(
+            "Complexity profiles across subsystems", loc="left", fontweight="bold"
+        )
+        ax.set_axisbelow(True)
+        ax.grid(axis="x", color="0.9", linewidth=0.7)
+    save_window_figure(fig, plot_path, overwrite)
+
+
+def validate_plot_path(plot_path):
+    if Path(plot_path).suffix.lower() not in {".svg", ".png", ".pdf"}:
         raise InputError("plot: choose .svg, .png or .pdf")
+
+
+def window_figure(result, plot_path, row_count):
+    validate_plot_path(plot_path)
     try:
         from matplotlib.backends.backend_agg import FigureCanvasAgg
         from matplotlib.figure import Figure
@@ -585,19 +718,17 @@ def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=Fals
             "reason": "optional_plot_dependency_missing",
         }
         return
-    if len(rows) > 128:
+    if row_count > 128:
         result["execution"] = {"state": "partial", "reason": "optional_plot_row_limit"}
         return
-    fig = Figure(figsize=(8, max(3, 0.3 * len(rows) + 1)), layout="constrained")
+    fig = Figure(figsize=(8, max(3, 0.3 * row_count + 1)), layout="constrained")
     FigureCanvasAgg(fig)
     ax = fig.subplots()
-    ax.barh(range(len(rows)), [r["rcc_main_term"] for r in rows], color="#266c85")
-    ax.set_yticks(range(len(rows)), [f"{r['state']} / {r['window']}" for r in rows])
-    ax.invert_yaxis()
-    ax.set_xlabel(
-        f"Window RCC complexity C [st_R] (Gamma={result['reference']['gamma_exact']})"
-    )
-    ax.set_title("Complexity profiles across subsystems")
+    return fig, ax
+
+
+def save_window_figure(fig, plot_path, overwrite):
+    destination = Path(plot_path)
     destination.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(
         prefix=".rcc-plot-", suffix=destination.suffix, dir=destination.parent

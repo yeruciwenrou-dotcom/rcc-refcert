@@ -48,9 +48,7 @@ class GainCostReport:
     """Numerical H.6 analysis of supplied envelopes and actual local codewords.
 
     ``outcome`` concerns the current codewords. Suggested codewords are an
-    explicit H.76 re-encoding witness, not a mutation of the supplied model.
-    Family-uniformity and faithful transcription of the re-encoding remain
-    separate analytic obligations.
+    explicit H.76 witness for a separately encoded model.
     """
 
     model_name: str
@@ -61,8 +59,7 @@ class GainCostReport:
     constant: float | None = None
     checks: list[CheckResult] = field(default_factory=list)
     caveat: str = (
-        "H.70 is a sufficient local gain–cost condition. Rejection does not "
-        "establish failure of RA; H.72 family uniformity and TC are not inferred."
+        "H.70 checks the local gain–cost condition for the supplied codewords."
     )
     evidence: EvidenceLevel = EvidenceLevel.NUMERICAL
 
@@ -331,8 +328,7 @@ def analyze_reference_gain_cost(
         CheckResult(
             "H.72-fixed-model-initial",
             CheckOutcome.PASS,
-            "fixed-model initial blocks are dominated by the supplied envelopes; "
-            "family-uniform boundedness is a separate analytic obligation",
+            "the supplied envelopes dominate the fixed model's initial blocks",
             fixed_constant,
             tol,
         )

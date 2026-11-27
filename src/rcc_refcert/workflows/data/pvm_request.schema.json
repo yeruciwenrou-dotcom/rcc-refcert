@@ -1,0 +1,434 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Finite-sample projective window request",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "rcc-refcert.pvm-windows"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "atomic_action_classes": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "batches": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/batch"
+      },
+      "minItems": 1,
+      "maxItems": 64
+    },
+    "tolerances": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/probability"
+      },
+      "minItems": 1,
+      "maxItems": 64
+    },
+    "models": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/label"
+      },
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "comparisons": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/label"
+        },
+        "minItems": 2,
+        "maxItems": 2
+      },
+      "minItems": 0,
+      "maxItems": 256
+    }
+  },
+  "required": [
+    "schema",
+    "schema_version",
+    "atomic_action_classes",
+    "batches",
+    "tolerances"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "\\S"
+    },
+    "probability": {
+      "description": "Exact probability from zero to one. Strings may contain a fraction or decimal.",
+      "oneOf": [
+        {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        {
+          "type": "string",
+          "minLength": 1
+        }
+      ]
+    },
+    "ranks": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/label"
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "minProperties": 1,
+      "maxProperties": 256
+    },
+    "axis": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "$ref": "#/$defs/label"
+        },
+        "ranks": {
+          "$ref": "#/$defs/ranks"
+        }
+      },
+      "required": [
+        "label",
+        "ranks"
+      ],
+      "additionalProperties": false
+    },
+    "product": {
+      "type": "object",
+      "properties": {
+        "axes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/axis"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "coordinates": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/label"
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/label"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "source": {
+          "$ref": "#/$defs/label"
+        }
+      },
+      "required": [
+        "axes",
+        "coordinates",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "measurement": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/label"
+        },
+        "setting": {
+          "$ref": "#/$defs/label"
+        },
+        "ranks": {
+          "$ref": "#/$defs/ranks"
+        },
+        "readout": {
+          "const": "ideal"
+        },
+        "window": {
+          "$ref": "#/$defs/label"
+        },
+        "window_scope": {
+          "enum": [
+            "classical_blocks",
+            "containing_quantum"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/label"
+        },
+        "product": {
+          "$ref": "#/$defs/product"
+        }
+      },
+      "required": [
+        "id",
+        "setting",
+        "ranks",
+        "readout",
+        "window",
+        "window_scope",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "retention": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "const": "normalized_projected"
+            },
+            "method": {
+              "const": "known"
+            },
+            "source": {
+              "$ref": "#/$defs/label"
+            },
+            "probability": {
+              "$ref": "#/$defs/probability"
+            }
+          },
+          "required": [
+            "state",
+            "method",
+            "source",
+            "probability"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "const": "normalized_projected"
+            },
+            "method": {
+              "enum": [
+                "hoeffding",
+                "clopper_pearson"
+              ]
+            },
+            "source": {
+              "$ref": "#/$defs/label"
+            },
+            "event_id": {
+              "$ref": "#/$defs/label"
+            },
+            "delta": {
+              "$ref": "#/$defs/probability"
+            }
+          },
+          "required": [
+            "state",
+            "method",
+            "source",
+            "event_id",
+            "delta"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "protocol": {
+      "type": "object",
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/label"
+        },
+        "dataset_id": {
+          "$ref": "#/$defs/label"
+        },
+        "state_id": {
+          "$ref": "#/$defs/label"
+        },
+        "reference_id": {
+          "$ref": "#/$defs/label"
+        },
+        "reference_treatment": {
+          "const": "uniform_on_support"
+        },
+        "support": {
+          "enum": [
+            "projected_branch",
+            "no_leakage"
+          ]
+        },
+        "dimension": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "measurement": {
+          "$ref": "#/$defs/measurement"
+        },
+        "samples": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000000000
+        },
+        "delta": {
+          "$ref": "#/$defs/probability"
+        },
+        "sampling": {
+          "const": "fixed_n_iid"
+        },
+        "selection": {
+          "const": "predeclared"
+        },
+        "retention": {
+          "$ref": "#/$defs/retention"
+        }
+      },
+      "required": [
+        "event_id",
+        "dataset_id",
+        "state_id",
+        "reference_id",
+        "reference_treatment",
+        "support",
+        "dimension",
+        "measurement",
+        "samples",
+        "delta",
+        "sampling",
+        "selection"
+      ],
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "dataset_id": {
+          "$ref": "#/$defs/label"
+        },
+        "protocol_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "origin": {
+          "enum": [
+            "observed_counts",
+            "simulation",
+            "synthetic_fixture"
+          ]
+        },
+        "counts": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/label"
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "discarded": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "dataset_id",
+        "protocol_sha256",
+        "origin",
+        "counts"
+      ],
+      "additionalProperties": false
+    },
+    "batch": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "$ref": "#/$defs/protocol"
+        },
+        "data": {
+          "$ref": "#/$defs/data"
+        },
+        "coarse_windows": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/label"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "propertyNames": {
+              "$ref": "#/$defs/label"
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/label"
+            }
+          },
+          "maxProperties": 256
+        }
+      },
+      "required": [
+        "protocol",
+        "data"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "protocol": {
+                "required": [
+                  "retention"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "protocol": {
+                "properties": {
+                  "support": {
+                    "const": "projected_branch"
+                  }
+                }
+              },
+              "data": {
+                "required": [
+                  "discarded"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "protocol": {
+                "properties": {
+                  "support": {
+                    "const": "no_leakage"
+                  }
+                }
+              },
+              "data": {
+                "not": {
+                  "required": [
+                    "discarded"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

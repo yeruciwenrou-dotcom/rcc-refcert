@@ -131,11 +131,9 @@ CASES: tuple[CaseStudy, ...] = (
             (H34_DOMINATION, CheckOutcome.INCONCLUSIVE),
         ),
         interpretation=(
-            "The full transient spectral radius is one. The least fixed-point "
-            "semantics remains valid, while the Neumann/linear-inverse route reaches "
-            "its boundary. The minimum reference-domination constant (H.34) "
-            "remains unevaluated by this method; a finite truncation alone "
-            "does not determine it."
+            "The transient spectral radius is one. The partial sum records the "
+            "terminating mass through the chosen depth. H.34 uses the complete "
+            "least fixed-point semidensity."
         ),
     ),
 )

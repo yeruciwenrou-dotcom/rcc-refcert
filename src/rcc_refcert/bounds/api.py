@@ -1,23 +1,31 @@
-"""Terminal-state bounds following C.1/C.2 and D.6 audit-record requirements.
-
-All process conclusions remain conditional on the supplied model premises.
-The scalar calculations share a single implementation across API and CLI.
-"""
+"""Terminal-state RCC lower bounds for the declared model, with D.6 audit records."""
 
 from __future__ import annotations
 
 from fractions import Fraction
 
 from .._version import __version__
-from .contracts import Task, canonical_hash, json_ready, keys, text, validate_protocol
+from .contracts import (
+    COUNT_ORIGIN_LABELS,
+    Task,
+    canonical_hash,
+    json_ready,
+    keys,
+    text,
+    validate_projector_hits,
+    validate_protocol,
+)
+from .effects import RECORD, REQUEST, analyze_effect_counts, render_effect_record
 from .information import hoeffding_lower, projection_information, spectral_information
 from .scalar import (
     InputError,
     Interval,
+    bit_text,
     ceil_fraction,
     decimal_string,
     invert_canonical,
     log2_interval,
+    probability_text,
     rational,
     require_int,
 )
@@ -139,6 +147,7 @@ def _record(
 
 
 def bound_from_spectrum(request: dict) -> dict:
+    """Compute a terminal lower-bound record from an exact target spectrum and declared task."""
     keys(request, {"task", "spectrum"}, "spectrum request")
     task = Task.from_dict(request["task"])
     info = spectral_information(request["spectrum"], task.dimension, task.epsilon)
@@ -146,6 +155,9 @@ def bound_from_spectrum(request: dict) -> dict:
 
 
 def bound_from_counts(request: dict) -> dict:
+    """Compute a terminal lower-bound record from a frozen measurement protocol and observed counts."""
+    if isinstance(request, dict) and request.get("schema") == REQUEST:
+        return analyze_effect_counts(request)
     keys(request, {"task", "protocol", "data"}, "counts request")
     task = Task.from_dict(request["task"])
     p = validate_protocol(task, request["protocol"])
@@ -172,7 +184,8 @@ def bound_from_counts(request: dict) -> dict:
         "simulation",
     }:
         raise InputError("data origin must be explicit")
-    occupancy = hoeffding_lower(data["hits"], n, delta)
+    hits = validate_projector_hits(data["hits"], p, task.dimension)
+    occupancy = hoeffding_lower(hits, n, delta)
     info = projection_information(occupancy.lower, rank, task.dimension, task.epsilon)
     details = {
         "kind": "fixed_projector_counts",
@@ -210,8 +223,26 @@ ZERO_EXPLANATIONS = {
 }
 
 
+def _enclosure_text(enclosure):
+    from decimal import ROUND_CEILING
+
+    lower = decimal_string(Fraction(enclosure["lower"]), 8)
+    upper = decimal_string(Fraction(enclosure["upper"]), 8, ROUND_CEILING)
+    return lower if lower == upper else f"[{lower}, {upper}]"
+
+
+def _scale_line(classes, bandwidth):
+    return (
+        f"Calibration: Gamma_R = {classes} atomic action classes, "
+        f"g_R = log2(Gamma_R) = {bit_text(_enclosure_text(bandwidth))} per atomic slot. "
+        "One R-structon (st_R) represents g_R bits."
+    )
+
+
 def render_record(result: dict, *, details: bool = False) -> str:
     """Render one result; short display values were rounded down at construction."""
+    if result.get("schema") == RECORD:
+        return render_effect_record(result, details=details)
     c = result["cost"]
     display = result["display"]
     lines = [
@@ -222,24 +253,47 @@ def render_record(result: dict, *, details: bool = False) -> str:
     if c["integer_lower_bound_slots"] is not None:
         lines.append(f"Integer-slot lower bound: {c['integer_lower_bound_slots']}")
     lines.append(
-        f"One-shot information input: {display['information_lower_bits']} bits (rounded down)"
+        f"One-shot information input: {bit_text(display['information_lower_bits'])} (rounded down)"
     )
+    info = result["information"]
+    params = result["parameters"]
+    lines.append(
+        "One-shot RCC readout >= "
+        + decimal_string(Fraction(info["one_shot_readout_st_R"]["lower"]), 8)
+        + " st_R."
+    )
+    lines.append(
+        _scale_line(
+            result["model"]["atomic_action_classes"], params["bandwidth_bits_per_slot"]
+        )
+    )
+    if result["path"]["name"] == "spectrum":
+        lines.append(
+            f"Mean relative information D = {bit_text(_enclosure_text(info['relative_entropy_bits']))}, "
+            f"plus spectral skew = {bit_text(_enclosure_text(info['spectral_skew_bits']))}, "
+            f"minus smoothing loss = {bit_text(_enclosure_text(info['smoothing_loss_bits']))}."
+        )
+        d = info["relative_entropy_bits"]
+        g = params["bandwidth_bits_per_slot"]
+        main = Interval(Fraction(d["lower"]), Fraction(d["upper"])) / Interval(
+            Fraction(g["lower"]), Fraction(g["upper"])
+        )
+        lines.append(
+            f"State-side main term C_R = D/g_R = {_enclosure_text(main.strings())} st_R."
+        )
     lines.append(
         f"Generation tolerance: {result['parameters']['generation_epsilon']} (trace distance)"
     )
     if result["confidence"]:
         lines.append(
-            "Sampling coverage at least: "
-            + result["confidence"]["coverage_at_least_exact"]
+            "Sampling coverage is at least "
+            + probability_text(result["confidence"]["coverage_at_least_exact"])
+            + "."
         )
-        lines.append("Data source: " + result["information"]["data_origin"])
-    lines.append(
-        "Model premises: supplied externally; not verified by this calculator."
-    )
+        lines.append("Data source: " + COUNT_ORIGIN_LABELS[info["data_origin"]])
     lines.append(f"Calculation: {result['analysis_state']}")
     if c["zero_reason"]:
         lines.append("Zero-bound explanation: " + ZERO_EXPLANATIONS[c["zero_reason"]])
-        lines.append("Zero is not a claim of zero preparation cost.")
     if details:
         import json
 
@@ -262,6 +316,18 @@ def replay_record(record: dict) -> dict:
     from .records import validate_record
 
     validate_record(record)
+    if record["schema"] == RECORD:
+        fresh = analyze_effect_counts(record["provenance"]["input_snapshot"])
+        if canonical_hash(fresh) != canonical_hash(record):
+            raise InputError(
+                "saved record differs from a fresh fixed-effect computation"
+            )
+        return {
+            "schema": "rcc-refcert.replay",
+            "schema_version": 3,
+            "matches": True,
+            "input_sha256": record["provenance"]["input_sha256"],
+        }
     compute = (
         bound_from_spectrum
         if record["path"]["name"] == "spectrum"

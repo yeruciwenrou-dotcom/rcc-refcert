@@ -171,11 +171,9 @@ leaves the supplied model unchanged. A numerical basis change or Kraus mixing ca
 equality into an inconclusive boundary and increase the suggested integer
 length, while the underlying gain estimates agree within numerical precision.
 
-These checks are numerical verification in working precision, not an
-interval-arithmetic or exact-arithmetic proof. The conservative scalar
-propagation can be inconclusive for a mathematically valid candidate. Strict
-verification remains an extension point.
+The matrix checks use working-precision arithmetic. When the propagated
+error exceeds the selected tolerance, the verifier reports `inconclusive`.
 
 ## Exact scalar bound calculations
 
-Terminal-state inputs use exact declared spectra and normalized trace distance on a uniform ideal reference support. Decimal logarithm enclosures and rational endpoints preserve the bound direction; they do not certify NumPy eigenvalues or matrix-input uncertainty. The H.3/H.4 adapter preserves the exact binary value of the propagated numerical upper constant, without replacing it by a shortened decimal. Integer-slot rounding applies only to a declared integer cost domain. Details and budgets are in [Terminal-state bounds](TERMINAL_BOUNDS.md).
+The spectrum workflow takes an exact declared spectrum and uses normalized trace distance on a uniform ideal reference support. The fixed-effect workflow takes observed counts and one-sided confidence bounds on the response. Decimal logarithm enclosures and rational endpoints preserve the bound direction; they do not certify NumPy eigenvalues or matrix-input uncertainty. The H.3/H.4 adapter preserves the exact binary value of the propagated numerical upper constant, without replacing it by a shortened decimal. Integer-slot rounding applies only to a declared integer cost domain. Details and budgets are in [Terminal-state bounds](TERMINAL_BOUNDS.md).

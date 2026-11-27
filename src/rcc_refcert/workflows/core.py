@@ -21,6 +21,8 @@ MAX_JSON_BYTES = 32 * 1024 * 1024
 
 @dataclass(frozen=True)
 class WorkflowLimits:
+    """Resource budgets for workflow enumeration, states and numerical operations."""
+
     max_dp_cells: int = 100_000
     max_dp_updates: int = 1_000_000
     max_fraction_bits: int = 65_536
@@ -68,8 +70,15 @@ def mapping(value, name):
 
 def keys(value, required, optional=(), name="object"):
     obj = mapping(value, name)
-    if set(required) - set(obj) or set(obj) - set(required) - set(optional):
-        raise InputError(f"{name}: missing or unknown fields; check the template")
+    missing = sorted(set(required) - set(obj))
+    unexpected = sorted(set(obj) - set(required) - set(optional), key=str)
+    problems = []
+    if missing:
+        problems.append("missing " + ", ".join(missing))
+    if unexpected:
+        problems.append("unexpected " + ", ".join(map(str, unexpected)))
+    if problems:
+        raise InputError(f"{name}: " + " | ".join(problems))
     return obj
 
 
@@ -105,7 +114,7 @@ def exact_text(value):
 
 def _integer(value):
     sign = -1 if value.startswith("-") else 1
-    digits = value.lstrip("+-")
+    digits = value[1:] if value.startswith(("+", "-")) else value
     if not digits or not digits.isascii() or not digits.isdecimal():
         raise ValueError("invalid integer")
     result = 0
@@ -150,6 +159,16 @@ def exact(value, name="value", *, limits=None):
             raise
         raise InputError(f"{name}: invalid finite rational") from exc
     return check_fraction(result, name, limits)
+
+
+def action_class_count(value):
+    """Parse a declared atomic alphabet size, including exact integer strings."""
+    count = exact(value, "reference.gamma")
+    if count.denominator != 1 or count < 2:
+        raise InputError(
+            "reference.gamma: expected an integer action-class count of at least 2"
+        )
+    return count.numerator
 
 
 def check_fraction(value, name, limits):

@@ -3,23 +3,91 @@
 from __future__ import annotations
 
 import json
+import sys
 from decimal import Decimal
+from fractions import Fraction
 from importlib import resources
 
 from .api import bound_from_counts, bound_from_spectrum, render_record, replay_record
 from .contracts import keys, prepare_protocol
-from .scalar import BudgetError, InputError, UnsupportedContract
+from .effects import PROTOCOL, REQUEST, prepare_effect_protocol
+from .scalar import (
+    BudgetError,
+    InputError,
+    UnsupportedContract,
+    decimal_string,
+    probability_text,
+)
 
 
 def load_template(name: str = "spectrum") -> dict:
     """Return a fresh installed example; counts are explicitly synthetic."""
+    if name == "sample-plan":
+        protocol = load_template("effect-protocol")
+        protocol["target"].update(
+            state_id="design-target", dataset_id="planned-target-batch"
+        )
+        del protocol["target"]["samples"]
+        protocol["target"].update(method="clopper_pearson", delta="1/20")
+        protocol["reference"] = {
+            "kind": "exact",
+            "state_id": protocol["reference"]["state_id"],
+            "response": "1/4",
+            "source": "rank-one projector on I/4",
+        }
+        return {
+            "schema": "rcc-refcert.fixed-effect-plan",
+            "schema_version": 1,
+            "protocol": protocol,
+            "goal": {"response_above": "4/5"},
+            "derivation": {"smoothing_radius": "1/10"},
+            "expected_response": "9/10",
+            "power": "9/10",
+            "max_samples": 512,
+        }
+    if name == "binomial-counts":
+        request = load_template("effect-counts")
+        protocol = request["protocol"]
+        protocol["target"].update(
+            method="clopper_pearson", delta="1/20", samples=25, dataset_id="target-25"
+        )
+        protocol["reference"] = load_template("sample-plan")["protocol"]["reference"]
+        frozen = prepare_effect_protocol(protocol)
+        request["data"] = {
+            "target": {
+                "origin": "synthetic_fixture",
+                "dataset_id": "target-25",
+                "arm_sha256": frozen["arm_sha256"]["target"],
+                "counts": {"yes": 14, "no": 11},
+            }
+        }
+        return request
+    if name == "effect-counts":
+        frozen = prepare_effect_protocol(load_template("effect-protocol"))
+        return {
+            "schema": REQUEST,
+            "schema_version": 1,
+            "task": load_template("counts")["task"],
+            "protocol": frozen["protocol"],
+            "derivation": {"smoothing_radius": "1/10", "eta": "1/2"},
+            "data": {
+                role: {
+                    "arm_sha256": frozen["arm_sha256"][role],
+                    "dataset_id": frozen["protocol"][role]["dataset_id"],
+                    "origin": "synthetic_fixture",
+                    "counts": {"yes": hits, "no": 1000 - hits},
+                }
+                for role, hits in (("target", 550), ("reference", 250))
+            },
+        }
     names = {
+        "effect-protocol": "effect_protocol.json",
         "spectrum": "spectrum.json",
         "counts": "projection_counts.json",
         "protocol": "protocol_spec.json",
     }
     if name not in names:
-        raise InputError("template must be spectrum, counts or protocol")
+        raise InputError("unknown bound template")
     return json.loads(
         resources.files("rcc_refcert.bounds")
         .joinpath("data", names[name])
@@ -41,7 +109,23 @@ def _invalid_constant(value):
 
 
 def run(arguments) -> int:
+    saved = []
+    delivery_errors = []
     try:
+        from ..workflows.cli import validate_output_paths, write_atomic
+
+        destinations = [
+            path
+            for key in ("output", "bundle", "counts_request")
+            if (path := getattr(arguments, key, None)) is not None
+        ]
+        source = getattr(arguments, "input", None)
+        validate_output_paths([source] if source is not None else [], destinations)
+        for path in destinations:
+            if path.exists() and not arguments.overwrite:
+                raise FileExistsError(
+                    f"{path} already exists. Use --overwrite or a new path."
+                )
         if arguments.bound_command == "template":
             result = load_template(arguments.name)
         else:
@@ -56,11 +140,36 @@ def run(arguments) -> int:
                 parse_constant=_invalid_constant,
                 object_pairs_hook=_unique_object,
             )
-            if arguments.bound_command == "replay":
+            if arguments.bound_command == "plan":
+                from .planning import plan_counts
+
+                result = plan_counts(request)
+                destination = getattr(arguments, "counts_request", None)
+                if destination is not None and result["counts_request"] is not None:
+                    try:
+                        write_atomic(
+                            destination,
+                            json.dumps(result["counts_request"], indent=2) + "\n",
+                            overwrite=arguments.overwrite,
+                        )
+                    except OSError as exc:
+                        delivery_errors.append(
+                            f"Could not save the counts request to {destination}: {exc}"
+                        )
+                    else:
+                        saved.append(f"Counts request saved to {destination}.")
+                elif destination is not None and destination.exists():
+                    delivery_errors.append(
+                        f"This plan generated no counts request. {destination} still contains the request from a previous run."
+                    )
+            elif arguments.bound_command == "replay":
                 result = replay_record(request)
             elif arguments.bound_command == "prepare-protocol":
-                keys(request, {"task", "protocol"}, "protocol request")
-                result = prepare_protocol(request["task"], request["protocol"])
+                if isinstance(request, dict) and request.get("schema") == PROTOCOL:
+                    result = prepare_effect_protocol(request)
+                else:
+                    keys(request, {"task", "protocol"}, "protocol request")
+                    result = prepare_protocol(request["task"], request["protocol"])
             else:
                 compute = (
                     bound_from_spectrum
@@ -68,6 +177,46 @@ def run(arguments) -> int:
                     else bound_from_counts
                 )
                 result = compute(request)
+                if getattr(arguments, "bundle", None) is not None:
+                    from ..workflows.bundles import save_effect_bundle
+
+                    if request.get("schema") != REQUEST:
+                        raise InputError(
+                            "--bundle supports fixed-effect counts. Use an effect-counts request."
+                        )
+                    try:
+                        save_effect_bundle(
+                            arguments.bundle,
+                            request,
+                            result,
+                            overwrite=arguments.overwrite,
+                        )
+                    except OSError as exc:
+                        delivery_errors.append(
+                            f"Could not save the evidence bundle to {arguments.bundle}: {exc}"
+                        )
+                    else:
+                        saved.append(f"Evidence bundle saved to {arguments.bundle}.")
+        rendered = _render_result(arguments, result)
+        if arguments.output is None:
+            print(rendered, end="")
+        else:
+            try:
+                write_atomic(arguments.output, rendered, overwrite=arguments.overwrite)
+            except OSError as exc:
+                print(rendered, end="")
+                delivery_errors.append(
+                    f"Could not save the report to {arguments.output}: {exc}. The report is on standard output."
+                )
+                if saved and getattr(arguments, "bundle", None) is not None:
+                    delivery_errors.append(
+                        "To save another copy of the report, rerun with a writable --output path and omit --bundle."
+                    )
+            else:
+                saved.append(f"Report saved to {arguments.output}.")
+        if delivery_errors:
+            print(*saved, *delivery_errors, sep="\n", file=sys.stderr)
+            return 1
     except (
         OSError,
         ValueError,
@@ -97,12 +246,89 @@ def run(arguments) -> int:
             else f"{state}: {exc}"
         )
         return 2
+    return 0 if result.get("analysis_state", "complete") == "complete" else 2
+
+
+def _render_result(arguments, result):
     if arguments.output_format == "json" or arguments.bound_command in {
         "template",
         "prepare-protocol",
         "replay",
     }:
-        print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
+        return json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
+    if arguments.bound_command != "plan":
+        return render_record(result, details=arguments.details)
+    return _render_plan(result)
+
+
+def _render_plan(result):
+    request = result["design_request"]
+    protocol = request["protocol"]
+    goal = result["goal"]
+    if "response_above" in goal:
+        claim = (
+            f"the ideal target acceptance probability exceeds {goal['response_above']}"
+        )
     else:
-        print(render_record(result, details=arguments.details), end="")
-    return 0 if result.get("analysis_state", "complete") == "complete" else 2
+        budget = goal["cost_above_slots"]
+        unit = "slot" if Fraction(budget) == 1 else "slots"
+        task = request["task"]
+        claim = (
+            f"preparation in model {task['model']['id']} requires more than {budget} atomic {unit} "
+            f"at trace-distance tolerance {task['target']['epsilon']}"
+        )
+    coverage = probability_text(result["joint_coverage_at_least_exact"])
+    lines = [
+        f"Fixed-sample plan for {protocol['effect']['id']} on {protocol['target']['state_id']}",
+        f"The goal is to certify that {claim}, with sampling coverage of at least {coverage}.",
+    ]
+    requested = probability_text(result["target_power"])
+    if "samples" in result:
+        n = result["samples"]
+        low, high = result["minimum_hits"], result["maximum_hits"]
+        outcome = repr(result["counted_outcome"])
+        unit = "trial" if n == 1 else "trials"
+        lines.append(f"Set the sample size to {n:,} target {unit} before measurement.")
+        if low > high:
+            lines.append(f"No count of {outcome} at this sample size meets the goal.")
+            lines.append(f"The design power is zero (requested {requested}).")
+        else:
+            if low == high or high == n:
+                count = "exactly" if low == high else "at least"
+                unit = "outcome" if low == 1 else "outcomes"
+                lines.append(
+                    f"Record {count} {low} {outcome} {unit} to certify the threshold."
+                )
+            else:
+                lines.append(
+                    f"Counts of {outcome} from {low} through {high}, inclusive, certify the threshold."
+                )
+            forecasts = [v["ideal_response"] for v in result["sensitivity"]]
+            forecast = (
+                f"If the ideal target acceptance probability is {forecasts[0]}"
+                if forecasts[0] == forecasts[-1]
+                else f"For ideal target acceptance probabilities from {forecasts[0]} to {forecasts[-1]}"
+            )
+            power = decimal_string(100 * Fraction(result["design_power_lower"]), 6)
+            lines.append(
+                f"{forecast}, the probability of obtaining a certifying count is at least {power}% "
+                f"(requested power {requested})."
+            )
+            if result["status"] == "fixed_n_below_power":
+                lines.append("This sample size falls short of the requested power.")
+    elif result["status"] == "search_limit_reached":
+        n = result["samples_evaluated_through"]
+        lines.append(
+            f"No sample size from 1 to {n} reached the requested power of {requested}."
+        )
+    else:
+        explanations = {
+            "threshold_unreachable": "The goal exceeds what this measurement can certify.",
+            "uninformative_readout": "This readout has the same response for both ideal outcomes.",
+            "empty_reference_readout_preimage": "The reference confidence interval lies outside the response range of the declared readout.",
+            "zero_reference_requires_support_assessment": "The zero reference response requires a support assessment.",
+        }
+        lines.append(explanations[result["status"]])
+    if result["reference_event"] is not None:
+        lines.append("The design uses the previously measured reference sample.")
+    return "\n".join(lines) + "\n"

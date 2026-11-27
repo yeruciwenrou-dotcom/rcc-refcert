@@ -24,6 +24,7 @@ POLICY = {"mode": "roundoff_only", "tolerance": 1e-10, "repair_budget": 1e-10}
 
 
 def list_probes():
+    """List the installed research probes and their descriptions."""
     catalog = json.loads(
         files(__package__).joinpath("data/probes.json").read_text(encoding="utf-8")
     )
@@ -34,6 +35,7 @@ def list_probes():
 
 
 def load_probe(probe_id):
+    """Return the catalog entry and parameter defaults for one research probe."""
     catalog = json.loads(
         files(__package__).joinpath("data/probes.json").read_text(encoding="utf-8")
     )
@@ -53,6 +55,7 @@ def _dephase(rho, axis, probability):
 
 
 def export_probe(probe_id, *, parameters=None):
+    """Build a runnable workflow request from a named probe and its parameters."""
     entry = load_probe(probe_id)
     params = {**entry["parameter_defaults"], **(parameters or {})}
     keys(params, entry["parameter_defaults"], name="probe parameters")

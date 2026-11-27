@@ -1,8 +1,4 @@
-"""Minimal task identity and externally supported model declarations.
-
-Validation establishes input consistency, never the truth of an external
-RCon/TC/RA argument. A source label cannot act as a proof checker.
-"""
+"""Task identity, model assumptions and their supporting sources."""
 
 from __future__ import annotations
 
@@ -15,6 +11,12 @@ from fractions import Fraction
 
 from .scalar import BudgetError, InputError, UnsupportedContract, rational, require_int
 
+QUALIFICATION_NAMES = {"RCon", "TC", "RA"}
+COUNT_ORIGIN_LABELS = {
+    "observed_counts": "observed counts",
+    "simulation": "simulated counts",
+    "synthetic_fixture": "synthetic counts",
+}
 MATRIX_HASH_FORMAT = "rcc-refcert.matrix-bytes.v1"
 
 
@@ -85,6 +87,8 @@ def keys(
 
 @dataclass(frozen=True)
 class Task:
+    """A validated preparation task with a fixed model, target and tolerance."""
+
     declaration_json: str
     dimension: int
     gamma_classes: int
@@ -96,6 +100,10 @@ class Task:
 
     @classmethod
     def from_dict(cls, raw: dict) -> Task:
+        return cls._parse(raw, allow_missing_qualifications=False)
+
+    @classmethod
+    def _parse(cls, raw: dict, *, allow_missing_qualifications: bool) -> Task | None:
         keys(raw, {"model", "target"}, "task")
         m = keys(
             raw["model"],
@@ -107,10 +115,10 @@ class Task:
                 "transcription",
                 "reference_domination",
                 "cost_domain",
-                "qualification",
                 "reference_treatment",
             },
             "model",
+            {"qualification"},
         )
         text(m["id"], "model.id")
         text(m["reference_id"], "model.reference_id")
@@ -196,7 +204,10 @@ class Task:
                 or rational(e["tolerance_exact"]) <= 0
             ):
                 raise InputError("reference evidence endpoint or tolerance differs")
-        quals = keys(m["qualification"], {"RCon", "TC", "RA"}, "qualification")
+        required = set() if allow_missing_qualifications else QUALIFICATION_NAMES
+        quals = keys(
+            m.get("qualification", {}), required, "qualification", QUALIFICATION_NAMES
+        )
         for key, value in quals.items():
             keys(value, {"basis", "source"}, f"qualification.{key}")
             if not isinstance(value["basis"], str) or value["basis"] not in {
@@ -214,12 +225,14 @@ class Task:
             "integer_atomic_slots",
             "unspecified",
         }:
-            raise UnsupportedContract("arbitrary legal-cost sets are not implemented")
+            raise UnsupportedContract(
+                "task.model.cost_domain: choose integer_atomic_slots or unspecified"
+            )
         target = keys(raw["target"], {"id", "epsilon", "metric"}, "target")
         text(target["id"], "target.id")
         if target["metric"] != "normalized_trace_distance":
             raise UnsupportedContract(
-                "the input radius is normalized trace distance, not purified distance or infidelity"
+                "task.target.metric: use normalized_trace_distance and specify epsilon in that metric"
             )
         eps = rational(target["epsilon"], "target.epsilon")
         if not 0 <= eps <= 1:
@@ -230,6 +243,8 @@ class Task:
         clean["model"]["transcription"]["gamma_bits"] = str(gamma)
         clean["model"]["reference_domination"]["upper_constant"] = str(cu)
         clean["target"]["epsilon"] = str(eps)
+        if QUALIFICATION_NAMES - quals.keys():
+            return None
         return cls(
             json.dumps(clean, sort_keys=True, ensure_ascii=False),
             d,
@@ -294,12 +309,22 @@ def validate_protocol(task: Task, raw: dict) -> dict:
     return result
 
 
-def prepare_protocol(task_declaration: dict, protocol_spec: dict) -> dict:
-    """Freeze a protocol BEFORE sampling; this does not attest chronology or iid.
+def validate_projector_hits(hits, protocol, dimension):
+    hits = require_int(hits, "data.hits", 0)
+    samples = protocol["samples"]
+    if hits > samples:
+        raise InputError("data.hits exceeds the declared sample count")
+    # validate_protocol establishes ideal readout and support without leakage.
+    if protocol["rank"] == dimension and hits != samples:
+        raise InputError(
+            f"data.hits: the full-support projector under this protocol requires "
+            f"{samples} hits in {samples} trials, received {hits}"
+        )
+    return hits
 
-    Save the returned digest with the acquisition record. Never manufacture a
-    digest after editing a protocol to retrofit already collected data.
-    """
+
+def prepare_protocol(task_declaration: dict, protocol_spec: dict) -> dict:
+    """Freeze the protocol before sampling and save its digest with the acquisition record."""
     task = Task.from_dict(task_declaration)
     spec = deepcopy(protocol_spec)
     keys(

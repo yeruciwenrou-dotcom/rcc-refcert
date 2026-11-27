@@ -13,6 +13,7 @@ from .._version import __version__
 from ..metadata import source_revision_from_environment
 from .candidates import evaluate_candidate
 from .core import (
+    BudgetError,
     InputError,
     UnsupportedContract,
     WorkflowLimits,
@@ -26,7 +27,12 @@ from .core import (
     require_supported,
     text,
 )
-from .gain import exclude_budgets, spectral_threshold, verify_gain_certificate
+from .gain import (
+    GainCertificateError,
+    exclude_budgets,
+    spectral_threshold,
+    verify_gain_certificate,
+)
 from .models import ExactModel
 from .presets import expand_preset
 from .states import StateInput
@@ -61,6 +67,7 @@ def normalize_cost_request(request, *, limits=None):
         },
         {
             "gain_certificate",
+            "on_gain_failure",
             "limits",
             "epsilon_values",
             "trajectory",
@@ -138,7 +145,11 @@ def normalize_cost_request(request, *, limits=None):
     trajectory = request.get("trajectory", False)
     if type(trajectory) is not bool:
         raise InputError("trajectory: expected true or false")
-    gain = request.get("gain_certificate", default_gain)
+    gain = request.get("gain_certificate", "auto")
+    if gain == "auto":
+        gain = default_gain
+    if request.get("on_gain_failure", "report") not in ("report", "auto"):
+        raise InputError("on_gain_failure: choose report or auto")
     effective = {
         **original,
         "model": model.document,
@@ -251,6 +262,50 @@ def _point(
     return cost, bound, witnesses
 
 
+def _check_gain(model, proposal, source):
+    try:
+        if source == "user" and not isinstance(proposal, dict):
+            raise InputError(
+                "gain_certificate: supply a certificate object or select 'auto'"
+            )
+        return verify_gain_certificate(model, proposal)
+    except (BudgetError, UnsupportedContract):
+        raise
+    except InputError as exc:
+        outcome = "failed" if isinstance(exc, GainCertificateError) else "invalid"
+        raise GainCertificateError(str(exc), source=source, outcome=outcome) from exc
+
+
+def _select_gain_certificate(original, model, proposal):
+    automatic_source = "preset" if "preset" in original["model"] else "reference"
+    source = (
+        "user"
+        if original.get("gain_certificate", "auto") != "auto"
+        else automatic_source
+    )
+    try:
+        return _check_gain(model, proposal, source), {
+            "source": source,
+            "outcome": "pass",
+        }
+    except GainCertificateError as rejected:
+        if source != "user" or original.get("on_gain_failure") != "auto":
+            raise
+        default = None
+        if automatic_source == "preset":
+            default = expand_preset(original["model"], limits=model.limits)[3]
+        try:
+            certificate = _check_gain(model, default, automatic_source)
+        except GainCertificateError as fallback:
+            fallback.diagnostic["submitted"] = rejected.diagnostic
+            raise
+        return certificate, {
+            "source": automatic_source,
+            "outcome": "pass",
+            "submitted": rejected.diagnostic,
+        }
+
+
 def analyze_cost(request, *, limits=None):
     """Analyze a complete task; a failed candidate is a valid scientific result."""
     mapping(request, "cost request")
@@ -264,7 +319,7 @@ def analyze_cost(request, *, limits=None):
     original, effective, model, target, proposal, core = normalize_cost_request(
         request, limits=limits
     )
-    certificate = verify_gain_certificate(model, proposal)
+    certificate, selection = _select_gain_certificate(original, model, proposal)
     effective["gain_certificate"] = {
         k: certificate[k]
         for k in ("model_digest", "envelopes", "initial_coefficient", "coefficients")
@@ -321,6 +376,7 @@ def analyze_cost(request, *, limits=None):
         },
         "cost": cost,
         "gain_certificate": certificate,
+        "gain_selection": selection,
         "gain_bound": bound,
         "candidates": candidates,
         "epsilon_scan": [],
@@ -360,6 +416,7 @@ def analyze_cost(request, *, limits=None):
 
 
 def compare_cost_results(results, *, criterion=None):
+    """Compare cost analyses with matching task identities and the chosen tolerance criterion."""
     if not isinstance(results, (list, tuple)) or not results or len(results) > 256:
         raise InputError("comparison: supply one to 256 cost results")
     rows, groups = [], {}
@@ -395,7 +452,18 @@ def compare_cost_results(results, *, criterion=None):
             )
         key = (core, cost["epsilon_exact"])
         groups.setdefault(key, []).append(result)
-        rows.append({"run_id": result["run_id"], "task_core_digest": key[0], **cost})
+        row = {"run_id": result["run_id"], **cost}
+        if "effective_request" in result:
+            task = mapping(result["effective_request"], "comparison effective request")
+            model = mapping(task.get("model"), "comparison model")
+            target = mapping(task.get("target"), "comparison target")
+            source = mapping(
+                target.get("provenance", {}), "comparison target provenance"
+            )
+            row["model_id"] = text(model.get("id"), "comparison model id")
+            row["target_source"] = source.get("source")
+            row["target_digest"] = identity.get("target_digest")
+        rows.append(row)
     comparable = len(groups) == 1
     savings = []
     if comparable:
@@ -430,9 +498,11 @@ def compare_cost_results(results, *, criterion=None):
                 if name == "additive_gap"
                 else row["multiplicative_overhead_upper_exact"]
             )
-            row["meets_criterion"] = (
-                None if measure is None else exact(measure) <= value
+            proved = row["decision"] == "certified_optimal" or (
+                measure is not None and exact(measure) <= value
             )
+            row["meets_criterion"] = True if proved else None
+            row["criterion_status"] = "certified" if proved else "unresolved"
     return {
         "schema": "rcc-refcert.cost-comparison",
         "schema_version": 1,

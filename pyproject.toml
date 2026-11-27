@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rcc-refcert"
 dynamic = ["version"]
-description = "Structure-fair quantum circuit complexity: rigorous lower bounds, preparation costs, subsystem complexity profiles, and reference certificates"
+description = "Compute rigorous lower bounds on optimal quantum circuit complexity from final-state data, compare preparation costs and map complexity across subsystems"
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
-license-files = ["LICENSE", "NOTICE.md"]
+license = "MIT AND CC-BY-4.0"
+license-files = ["LICENSE", "LICENSES/CC-BY-4.0.txt", "NOTICE.md"]
 authors = [
   {name = "HongZheng Liu"},
   {name = "YiNuo Tian"},
@@ -22,6 +22,8 @@ keywords = [
   "quantum simulation",
   "open quantum systems",
   "quantum control",
+  "quantum state preparation",
+  "qiskit",
   "quantum circuit complexity",
   "circuit complexity",
   "certificate verification",
@@ -43,6 +45,8 @@ dependencies = [
 ]
 
 [project.urls]
+Documentation = "https://github.com/yeruciwenrou-dotcom/rcc-refcert/tree/v0.4.0#readme"
+Changelog = "https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/CHANGELOG.md#040"
 Paper = "https://arxiv.org/abs/2509.18205"
 Repository = "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 
@@ -50,7 +54,8 @@ Repository = "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 rcc-refcert = "rcc_refcert.cli:main"
 
 [project.optional-dependencies]
-dev = ["build>=1.2", "pytest>=8", "ruff>=0.11", "jsonschema>=4.18"]
+qiskit = ["qiskit>=2,<3"]
+dev = ["build>=1.2", "pytest>=8", "ruff>=0.11", "jsonschema>=4.18", "matplotlib>=3.8"]
 plots = ["matplotlib>=3.8"]
 notebook = [
   "ipykernel>=6",

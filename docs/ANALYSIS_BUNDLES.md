@@ -7,7 +7,10 @@ the calculation without the author's modeling script.
 | Calculation | Bundle contents | Reader version |
 |---|---|---|
 | Model certificates and terminal-state bounds | Model and proof arrays, numerical controls, requests and historical results; container schema 1 | 0.2.0 or later |
-| Preparation costs and subsystem complexity profiles | Complete effective requests, exact recipes or numerical inputs, candidates, windows and historical results; container schema 2 | 0.3.0 or later |
+| Preparation costs and subsystem complexity profiles | Requests, models, candidates, windows and historical results (container schema 2) | 0.3.0 or later for the original workflow fields. Requests that set `on_gain_failure` require 0.4.0 or later. |
+| Fixed-effect target and reference counts | Raw histograms, frozen measurement and sampling plans, model premises and historical result (container schema 3) | 0.4.0 or later |
+| Complete projective readouts | Frozen acquisitions, histogram counts, windows and result (container schema 4) | 0.4.0 or later |
+| Cluster and cooling studies | Raw acquisitions, register layout, constraints, model and study result (container schema 5) | 0.4.0 or later |
 
 Use a bundle when handing results to a collaborator, preserving a calculation
 for review, or comparing numerical environments. The existing bound record
@@ -17,7 +20,7 @@ the complete model and proof arrays.
 ## Reverify a bundle you received
 
 Use the producer version supplied with the `.rccbundle` file, or a compatible
-later reader. For cost and window bundles, install version 0.3.0 or later from
+reader from the table above. Install it from
 [PyPI](../README.md#install-from-pypi) or the
 [source quickstart](../README.md#install-from-source). Replace `received.rccbundle`
 with your file's path:
@@ -28,9 +31,8 @@ python -m rcc_refcert bundle verify received.rccbundle --output received-verific
 ```
 
 Use the interpreter from your active installation. Verification itself needs
-only the installed package and bundle. Later examples in this guide use the
-[source quickstart](../README.md#install-from-source) and `.venv/bin/python` from the
-checkout root. On Windows, substitute `.venv\Scripts\python.exe`.
+only the installed package and bundle. To run a script under `examples/`,
+use the [source quickstart](../README.md#install-from-source) from the checkout root. The [installation instructions](../README.md#install-from-pypi) include Windows shell and encoding details.
 
 `inspect` checks stored data, object bindings and result consistency. `verify`
 recomputes the analysis and compares fresh evidence with the saved history.
@@ -71,6 +73,51 @@ Verification can also run from another directory: use the full path to the
 installed environment's Python and to the bundle. Choose an unused report
 filename. The original bundle remains unchanged, and `--output` saves the
 full comparison report as JSON.
+
+### Use the verified data in a new calculation
+
+For a schema 2–5 bundle, verification writes the freshly calculated record
+under `fresh_result`. The archive also contains the ordinary request used by
+the command-line tools. From the directory containing the two files above,
+run the following Python once for each new output directory:
+
+```python
+import json
+from pathlib import Path
+from zipfile import ZipFile
+
+out = Path("received-analysis")
+out.mkdir()
+verification = json.loads(Path("received-verification.json").read_bytes())
+with ZipFile("received.rccbundle") as archive:
+    version = json.loads(archive.read("manifest.json"))["schema_version"]
+    request = json.loads(archive.read("request.json"))
+if version == 2:
+    request = request["original"]
+(out / "request.json").write_text(json.dumps(request, indent=2) + "\n", encoding="utf-8")
+(out / "fresh.json").write_text(json.dumps(verification["fresh_result"], indent=2) + "\n", encoding="utf-8")
+```
+
+For a cost task, copy `received-analysis/request.json` to `other-task.json`.
+Edit the candidate programs, keeping the model, full target and tolerance fixed.
+Save the second result as JSON for the comparison below.
+
+```bash
+python -m rcc_refcert cost analyze other-task.json --format json --output other-cost.json
+```
+
+Choose the command for your calculation. For a study, set the new search
+budget above the one reported by the first run. Plotting uses the `plots` extra.
+
+| Calculation received | Continue from the verified data |
+|---|---|
+| Schema 2, candidate costs | `python -m rcc_refcert cost compare received-analysis/fresh.json other-cost.json` |
+| Schema 2, state windows or schema 4, projective counts | `python -m rcc_refcert window analyze received-analysis/request.json --csv received-analysis/windows.csv --plot received-analysis/windows.svg` |
+| Schema 3, fixed-effect counts | `python -m rcc_refcert bound counts received-analysis/request.json --bundle received-analysis/counts.rccbundle` |
+| Schema 5, cooling study | `python -m rcc_refcert study analyze received-analysis/request.json --max-dp-updates 2000000 --bundle received-analysis/extended.rccbundle` |
+
+Schema 1 carries model and proof arrays. Use the matrix-verification workflow
+below for those files.
 
 ## Export and check
 
@@ -122,12 +169,17 @@ Run the export or verification commands in that shell. In PowerShell, use
 has changes, commit the intended source and reinstall it before assigning
 that revision; a commit ID alone cannot describe uncommitted edits.
 
-The bundle's `producer.source_revision` records the author's supplied commit.
+For a model-certificate bundle (schema 1) or a preparation-cost or known-state
+window bundle (schema 2), `producer.source_revision` records the author's supplied commit.
 `inspect` preserves that identity, while the fresh verification report's
 `producer.source_revision` records the recipient's supplied commit. Keep the
 original bundle and fresh report together. Without the environment variable,
 the field is `null`. The software validates the full 40-character Git ID but
 does not infer it from the current directory or authenticate the declaration.
+
+Fixed-effect counts, complete projective readouts and finite-data studies
+(schemas 3–5) record the package name and version. For a source installation,
+share the full output of `git rev-parse HEAD` alongside these bundles.
 
 ## Three questions, three answers
 
@@ -148,24 +200,21 @@ visible alongside these results.
 ## Compare historical and fresh constants
 
 Floating-point results can vary across environments. Historical support is
-therefore assessed using the actual conservative constants, rather than
-requiring byte-for-byte equality of matrix reports.
+assessed using the unrounded conservative constants.
 
 - If the fresh verification passes and its usable constant is no larger than
   the saved constant, the fresh numerical evidence supports the historical
   constant for the same input and declarations.
 - If the fresh usable constant is larger, the fresh result supplies a new
-  conservative bound. Its passing status alone does not support the stronger
-  historical constant.
+  conservative bound and historical support is recorded as `no`.
 - A failed or inconclusive verifier, or a resource refusal, is reported with
-  its own diagnostics. It does not become a successful historical check.
+  the corresponding diagnostics.
 
 For example, verifying the cyclic-reset bundle with the explicit tolerance
 `1e-8` gives a fresh constant approximately `1.0000000100000002`, larger than
 the historical `1.0000000001000002`. The matrix check passes, historical
-support is `no`, and the integer bound remains **two**. The report shows the
-constant comparison and explains that rounding to the same integer does not
-establish support for the smaller historical constant. The command and its
+support is `no`, and the integer bound remains **two**. The report gives the two
+unrounded constants alongside the integer bounds. The command and its
 separate output file appear [below](#format-and-numerical-identity).
 
 For terminal-state tasks, comparison uses the same $C\ge1$ convention as the
@@ -200,25 +249,19 @@ reported budget and the model size before explicitly changing the limit.
 
 A counts request binds a declared target, projector, fixed sample size,
 statistical failure budget, and dataset to its original protocol. Revalidation
-preserves that request and its protocol digest. It never relabels a changed
-task as the original pre-acquisition declaration.
+uses the original request and protocol digest.
 
 When a new numerical certificate constant changes the bound, the verifier
 reports a separate derived result linked to the original acquisition event.
 The same supported probability statement is used for deterministic
-post-processing with the fresh constant. The original protocol, data, and
-historical record remain unchanged. This mechanism does not authorize choosing
-a new witness after viewing data, changing the sample rule, or substituting
-different measurements.
+post-processing with the fresh constant. The saved record identifies the acquisition
+protocol used for both calculations.
 
-The example counts are synthetic. For experimental results, acquisition
-chronology, independent and identically distributed sampling with a fixed
-sample size, ideal readout, support assumptions, and the
-physical meaning of the witness remain external obligations. Storing their
-declarations does not establish them.
-The embedded protocol carries a witness ID and rank. Preserve the actual
-projector definition and acquisition records alongside the bundle; its model
-and proof arrays do not include the experimental measurement operator.
+The examples use synthetic counts. For experimental data, retain the
+projector definition and dated acquisition and calibration records alongside
+the bundle. They document the witness, the fixed sample size and sampling
+assumptions, and the readout and support conditions. The embedded protocol
+carries the witness ID and rank.
 
 ## Format and numerical identity
 
@@ -253,14 +296,14 @@ The shared computation budget applies before certificate verification. A
 different budget can be chosen explicitly:
 
 ```bash
-.venv/bin/python -m rcc_refcert bundle verify cyclic-reset.rccbundle --max-matrix-elements 2097152
+python -m rcc_refcert bundle verify cyclic-reset.rccbundle --max-matrix-elements 2097152
 ```
 
 Raising the budget permits more work; it does not alter scientific validity or
 improve numerical conditioning. A tolerance change is a separate choice:
 
 ```bash
-.venv/bin/python -m rcc_refcert bundle verify cyclic-reset.rccbundle --tolerance 1e-8 --output cyclic-reset-tol-1e-8.json
+python -m rcc_refcert bundle verify cyclic-reset.rccbundle --tolerance 1e-8 --output cyclic-reset-tol-1e-8.json
 ```
 
 For this example, the larger tolerance yields a larger conservative constant.
@@ -274,13 +317,13 @@ models, candidate preparation, and unresolved numerical states.
 
 ## Complete cost and window workflows
 
-From the 0.3 quickstart environment, save a complete cost task and verify it:
+With the installed 0.4.0 package, save a complete cost task and verify it:
 
 ```bash
-.venv/bin/python -m rcc_refcert cost template cyclic-reset > task.json
-.venv/bin/python -m rcc_refcert cost analyze task.json --bundle task.rccbundle
-.venv/bin/python -m rcc_refcert bundle inspect task.rccbundle
-.venv/bin/python -m rcc_refcert bundle verify task.rccbundle --output task-verification.json
+python -m rcc_refcert cost template cyclic-reset > task.json
+python -m rcc_refcert cost analyze task.json --bundle task.rccbundle
+python -m rcc_refcert bundle inspect task.rccbundle
+python -m rcc_refcert bundle verify task.rccbundle --output task-verification.json
 ```
 
 Use the same `--bundle` option with `window analyze` for state-window inputs.
@@ -289,11 +332,27 @@ target basis and tensor labels, candidate words, reference scale, numerical
 policy and computation controls. Verification reconstructs the request,
 checks its evidence, executes candidates and recalculates windows.
 
+In a preset cost bundle, `request["effective"]` holds the expanded candidate
+programs and model. The original request preserves the preset invocation.
+To extend the study, copy the verified effective request, edit the copy and
+save the new calculation under a new filename.
+
+Use the original 0.3.0 reader for a known-state or numerical-model archive
+with a noninteger action-class count such as `Gamma = 5/2`. Version 0.4.0
+uses an integer number of action classes for these inputs.
+
+If a 0.3.0 archive contains a fraction with repeated signs, reverify it with
+0.3.0. For example, that version read `1/+-10` as `1/10`. The original request
+preserves the spelling and the effective request records the value used. Use
+the effective value when preparing a new request in 0.4.0.
+
 Read `fresh_verification` and `historical_results_supported` in the recipient
-report. Exact rational values are compared exactly; numerical scientific
-results use a relative and absolute tolerance of `1e-10`. Same-version
-bitwise replay is reported separately, so a change of producer version can
-still yield matching scientific results.
+report. Exact rational values are compared exactly. Numerical results use a
+relative and absolute tolerance of `1e-10`. Same-version bitwise replay is
+reported separately. For a tolerance scan, each point's request digest
+includes that run's resource limits. The reader checks the author's digest,
+then compares the cost, gain bound and candidate evidence at each tolerance.
+Lower recipient limits can still reproduce every scientific result.
 
 Roundoff-derived states can differ in their last bits across numerical
 backends. Each saved state must match its own content digest, tensor layout
@@ -314,3 +373,33 @@ recipient's fresh result retain separate identities. The schema-1 validation
 path described above remains available; version 0.2.0 readers reject schema 2.
 See the [workflow guide](COST_AND_WINDOWS.md#reports-limits-and-revalidation)
 for analysis budgets, presentation options and examples.
+
+
+### Fixed-effect counts
+
+`bound counts request.json --bundle study.rccbundle` saves the original request and result. A recipient can run `bundle inspect study.rccbundle` to check archive integrity, data bindings, coverage identities and the conclusions implied by the stored endpoints. Run `bundle verify study.rccbundle` to compute the endpoints anew from the raw counts, apply the RCC routes and compare with the saved result. Its JSON report includes both records, historical support and a separate same-version replay comparison. A successful replay can reproduce a zero bound, information-only result or support conflict. The decision field states which conclusion the data support. [Worked example and acquisition format](TERMINAL_BOUNDS.md#target-and-reference-counts-for-the-same-effect)
+
+### Complete projective readouts
+
+Schema 4 saves the full window request, evidence and result. Use
+`window analyze request.json --bundle result.rccbundle` to export it.
+`bundle inspect` checks member integrity, the request identity and each
+protocol and data digest. `bundle verify` rebuilds the confidence ledger,
+clipped distributions, window bounds, retention and eligible costs from the
+archived counts. It compares the fresh conclusions to the author's record
+and reports same-version replay separately. The recipient needs only the
+bundle and a version that supports schema 4. The physical measurement and
+source declarations remain identified in the request.
+
+### Finite-data research studies
+
+For a cooling study, a recipient can have enough resources to verify the
+archived cost interval before every candidate program has been replayed.
+When the recipient's budget shortens that list, `candidate_replay` reports
+the checked and expected counts and whether the fresh bounds establish the
+historical interval. An overlapping but wider fresh interval leaves that
+question unresolved. Full-record replay remains inconclusive until every
+candidate has been checked. A contradiction in the checked evidence is
+reported as a mismatch.
+
+Schema 5 preserves the original count strings or ordered shots, register layout, acquisition protocols, model and result. Use `study analyze input.json --bundle study.rccbundle` and `bundle verify study.rccbundle` to recalculate the graph witness or cooling analysis. Inspection checks the data bindings. Verification repeats the decoding, confidence accounting, inference and model calculations. Study records use version 2. A recipient reading an earlier version-1 study record can reproduce the original calculation and see the current result separately. For example, a newly verified shorter cooling program can tighten the fresh upper bound while the original interval remains valid. See the [research studies](FINITE_DATA_STUDIES.md).

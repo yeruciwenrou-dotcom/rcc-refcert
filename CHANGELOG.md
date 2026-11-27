@@ -1,5 +1,66 @@
 # Changelog
 
+<a id="040"></a>
+
+## 0.4.0
+
+You can now plan a measurement around the preparation cost you want to rule
+out and bound differences in RCC between states measured in the same classical
+window.
+
+- **Design a measurement and certify a lower bound.** Given a response or
+  cost threshold and an expected hit rate, find the number of shots to take
+  and which hit counts would certify that threshold. Use the same binary measurement on
+  the target and reference, or supply a known reference response. The
+  calculation can account for known false-positive and false-negative rates.
+- **Compare window RCC from counts.** Use the counts for every outcome of a
+  projective measurement to put confidence bounds on RCC in the measured
+  classical window. With two states, the interval for their difference shows
+  which has the higher reading whenever it excludes zero. For a containing
+  quantum window, the measurement gives a lower bound for each state. If a
+  projection retains only part of the sample, you can weight its contribution
+  by the probability of retaining a shot.
+- **Compare measurement settings and preparation programs.** With the default
+  simulated counts for the noisy six-qubit cluster state, either local setting
+  alone certifies at least one slot. Combining the two raises the lower bound to
+  two slots. In the cooling study, a six-slot program is optimal for the full
+  three-qubit target at trace-distance tolerance 1/50. Joint counts track the
+  target and bath before and after the final refresh. Both studies accept raw
+  counts or joint Qiskit readouts and can be recomputed from a shared bundle. The
+  [IBM Vigo example](docs/FINITE_DATA_STUDIES.md#check-the-mapping-on-a-hardware-file)
+  uses archived five-qubit counts to check which bit belongs to each qubit.
+- **See which gain certificate supports a cost bound.** An empty or invalid
+  certificate now gives a diagnostic for the submitted input. To try the
+  automatic certificate as well, set `on_gain_failure` to `"auto"`. The
+  report records the original diagnostic and the certificate actually used.
+  Cost requests reject exact numbers with repeated signs. Terminal-state
+  requests identify normalized trace distance as the required error measure.
+
+Terminal reports give the circuit lower bound in atomic slots and the
+calibrated one-shot reading in R-structons. For exact spectra they show how
+spectral skew raises the unsmoothed information and how much smoothing removes. Exact binomial
+analysis accepts up to 4,096 observations per sampled arm. Cooling reports
+give target, bath, joint and correlation intervals at each stage. Window
+exports now include global readings, partition correlations and the lower
+bound after accounting for discarded shots. Use `cost analyze --plot` or
+`--csv` on a trajectory. On `bound spectrum` and `bound counts`, use `--output`
+to save the report. In a known-state or trajectory CSV, filter on
+`kind == "subsystem"` for the subsystem rows exported by 0.3.0. Read the
+calibrated value for every row from `reading_st_R` and its meaning from `kind`.
+
+Cost comparisons now identify the model, complete target, tolerance and maximum
+remaining saving for the program attaining the upper endpoint. In the
+[half-erasure benchmark](docs/COST_AND_WINDOWS.md#build-a-half-erasure-channel),
+the reachable states give an independent check on the optimal cost. Window reports
+give the uniform reference, number of action classes and conversion to
+R-structons. State-window and numerical-model inputs now require an integer
+action-class count of at least two. Shared cost and state-window bundles
+identify the software that calculated the saved result across versions.
+
+Use 0.4.0 or later to verify the new finite-data bundles and cost requests that
+specify `on_gain_failure`. The [compatibility table](docs/ANALYSIS_BUNDLES.md)
+lists the earliest reader for each bundle.
+
 ## 0.3.0 (2026-11-15)
 
 This release adds preparation-cost intervals and subsystem RCC complexity

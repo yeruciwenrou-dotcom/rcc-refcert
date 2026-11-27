@@ -74,3 +74,15 @@ def test_numeric_candidate_errors_and_non_cptp_input():
     ]["matrices"][0][0][0] = [9, 0]
     with pytest.raises(ValueError):
         analyze_cost(request)
+
+
+@pytest.mark.parametrize("gamma", ["5/2", 3, "5"])
+def test_numerical_model_declares_integer_action_classes(gamma):
+    request, _ = numerical_request()
+    request["model"]["reference"]["gamma"] = gamma
+    if gamma == "5/2":
+        with pytest.raises(ValueError, match="integer action-class count"):
+            analyze_cost(request)
+    else:
+        result = analyze_cost(request)
+        assert result["decision"] == "numerical_analysis"

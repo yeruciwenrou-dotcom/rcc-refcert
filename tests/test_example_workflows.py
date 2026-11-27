@@ -102,6 +102,56 @@ def test_larger_fresh_constant_explains_unchanged_integer_bound(tmp_path):
     )
     rendered = render_bundle_report(report)
     assert "Usable constants: fresh" in rendered
-    assert "larger fresh constant" in rendered
-    assert "integer bound is unchanged" in rendered
+    assert rendered.count("Historical support is assessed before rounding") == 1
+    assert rendered.count("Integer lower bounds: fresh 2, historical 2") == len(
+        report["requests"]
+    )
     assert path.read_bytes() == original
+
+
+def test_half_erasure_candidate_and_tolerance_change_the_conclusion():
+    from rcc_refcert.workflows import (
+        analyze_cost,
+        compare_cost_results,
+        render_workflow_result,
+    )
+
+    request = json.loads(
+        (
+            Path(__file__).resolve().parents[1] / "examples" / "half_erasure.json"
+        ).read_text()
+    )
+    closed = analyze_cost(request)
+    assert closed["cost"]["interval_slots"] == [3, 3]
+    short = request["candidates"].pop(1)
+    open_result = analyze_cost(request)
+    assert open_result["cost"]["interval_slots"] == [3, 4]
+    summary = " ".join(render_workflow_result(open_result).split())
+    assert "costs at most 1 slot more than the optimum" in summary
+    report = " ".join(
+        render_workflow_result(compare_cost_results([open_result, closed])).split()
+    )
+    for detail in (
+        "half-erasure-qubit",
+        "15/16",
+        "1/10",
+        "including halt",
+        "3-erasure-then-halt",
+        "at most 1 slot",
+    ):
+        assert detail in report
+    assert (
+        "A better preparation could save at most 1 slot over 3-erasure-then-halt."
+        in report
+    )
+    assert "Optimal 3-slot preparation: 2-erasure-then-halt." in report
+    assert "lowest-cost program shown saves 1 slot." in report
+    request["candidates"].append(short)
+    request["epsilon"] = "1/20"
+    different = analyze_cost(request)
+    assert different["cost"]["interval_slots"] == [3, 4]
+    separate = " ".join(
+        render_workflow_result(compare_cost_results([closed, different])).split()
+    )
+    assert "Each result is shown separately" in separate
+    assert "Switching from" not in separate

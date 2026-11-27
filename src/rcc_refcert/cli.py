@@ -169,21 +169,73 @@ def build_parser() -> argparse.ArgumentParser:
     template = bound_commands.add_parser(
         "template", help="print an installed exact-input example"
     )
-    template.add_argument("name", choices=("spectrum", "counts", "protocol"))
+    template.add_argument(
+        "name",
+        choices=(
+            "spectrum",
+            "counts",
+            "protocol",
+            "effect-counts",
+            "effect-protocol",
+            "sample-plan",
+            "binomial-counts",
+        ),
+    )
     template.set_defaults(output_format="json", details=False)
+    template.add_argument("--output", type=Path, help="save the JSON template")
+    template.add_argument(
+        "--overwrite", action="store_true", help="replace existing outputs atomically"
+    )
     for name, help_text in (
         ("spectrum", "compute a lower bound from a complete exact spectrum"),
-        ("counts", "compute a lower bound from fixed-projector counts"),
+        (
+            "counts",
+            "compute a lower bound from projector or two-arm fixed-effect counts",
+        ),
+        (
+            "plan",
+            "plan fixed-size binary measurements for a response or cost threshold",
+        ),
         ("prepare-protocol", "freeze the measurement protocol before acquisition"),
         ("replay", "recompute and compare a saved scalar bound record"),
     ):
         command = bound_commands.add_parser(name, help=help_text, description=help_text)
-        command.add_argument(
-            "input", type=Path, help="JSON request or saved replay record"
-        )
+        input_help = {
+            "spectrum": "JSON request with the target spectrum and preparation model",
+            "counts": "JSON request with the measurement protocol and observed counts",
+            "plan": "JSON design request with the measurement protocol, threshold and target power",
+            "prepare-protocol": "JSON measurement protocol or projector protocol request",
+            "replay": "saved JSON bound record to recompute",
+        }
+        command.add_argument("input", type=Path, help=input_help[name])
         command.add_argument(
             "--details", action="store_true", help="include calculation diagnostics"
         )
+        command.add_argument(
+            "--output", type=Path, help="save the report instead of printing it"
+        )
+        command.add_argument(
+            "--overwrite",
+            action="store_true",
+            help="replace existing outputs atomically",
+        )
+        if name == "plan":
+            command.add_argument(
+                "--counts-request",
+                type=Path,
+                help="write a fillable request with the frozen plan and any prior reference observations",
+            )
+        if name == "counts":
+            command.epilog = (
+                "Try: rcc-refcert bound template effect-counts > effect.json; "
+                "rcc-refcert bound counts effect.json --bundle effect.rccbundle; "
+                "rcc-refcert bundle verify effect.rccbundle"
+            )
+            command.add_argument(
+                "--bundle",
+                type=Path,
+                help="save evidence for fixed-effect counts only (target and reference protocol)",
+            )
         _add_format_argument(command)
     bundle = commands.add_parser(
         "bundle", help="inspect or independently reverify a saved analysis"
@@ -317,7 +369,7 @@ def _run_reproduce(
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     arguments = parser.parse_args(argv)
-    if arguments.command in {"cost", "window", "probe"}:
+    if arguments.command in {"cost", "window", "probe", "study"}:
         from .workflows.cli import run
 
         return run(arguments)

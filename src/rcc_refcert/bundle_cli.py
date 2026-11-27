@@ -15,30 +15,100 @@ def _constant(value: str) -> str:
     return format(float(rational(value)), ".17g")
 
 
+def _historical_support(value):
+    return {True: "yes", False: "no", None: "unresolved"}[value]
+
+
 def render_bundle_report(report: dict) -> str:
-    if report.get("schema_version") == 2:
-        lines = [
-            "RCC workflow evidence",
-            f"Task: {report['kind']}",
-            f"Stored record consistency: {report['record_consistency']}",
-        ]
-        if report["schema"] == "rcc-refcert.bundle-inspection":
-            lines.extend(
-                [
-                    f"Historical decision: {report['historical_decision']}",
-                    "Physical recomputation: not run",
-                ]
+    if report.get("schema_version") in (2, 3, 4, 5):
+        inspecting = report["schema"] == "rcc-refcert.bundle-inspection"
+        task = {
+            "cost_analysis": "preparation cost",
+            "window_analysis": "subsystem complexity profiles",
+            "fixed_effect_counts": "a fixed-effect measurement",
+            "pvm_windows": "finite-sample window RCC",
+            "finite_study": "a finite-data study",
+        }.get(report["kind"], str(report["kind"]).replace("_", " "))
+        lines = [f"RCC evidence for {task}"]
+        consistency = report["record_consistency"]
+        if consistency == "input_bindings_pass":
+            lines.append("The saved result identifies the same inputs as the archive.")
+        elif consistency == "pass":
+            lines.append("The saved record passed its consistency checks.")
+        else:
+            lines.append(f"Stored record consistency: {consistency}")
+        author = (
+            report["producer"]
+            if inspecting
+            else report["historical_result"]["producer"]
+        )
+        lines.append(f"Calculated with rcc-refcert {author['version']}.")
+        if "manifest_producer" in report:
+            pack = report["manifest_producer"]
+            lines.append(
+                f"The schema-2 manifest records a different environment (rcc-refcert {pack['version']})."
+            )
+        if inspecting:
+            decision = report["historical_decision"]
+            if report["schema_version"] == 5:
+                study = {
+                    "cluster": "six-qubit cluster state",
+                    "cooling": "three-qubit algorithmic cooling",
+                }.get(decision, str(decision).replace("_", " "))
+                lines.append(f"Study: {study}")
+            elif decision not in ("window_analysis", "finite_sample_windows"):
+                from .workflows.render import _decision_label
+
+                lines.append(f"Archived result: {_decision_label(decision)}")
+            lines.append(
+                "Use rcc-refcert bundle verify to recompute the result from the archived inputs."
             )
         else:
-            from .workflows.render import render_workflow_result
+            if report["schema_version"] == 3:
+                from .bounds.api import render_record as render_result
+            else:
+                from .workflows.render import render_workflow_result as render_result
 
-            lines.extend(
-                [
-                    f"Independent recomputation: {report['fresh_verification']['outcome']}",
-                    f"Historical results supported: {report['historical_results_supported']}",
-                    render_workflow_result(report["fresh_result"]).rstrip(),
-                ]
-            )
+            coverage = report.get("candidate_replay")
+            if coverage:
+                interval = report["historical_result"].get("model_cost", {})
+                interval = (
+                    interval.get("interval_slots")
+                    if isinstance(interval, dict)
+                    else None
+                )
+                claim = "archived cost interval"
+                if (
+                    isinstance(interval, list)
+                    and len(interval) == 2
+                    and all(type(x) is int for x in interval)
+                ):
+                    claim += f" {interval} slots"
+                supported = coverage["historical_interval_supported"]
+                if supported is True:
+                    lines.append(f"The fresh bounds verify the {claim}.")
+                elif supported is False:
+                    lines.append(f"The fresh bounds contradict the {claim}.")
+                else:
+                    fresh = report["fresh_result"]["model_cost"]["interval_slots"]
+                    lines.append(
+                        f"The fresh bounds give {fresh} slots and leave the {claim} unresolved."
+                    )
+                lines.append(
+                    f"Candidate programs replayed: {coverage['checked']} of {coverage['expected']}."
+                )
+                if not coverage["replayed_fields_consistent"]:
+                    lines.append(
+                        "The checked record fields differ from the archived evidence."
+                    )
+            else:
+                lines.extend(
+                    [
+                        f"Recomputation from the archived inputs: {report['fresh_verification']['outcome']}",
+                        f"Historical results supported: {_historical_support(report['historical_results_supported'])}",
+                    ]
+                )
+            lines.append(render_result(report["fresh_result"]).rstrip())
         return "\n".join(lines) + "\n"
     lines = [
         "RCC analysis evidence",
@@ -65,22 +135,18 @@ def render_bundle_report(report: dict) -> str:
         historical = report["historical_verification"]["constant_exact"]
         if historical is not None:
             lines.append("Historical certificate constant: " + _constant(historical))
-        supported = report["historical_results_supported"]
         lines.append(
             "Historical results supported: "
-            + (
-                "yes"
-                if supported is True
-                else "no"
-                if supported is False
-                else "unresolved"
-            )
+            + _historical_support(report["historical_results_supported"])
         )
         if report["controls"]["tolerance_overridden"]:
             lines.append("Tolerance: explicit override; original controls retained")
-        if not report["requests"] and supported is False:
+        if (
+            report["historical_results_supported"] is False
+            and fresh["outcome"] == "pass"
+        ):
             lines.append(
-                "The fresh constant is larger; it does not support the smaller historical constant."
+                "Historical support is assessed before rounding. The fresh certificate constant must be at most the saved value."
             )
         for index, request in enumerate(report["requests"], 1):
             lines.append(
@@ -103,10 +169,6 @@ def render_bundle_report(report: dict) -> str:
                 lines.append(
                     f"  Usable constants: fresh {_constant(new_c)} {relation} historical {_constant(old_c)}"
                 )
-                if not request["historical_constant_supported"]:
-                    lines.append(
-                        "  The larger fresh constant gives a weaker bound; the historical constant is unsupported."
-                    )
                 cost = request["fresh_bound"]["cost"]
                 lines.append(
                     "  Fresh lower bound: "
@@ -114,18 +176,19 @@ def render_bundle_report(report: dict) -> str:
                     + " atomic slots (rounded down)"
                 )
                 if cost["integer_lower_bound_slots"] is not None:
-                    lines.append(
-                        f"  Integer lower bound: {cost['integer_lower_bound_slots']}"
-                    )
-                    old_integer = request["historical_record"]["cost"][
+                    old_slots = request["historical_record"]["cost"][
                         "integer_lower_bound_slots"
                     ]
                     if (
-                        not request["historical_constant_supported"]
-                        and old_integer == cost["integer_lower_bound_slots"]
+                        old_slots is not None
+                        and not request["historical_constant_supported"]
                     ):
                         lines.append(
-                            "  The integer bound is unchanged after rounding; this does not establish historical support."
+                            f"  Integer lower bounds: fresh {cost['integer_lower_bound_slots']}, historical {old_slots}"
+                        )
+                    else:
+                        lines.append(
+                            f"  Integer lower bound: {cost['integer_lower_bound_slots']}"
                         )
             if not request["current_scalar_comparison"]["matches"]:
                 lines.append(

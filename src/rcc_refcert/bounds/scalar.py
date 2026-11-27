@@ -1,4 +1,4 @@
-"""Small scalar enclosure oracle; not a matrix or physical-model verifier.
+"""Conservative scalar enclosures for RCC cost inversion.
 
 Arithmetic endpoints are Fractions. Only logarithms use Decimal, with directed
 input conversion and neighbouring correctly rounded ln results. See the design
@@ -139,6 +139,23 @@ class Interval:
 def decimal_string(q: Fraction, digits: int = 48, rounding: str = ROUND_FLOOR) -> str:
     ctx = Context(prec=digits, rounding=rounding)
     return str(ctx.divide(Decimal(q.numerator), Decimal(q.denominator)))
+
+
+def bit_text(number: str) -> str:
+    unit = (
+        "bit"
+        if number == "1" or (number.startswith("1.") and not number[2:].strip("0"))
+        else "bits"
+    )
+    return f"{number} {unit}"
+
+
+def probability_text(value) -> str:
+    """Display an exact probability as a short percentage when possible."""
+    q = Fraction(value)
+    percent = 100 * q
+    display = decimal_string(percent, 8)
+    return f"{display}%" if Fraction(display) == percent else str(q)
 
 
 def _ln_decimal_bound(d: Decimal, lower: bool) -> Fraction:

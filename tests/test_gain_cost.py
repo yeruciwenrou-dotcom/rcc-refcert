@@ -47,7 +47,10 @@ def test_multiblock_h70_failure_is_only_a_certificate_failure() -> None:
     assert abs(by_syntax["s0"].current_weighted_sum - 2.0) < 1e-12
     assert abs(by_syntax["s1"].current_weighted_sum - 1.5) < 1e-12
     assert all(item.suggested_condition_satisfied for item in report.syntax_reports)
-    assert "does not establish failure of RA" in report.caveat
+    assert (
+        "H.70 checks the local gain–cost condition for the supplied codewords"
+        in report.caveat
+    )
 
 
 def test_global_reset_requires_extensive_effective_length() -> None:

@@ -10,13 +10,13 @@ gain–cost conditions. This makes
 it possible to study state preparation, reset, feedback, and looping control
 under one explicit cost convention.
 
-A model contribution is scientifically useful when it asks a new structural
-question: Which resource is doing the target-shortening work? Does the declared
-reference absorb the background already supplied? Can the program prior remain
-uniformly dominated across a scale family? Which local action needs more code
-or fuel? The package answers the finite-instance certificate part of these
-questions. The corresponding RCC analysis supplies the physical interpretation,
-faithful transcription, and family-uniform arguments.
+The audit shows which actions concentrate output weight most strongly
+relative to the reference and whether their code lengths cover that gain.
+Even when the local test fails, a global certificate can still bound the
+combined output of all halting programs in the same model. The
+[alternating-qubit example](CUSTOM_MODELS.md#prepare-and-verify-a-candidate)
+shows both results side by side. Extending such a bound across a family of
+models calls for an argument that applies at every size.
 
 Formally, the model is a finite prefix-coded syntax graph whose actions carry
 total quantum channels between transient control blocks or into a common
@@ -243,8 +243,7 @@ To use an H.3 or H.4 proof object in a terminal-state task,
 `rcc_refcert.bounds.with_reference_certificate` verifies it against the actual
 model and transfers only a passing report's usable `constant`. The task must
 match the model identity, dimension, and uniform reference. Preserve the
-physical and transcription arguments alongside the task; a model audit alone
-does not supply them. Freeze a counts protocol only after this task is settled.
+physical and transcription arguments alongside the task. Then freeze the counts protocol.
 The [terminal-state guide](TERMINAL_BOUNDS.md#connect-an-h3-or-h4-proof-object)
 includes a runnable certificate-to-bound example and explains the adapter's
 numerical evidence and required inputs.

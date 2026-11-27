@@ -1,0 +1,19 @@
+{
+  "schema": "rcc-refcert.fixed-effect-protocol",
+  "schema_version": 1,
+  "effect": {
+    "id": "basis-vector-0",
+    "setting": "Measure the ideal four-level output in the computational basis.",
+    "readout": "Emit yes for basis state 0 and no for each other basis state.",
+    "accept": "yes", "reject": "no",
+    "selection": "predeclared", "support": "no_leakage"
+  },
+  "target": {
+    "kind": "counts", "state_id": "mixed-cycle-0", "dataset_id": "target-1000",
+    "event_id": "target-lower", "samples": 1000, "delta": "1/40", "sampling": "fixed_n_iid"
+  },
+  "reference": {
+    "kind": "counts", "state_id": "uniform-C4", "dataset_id": "reference-1000",
+    "event_id": "reference-upper", "samples": 1000, "delta": "1/40", "sampling": "fixed_n_iid"
+  }
+}

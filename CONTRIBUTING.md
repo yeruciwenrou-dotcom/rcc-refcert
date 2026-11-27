@@ -109,9 +109,13 @@ an independently known result, including a relevant zero or boundary case.
 An integer-slot bound requires the declared integer cost domain; the upper
 endpoint of a calculator enclosure is not a physical upper bound on cost.
 
-Measurement changes must keep the task, projector, fixed sample size, failure
-budget, and acquisition digest consistent. New sampling or readout models need
-their own justified contracts. The reference-certificate adapter must verify the supplied
+Keep the task, predeclared measurement, sample sizes, failure budgets and
+acquisition digests consistent. For target and reference counts, test each
+arm's state, dataset and event identity. When several witnesses reuse an
+event, check the reported joint coverage. For register-layout changes,
+compare raw count keys and aligned joint shots against a known wire order.
+New sampling or readout models need their own justified contracts.
+The reference-certificate adapter must verify the supplied
 proof object on the actual model and use the returned upper constant, while
 retaining the numerical evidence level and the external model premises.
 

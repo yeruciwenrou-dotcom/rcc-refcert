@@ -56,6 +56,11 @@ jobs:
         run: |
           python -m pip install "${{ matrix.numpy-spec }}"
           python -m pip install -e ".[dev]"
+      - name: Exercise the optional Qiskit adapter
+        if: matrix.python-version == '3.12'
+        run: |
+          python -m pip install "qiskit>=2,<3"
+          python tests/qiskit_smoke.py
       - name: Test
         run: |
           ruff check src tests examples quickstart.py RCC_Quickstart.ipynb RCC_Bounds_Quickstart.ipynb RCC_Workflows_Quickstart.ipynb

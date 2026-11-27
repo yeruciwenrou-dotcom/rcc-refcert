@@ -37,6 +37,76 @@ def test_genuine_020_bundle_is_preserved_and_reverified(name):
     assert path.read_bytes() == before
 
 
+def test_scalar_counts_report_failure_keeps_the_reproducible_bundle(tmp_path, capsys):
+    from rcc_refcert.bounds import load_template
+
+    source = tmp_path / "effect.json"
+    source.write_text(json.dumps(load_template("effect-counts")))
+    archive = tmp_path / "effect.rccbundle"
+    base = ["bound", "counts", str(source), "--format", "json"]
+    assert (
+        main([*base, "--bundle", str(archive), "--output", str(source / "report")]) == 1
+    )
+    streams = capsys.readouterr()
+    result = json.loads(streams.out)
+    assert str(archive) in streams.err and "omit --bundle" in streams.err
+    retained = archive.read_bytes()
+    assert verify_analysis_bundle(archive)["historical_results_supported"]
+    report = tmp_path / "report.json"
+    assert main([*base, "--output", str(report)]) == 0
+    assert json.loads(report.read_text()) == result
+    assert archive.read_bytes() == retained
+
+
+def test_trajectory_plot_failure_preserves_other_outputs(tmp_path, capsys, monkeypatch):
+    from rcc_refcert.workflows import windows
+
+    request = export_probe("w3-cooling-trajectory")
+    source = tmp_path / "task.json"
+    source.write_text(json.dumps(request))
+    archive = tmp_path / "cooling.rccbundle"
+    csv_file = tmp_path / "cooling.csv"
+    figure = tmp_path / "cooling.svg"
+    export = windows.export_window_files
+
+    def fail_plot(result, **options):
+        if options.get("plot_path"):
+            raise ValueError("figure renderer failed")
+        return export(result, **options)
+
+    monkeypatch.setattr(windows, "export_window_files", fail_plot)
+    assert (
+        main(
+            [
+                "cost",
+                "analyze",
+                str(source),
+                "--format",
+                "json",
+                "--plot",
+                str(figure),
+                "--csv",
+                str(csv_file),
+                "--bundle",
+                str(archive),
+            ]
+        )
+        == 1
+    )
+    result = json.loads(capsys.readouterr().out)
+    assert result["cost"]["interval_slots"] == [6, 6]
+    assert result["delivery"]["plot"]["state"] == "failed" and not figure.exists()
+    assert (
+        result["delivery"]["csv"]["state"]
+        == result["delivery"]["bundle"]["state"]
+        == "saved"
+    )
+    assert (
+        csv_file.is_file()
+        and verify_analysis_bundle(archive)["historical_results_supported"]
+    )
+
+
 def test_templates_results_and_states_obey_packaged_structural_schemas():
     data = files("rcc_refcert.workflows").joinpath("data")
     validators = {
@@ -75,7 +145,7 @@ def test_text_width_markdown_json_and_csv_use_stored_values(tmp_path):
     windows = analyze_windows(export_probe("w1-quantum-organization"))
     path = tmp_path / "values.csv"
     export_window_files(windows, csv_path=path)
-    assert len(path.read_text().splitlines()) == 7
+    assert len(path.read_text().splitlines()) == 11
     with path.open(encoding="utf-8", newline="") as stream:
         rows = list(csv.DictReader(stream))
     expected = [
@@ -83,6 +153,17 @@ def test_text_width_markdown_json_and_csv_use_stored_values(tmp_path):
         for profile in windows["profiles"]
         for window in profile["windows"]
     ]
+    for kind, key in (
+        ("global", "global_quantity"),
+        ("partition_correlation", "partition"),
+    ):
+        added = [row for row in rows if row["kind"] == kind]
+        for row, profile in zip(added, windows["profiles"], strict=True):
+            quantity = (
+                "rcc_main_term" if kind == "global" else "total_correlation_scaled"
+            )
+            assert float(row["reading_st_R"]) == profile[key][quantity]
+    rows = [row for row in rows if row["kind"] == "subsystem"]
     assert len(rows) == len(expected)
     for row, (state_id, window) in zip(rows, expected, strict=True):
         assert row["state"] == state_id
@@ -289,7 +370,7 @@ def test_cooling_details_expose_actions_cost_and_windows_without_changing_result
     detailed = render_workflow_result(result, details=True)
     assert "Use --details" in summary
     assert "Step 1: R; cumulative cost 1 atomic slot" in detailed
-    assert "subsystem entropy=" in detailed
+    assert "entropy=" in detailed
     assert "Total correlation" in detailed
     assert result == before
     assert json.loads(render_workflow_result(result, format="json")) == before
@@ -300,11 +381,103 @@ def test_near_zero_display_preserves_json_and_csv_precision(tmp_path):
     quantity = result["profiles"][0]["windows"][0]
     quantity["entropy_bits"] = -2e-16
     before = deepcopy(result)
-    assert "subsystem entropy=~0 bits" in render_workflow_result(result)
+    assert "entropy=~0 bits" in render_workflow_result(result)
     assert json.loads(render_workflow_result(result, format="json")) == before
     path = tmp_path / "precision.csv"
     export_window_files(result, csv_path=path)
     with path.open(newline="") as stream:
-        row = next(csv.DictReader(stream))
+        row = next(r for r in csv.DictReader(stream) if r["kind"] == "subsystem")
     assert float(row["entropy_bits"]) == -2e-16
     assert result == before
+
+
+def test_field_errors_identify_the_object_and_keys():
+    from rcc_refcert.workflows.core import InputError, keys
+
+    for value, message in (
+        ({}, "missing a, b"),
+        ({"a": 1, "b": 2, "q": 0}, "unexpected q"),
+        ({"z": 0, "c": 0}, "missing a, b | unexpected c, z"),
+    ):
+        with pytest.raises(InputError) as err:
+            keys(value, {"b", "a"}, name="cost.model")
+        assert str(err.value) == "cost.model: " + message
+    assert keys({"a": 1}, {"a"}) == {"a": 1}
+
+
+@pytest.mark.parametrize("template", ["window-state", "pvm-counts"])
+def test_window_exports_check_both_destinations_before_writing(tmp_path, template):
+    from rcc_refcert.bounds import InputError
+
+    result = analyze_windows(load_workflow_template(template))
+    path = tmp_path / "windows.svg"
+    with pytest.raises(InputError, match="distinct output paths"):
+        export_window_files(result, csv_path=str(path), plot_path=path, overwrite=True)
+    assert not path.exists()
+
+
+def test_hard_link_to_experiment_is_rejected_before_other_outputs(tmp_path):
+    from rcc_refcert.bounds import load_template
+
+    source = tmp_path / "experiment.json"
+    source.write_text(json.dumps(load_template("sample-plan")))
+    original = source.read_bytes()
+    alias = tmp_path / "report.json"
+    alias.hardlink_to(source)
+    counts = tmp_path / "new-counts.json"
+    assert (
+        main(
+            [
+                "bound",
+                "plan",
+                str(source),
+                "--counts-request",
+                str(counts),
+                "--output",
+                str(alias),
+                "--overwrite",
+            ]
+        )
+        == 2
+    )
+    assert source.samefile(alias) and source.read_bytes() == original
+    assert not counts.exists()
+
+
+def test_bound_output_protection_and_cost_trajectory_files(tmp_path):
+    from rcc_refcert.cli import main
+
+    request = tmp_path / "spectrum.json"
+    report = tmp_path / "bound.txt"
+    assert main(["bound", "template", "spectrum", "--output", str(request)]) == 0
+    assert main(["bound", "spectrum", str(request), "--output", str(report)]) == 0
+    saved = report.read_text()
+    assert saved.index("Integer-slot lower bound") < saved.index("One-shot RCC")
+    assert "spectral skew" in saved and "R-structon" in saved
+    assert main(["bound", "spectrum", str(request), "--output", str(report)]) == 2
+    assert (
+        main(
+            ["bound", "spectrum", str(request), "--output", str(report), "--overwrite"]
+        )
+        == 0
+    )
+    assert (
+        main(
+            ["bound", "spectrum", str(request), "--output", str(request), "--overwrite"]
+        )
+        == 2
+    )
+    assert report.read_text() == saved
+    trajectory = tmp_path / "trajectory.json"
+    trajectory.write_text(json.dumps(export_probe("w3-cooling-trajectory")))
+    out = tmp_path / "trajectory.csv"
+    assert main(["cost", "analyze", str(trajectory), "--csv", str(out)]) == 0
+    with out.open(newline="") as f:
+        rows = list(csv.DictReader(f))
+    global_values = {
+        r["state"]: float(r["reading_st_R"]) for r in rows if r["kind"] == "global"
+    }
+    assert global_values["target-program:1"] == pytest.approx(
+        global_values["target-program:2"]
+    )
+    assert len(global_values) == 16 and len(rows) == 64

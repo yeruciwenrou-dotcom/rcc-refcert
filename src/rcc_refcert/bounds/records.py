@@ -1,15 +1,10 @@
-"""Cross-field record checks, not a proof checker or an external certificate API.
-
-A conforming record can still contain false external premises. This validator
-checks identities, roles and basic numeric relationships. It does not re-run a
-scientific computation or accept stored JSON as a proof of the RCC theorem.
-"""
+"""Check identities, evidence roles and numerical relationships in saved bound records."""
 
 from __future__ import annotations
 
 from fractions import Fraction
 
-from .contracts import Task, canonical_hash, validate_protocol
+from .contracts import Task, canonical_hash, validate_projector_hits, validate_protocol
 from .scalar import InputError, ceil_fraction, decimal_endpoint, rational, require_int
 
 
@@ -30,7 +25,11 @@ def _interval(raw: dict, name: str) -> tuple[Fraction, Fraction]:
 
 def validate_record(record: dict) -> None:
     """Check Appendix D.6 audit-record fields and their software-level consistency."""
+    from .effects import RECORD, validate_effect_record
+
     try:
+        if isinstance(record, dict) and record.get("schema") == RECORD:
+            return validate_effect_record(record)
         if (
             canonical_hash(record["provenance"]["input_snapshot"])
             != record["provenance"]["input_sha256"]
@@ -94,7 +93,7 @@ def validate_record(record: dict) -> None:
         if record["analysis_state"] != expected_state:
             _fail("analysis state differs from numerical status")
         if record["record_role"] != "conditional_cost_lower_bound":
-            _fail("external model premises must remain conditional")
+            _fail("bound-record v2 requires record_role 'conditional_cost_lower_bound'")
         flags = record["flags"]
         if "model_premises_external_not_machine_verified" not in flags:
             _fail("missing external-premise flag")
@@ -111,7 +110,9 @@ def validate_record(record: dict) -> None:
         confidence = record["confidence"]
         if path == "spectrum":
             if stat is not None or confidence is not None:
-                _fail("deterministic spectrum path cannot invent sampling confidence")
+                _fail(
+                    "spectrum records require calibration.statistical and confidence to be null"
+                )
             if information["kind"] != "declared_exact_spectrum":
                 _fail("spectrum result has incorrect role")
         elif path == "fixed_projector_counts":
@@ -140,9 +141,7 @@ def validate_record(record: dict) -> None:
                 _fail("confidence is not the complement of the declared failure budget")
             if stat["chronology_or_iid_independently_verified"] is not False:
                 _fail("input identity cannot prove chronology or iid")
-            require_int(information["hits"], "hits")
-            if information["hits"] > protocol["samples"]:
-                _fail("hits exceed sample count")
+            validate_projector_hits(information["hits"], protocol, task.dimension)
             if rational(information["reference_response_exact"]) != Fraction(
                 protocol["rank"], task.dimension
             ):

@@ -1,0 +1,130 @@
+{
+  "schema": "rcc-refcert.workflow-request",
+  "schema_version": 1,
+  "kind": "cost_analysis",
+  "mode": "exact",
+  "model": {
+    "schema": "rcc-refcert.exact-model",
+    "schema_version": 1,
+    "id": "half-erasure-qubit",
+    "subsystem_dims": [
+      2
+    ],
+    "subsystem_labels": [
+      "spin"
+    ],
+    "basis_order": "tensor_msb_first",
+    "initial": [
+      "1/2",
+      "1/2"
+    ],
+    "reference": {
+      "kind": "uniform_product_support",
+      "gamma": 2,
+      "source": "Two fixed physical actions: half-erasure and halt."
+    },
+    "cost": {
+      "kind": "integer_atomic_slots",
+      "action_slots": 1,
+      "halt_slots": 1,
+      "initial_preparation": "The maximally mixed spin is supplied by the background.",
+      "auxiliary_systems": "The apparatus implementing each complete measure-and-prepare erasure is included in the charged action.",
+      "output_rule": "complete_unconditional_output"
+    },
+    "start_syntax": "s",
+    "actions": {
+      "s": [
+        {
+          "name": "half-erasure",
+          "codeword": "1",
+          "successor": "s",
+          "operations": [
+            {
+              "kind": "classical_channel",
+              "matrix": [
+                [
+                  "1",
+                  "1/2"
+                ],
+                [
+                  "0",
+                  "1/2"
+                ]
+              ]
+            }
+          ],
+          "description": "Dephase in the Z basis, leave 0 unchanged and map 1 to 0 with probability 1/2. This channel costs one slot."
+        },
+        {
+          "name": "halt",
+          "codeword": "0",
+          "successor": null,
+          "operations": [
+            {
+              "kind": "halt"
+            }
+          ],
+          "description": "Return the complete spin. Halt costs one slot."
+        }
+      ]
+    }
+  },
+  "target": {
+    "schema": "rcc-refcert.state",
+    "schema_version": 1,
+    "kind": "diagonal_exact",
+    "data": [
+      "15/16",
+      "1/16"
+    ],
+    "subsystem_dims": [
+      2
+    ],
+    "subsystem_labels": [
+      "spin"
+    ],
+    "basis_order": "tensor_msb_first",
+    "support": {
+      "kind": "complete_working_support",
+      "source": "declared tensor layout"
+    },
+    "provenance": {
+      "source": "Fixed target diag(15/16, 1/16) in the Z basis."
+    },
+    "numeric_policy": {}
+  },
+  "epsilon": "1/10",
+  "candidates": [
+    {
+      "id": "1-erasure-then-halt",
+      "action_names": [
+        "half-erasure",
+        "halt"
+      ],
+      "codeword": "10",
+      "source": "Repeated half-erasure followed by a charged halt."
+    },
+    {
+      "id": "2-erasure-then-halt",
+      "action_names": [
+        "half-erasure",
+        "half-erasure",
+        "halt"
+      ],
+      "codeword": "110",
+      "source": "Repeated half-erasure followed by a charged halt."
+    },
+    {
+      "id": "3-erasure-then-halt",
+      "action_names": [
+        "half-erasure",
+        "half-erasure",
+        "half-erasure",
+        "halt"
+      ],
+      "codeword": "1110",
+      "source": "Repeated half-erasure followed by a charged halt."
+    }
+  ],
+  "max_cost": 10
+}

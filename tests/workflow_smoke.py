@@ -54,16 +54,32 @@ def main():
         environment = dict(os.environ)
         environment.pop("PYTHONPATH", None)
 
-        def run(*args):
-            return subprocess.run(
+        def run(*args, expected=0):
+            completed = subprocess.run(
                 [sys.executable, "-m", "rcc_refcert", *args],
                 cwd=root,
                 env=environment,
                 text=True,
                 capture_output=True,
-                check=True,
-            ).stdout
+                check=False,
+            )
+            assert completed.returncode == expected, (
+                args,
+                completed.stdout,
+                completed.stderr,
+            )
+            return completed.stdout
 
+        for name in ("cluster", "cooling"):
+            (root / "study.json").write_text(run("study", "template", name))
+            run("study", "analyze", "study.json", "--bundle", name + ".rccbundle")
+            checked = json.loads(
+                run("bundle", "verify", name + ".rccbundle", "--format", "json")
+            )
+            assert (
+                checked["historical_results_supported"]
+                and checked["same_version_replay"]["status"] == "match"
+            )
         request = run("cost", "template", "cyclic-reset")
         (root / "task.json").write_text(request)
         result = json.loads(
@@ -91,6 +107,59 @@ def main():
             "window", "analyze", "windows.json", "--csv", "windows.csv"
         )
         assert (root / "windows.csv").read_text().startswith("state,window,")
+
+        # Exercise the host volume's own spelling rules on macOS, Windows and Linux.
+        task = root / "task.json"
+        original = task.read_bytes()
+        folds_case = (root / "TASK.json").exists()
+        expected = 2 if folds_case else 0
+        run(
+            "cost",
+            "analyze",
+            "task.json",
+            "--output",
+            "TASK.json",
+            "--overwrite",
+            expected=expected,
+        )
+        assert task.read_bytes() == original
+        plan = root / "Experiment.json"
+        plan.write_text(run("bound", "template", "sample-plan"))
+        original = plan.read_bytes()
+        run(
+            "bound",
+            "plan",
+            plan.name,
+            "--output",
+            "experiment.json",
+            "--overwrite",
+            expected=expected,
+        )
+        assert plan.read_bytes() == original
+        run(
+            "bound",
+            "plan",
+            plan.name,
+            "--format",
+            "json",
+            "--overwrite",
+            "--output",
+            "Out/Result.json",
+            "--counts-request",
+            "out/result.json",
+            expected=expected,
+        )
+        if folds_case:
+            assert not (root / "Out").exists()
+        else:
+            for path, schema in (
+                ("Out/Result.json", "sampling-plan"),
+                ("out/result.json", "fixed-effect-counts"),
+            ):
+                assert (
+                    json.loads((root / path).read_text())["schema"]
+                    == f"rcc-refcert.{schema}"
+                )
     print(
         "Installed cost, window, probe, schema and independent-recipient workflows passed."
     )

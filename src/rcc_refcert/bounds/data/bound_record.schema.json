@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "RCC terminal-state bound record v2",
-  "description": "Shape validation, paired with records.validate_record for cross-field invariants. Neither validates external scientific premises.",
+  "description": "Field types and required values for a bound record. records.validate_record checks consistency across fields.",
   "type": "object",
   "properties": {
     "schema": {

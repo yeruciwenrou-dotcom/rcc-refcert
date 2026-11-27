@@ -4,7 +4,7 @@ This report presents executable evidence for RCC's finite-control model-qualific
 
 ## Run summary
 
-Package: `rcc-refcert 0.3.0`  
+Package: `rcc-refcert 0.4.0`\
 Action depth: `1–8`  
 Maximum transient continuations: `16`  
 Numerical tolerance: `1.0e-10`
@@ -116,7 +116,7 @@ RCC paper map: H.1, H.2, H.34.
 - The partial sum through 16 transient continuations has output trace `0`.
 - The full transient spectral radius lies at the linear-inverse boundary; the least fixed-point series remains the defining semantics.
 
-Interpretation: The full transient spectral radius is one. The least fixed-point semantics remains valid, while the Neumann/linear-inverse route reaches its boundary. The minimum reference-domination constant (H.34) remains unevaluated by this method; a finite truncation alone does not determine it.
+Interpretation: The transient spectral radius is one. The partial sum records the terminating mass through the chosen depth. H.34 uses the complete least fixed-point semidensity.
 
 ## Appendix F executable witnesses
 
@@ -139,4 +139,4 @@ Interpretation: The full transient spectral radius is one. The least fixed-point
 
 ## Scientific scope
 
-The calculations above establish finite-input and fixed-model numerical statements for the declared processes and supplied proof objects. They make the Appendix F/H constructions inspectable. The RCC paper supplies the physical reference-consistency, faithful-transcription (`TC`), and uniform model-family arguments used by the lower bound. A local gain–cost failure (H.70) identifies codewords that do not meet that sufficient condition; other reference-certificate routes remain available.
+The calculations above establish finite-input and fixed-model numerical statements for the declared processes and supplied proof objects. They make the Appendix F/H constructions inspectable. The RCC paper supplies the physical reference-consistency, faithful-transcription (`TC`), and uniform model-family arguments used by the lower bound. H.70 tests the supplied codewords. H.3 and H.4 report their own certificate checks.

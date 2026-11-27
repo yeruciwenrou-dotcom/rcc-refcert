@@ -26,7 +26,13 @@
     "epsilon": {},
     "candidates": {},
     "max_cost": {},
-    "gain_certificate": {},
+    "gain_certificate": {
+      "description": "Submit an envelope certificate object or select 'auto'. An invalid submission produces a diagnostic."
+    },
+    "on_gain_failure": {
+      "enum": ["report", "auto"],
+      "description": "Report the submitted certificate's diagnostic (default), or also verify an automatic certificate."
+    },
     "limits": {},
     "epsilon_values": {},
     "trajectory": {},

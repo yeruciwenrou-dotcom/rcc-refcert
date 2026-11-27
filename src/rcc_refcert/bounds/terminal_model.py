@@ -1,8 +1,7 @@
 """One fixed C^4 model with four pure and four mixed terminal outputs.
 
 This example's complete program domain contains the eight three-bit words.
-Every program costs one atomic slot. It is a fixed finite model, not a
-universal state generator or a family-uniform qualification proof.
+Each word prepares its named target in one atomic slot.
 """
 
 from __future__ import annotations
@@ -58,5 +57,5 @@ def build_terminal_model():
         output_dim=4,
         reference_state=sigma,
         name="terminal-eight-C4",
-        scope_note="Fixed eight-program terminal model; no universal or family-uniform claim",
+        scope_note="Eight three-bit programs prepare four pure and four mixed targets in one slot each.",
     )

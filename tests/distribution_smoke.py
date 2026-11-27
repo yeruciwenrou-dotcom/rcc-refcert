@@ -4,7 +4,7 @@ import json
 import subprocess
 import sys
 import tempfile
-from importlib.metadata import version
+from importlib.metadata import distribution, version
 from importlib.resources import files
 from pathlib import Path
 
@@ -25,6 +25,32 @@ def main():
         .is_file()
     )
     with tempfile.TemporaryDirectory() as temporary:
+        vigo = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "rcc_refcert",
+                "study",
+                "import-counts",
+                "--example",
+                "ibm-vigo",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            cwd=temporary,
+        )
+        readout = json.loads(vigo.stdout)
+        assert readout["samples"] == 1024 and readout["counts"]["00101"] == 909
+        data = files("rcc_refcert.workflows").joinpath("data")
+        source = json.loads(data.joinpath("ibm_vigo_source.json").read_bytes())
+        assert source["dataset_doi"] == "10.5281/zenodo.5197499"
+        package = distribution("rcc-refcert")
+        assert package.metadata["License-Expression"] == "MIT AND CC-BY-4.0"
+        assert source["dataset_doi"] in package.read_text("licenses/NOTICE.md")
+        assert "Creative Commons Attribution 4.0" in package.read_text(
+            "licenses/LICENSES/CC-BY-4.0.txt"
+        )
         for name, compute in (
             ("spectrum", bound_from_spectrum),
             ("counts", bound_from_counts),
@@ -51,7 +77,7 @@ def main():
             )
             assert json.loads(process.stdout) == result
     print(
-        f"Installed {version('rcc-refcert')}: both API/CLI routes, resources and replay passed."
+        f"Installed {version('rcc-refcert')}: bounds, replay and the attributed Vigo readout passed."
     )
 
 

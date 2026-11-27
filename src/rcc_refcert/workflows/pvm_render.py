@@ -1,0 +1,548 @@
+"""Report certified intervals and the measured scope of finite PVM data."""
+
+import csv
+import io
+from collections import defaultdict
+from decimal import ROUND_CEILING
+from fractions import Fraction
+from math import log2
+from os.path import commonprefix
+from textwrap import TextWrapper
+from typing import NamedTuple
+
+from ..bounds.contracts import COUNT_ORIGIN_LABELS
+from ..bounds.scalar import bit_text, decimal_string
+from .pvm import _window_difference_lower
+
+
+class _WindowExportRow(NamedTuple):
+    state: str
+    window: str
+    lower_st_R: str | None
+    upper_st_R: str | None
+    status: str
+    dataset_id: str
+    event_id: str
+    kind: str
+    retained: int | None
+    discarded: int | None
+    window_scope: str
+    quantity: str
+
+
+def _rows(record):
+    for batch in record["batches"]:
+        items = [(batch["window_id"], "measurement_window", batch["window"])]
+        items.extend(
+            (name, "coarse_window", window)
+            for name, window in batch["coarse_windows"].items()
+        )
+        if batch["product"]:
+            product = batch["product"]
+            items.extend(
+                (name, "product_marginal", window)
+                for name, window in product["marginals"].items()
+            )
+            items.append(
+                (
+                    "classical correlation",
+                    "classical_correlation",
+                    {
+                        "scope": "classical_blocks",
+                        "window_st_R": product["classical_correlation_st_R"],
+                    },
+                )
+            )
+        retention = batch["retention"]
+        for name, quantity, window in items:
+            values = window["window_st_R"] if window else {"lower": None, "upper": None}
+            yield _WindowExportRow(
+                batch["state_id"],
+                name,
+                values["lower"],
+                values["upper"],
+                batch["status"],
+                batch["dataset_id"],
+                batch["event_id"],
+                "conditional_window" if retention else "measured_window",
+                retention["retained"] if retention else None,
+                retention["discarded"] if retention else None,
+                window["scope"] if window else batch["window_scope"],
+                quantity,
+            )
+
+
+def _label_groups(rows):
+    datasets, quantities = defaultdict(set), defaultdict(set)
+    for row in rows:
+        key = (row.state, row.window)
+        datasets[key].add(row.dataset_id)
+        quantities[key].add(row.quantity)
+    return datasets, quantities
+
+
+def _scope_label(row, shared_name):
+    if row.window_scope == "containing_quantum":
+        return "containing quantum window"
+    if row.quantity == "coarse_window":
+        return "coarse-grained classical window"
+    if row.quantity == "product_marginal":
+        return "measured classical marginal"
+    if shared_name and row.quantity == "classical_correlation":
+        return "correlation between the measured outcomes"
+    return "measured classical window"
+
+
+def _comparisons(record):
+    by_event = {batch["event_id"]: batch for batch in record["batches"]}
+    acquisitions_by_pair = defaultdict(set)
+    comparisons = []
+    for comparison in record.get("comparisons", []):
+        events = comparison["events"]
+        left, right = (by_event[event] for event in events)
+        key = (left["window_id"], frozenset((left["state_id"], right["state_id"])))
+        acquisitions_by_pair[key].add(frozenset(events))
+        comparisons.append((key, left, right, comparison["difference_lower_st_R"]))
+    for key, left, right, difference in comparisons:
+        yield left, right, difference, len(acquisitions_by_pair[key]) > 1
+
+
+def _comparison_plot_label(left, right, label_datasets, source_rows):
+    wrap = TextWrapper(width=38, break_on_hyphens=False)
+
+    def name(batch, field):
+        value = " ".join(batch[field].split())
+        if len(value) <= 3 * wrap.width:
+            return value
+        head, tail = value[: wrap.width].rstrip(), value[-24:].lstrip()
+        other = right if batch is left else left
+        other_value = " ".join(other[field].split())
+        if (
+            value != other_value
+            and value[: wrap.width] == other_value[: wrap.width]
+            and value[-24:] == other_value[-24:]
+        ):
+            start = len(commonprefix((value, other_value))) - 8
+            head = f"{value[:12].rstrip()} … {value[start : start + 24].strip()}"
+        number = source_rows[batch["event_id"]]
+        return f"{head} … {tail} [row {number}]"
+
+    window = name(left, "window_id")
+    if left["state_id"] == right["state_id"]:
+        a, b = name(left, "dataset_id"), name(right, "dataset_id")
+        window = f"{name(left, 'state_id')} / {window}"
+    else:
+        a, b = name(left, "state_id"), name(right, "state_id")
+        if label_datasets or a == b:
+            a += f" ({name(left, 'dataset_id')})"
+            b += f" ({name(right, 'dataset_id')})"
+    relation = f"{a} minus {b}"
+    if len(relation) > wrap.width:
+        relation = wrap.fill(a) + "\n" + wrap.fill(f"minus {b}")
+    return relation + "\n" + wrap.fill(window)
+
+
+def _comparison_line(left, right, forward, *, label_datasets):
+    a, b = left["state_id"], right["state_id"]
+    if a == b:
+        a, b = left["dataset_id"], right["dataset_id"]
+    elif label_datasets:
+        a = f"{a} ({left['dataset_id']})"
+        b = f"{b} ({right['dataset_id']})"
+    scope = left["window_id"]
+    reverse = _window_difference_lower(right, left)
+    lower = Fraction(forward) if forward is not None else None
+    other = Fraction(reverse) if reverse is not None else None
+
+    for first, second, gap in ((a, b, lower), (b, a, other)):
+        if gap is not None and gap > 0:
+            return f"Window RCC is at least {decimal_string(gap, 10)} st_R higher for {first} than for {second} in {scope}."
+    if lower == 0 and other == 0:
+        return f"{a} and {b} have equal window RCC in {scope}."
+    if lower == 0 or other == 0:
+        first, second = (a, b) if lower == 0 else (b, a)
+        return (
+            f"Window RCC for {first} is at least as large as for {second} in {scope}."
+        )
+    difference = f"For {scope}, the window RCC difference ({a} minus {b})"
+    if label_datasets and left["state_id"] != right["state_id"]:
+        difference = f"For {scope}, window RCC for {a} minus that for {b}"
+    if lower is not None and other is not None:
+        return f"{difference} lies between {decimal_string(lower, 10)} and {decimal_string(-other, 10, ROUND_CEILING)} st_R."
+    if lower is not None:
+        return f"{difference} is at least {decimal_string(lower, 10)} st_R."
+    if other is not None:
+        return (
+            f"{difference} is at most {decimal_string(-other, 10, ROUND_CEILING)} st_R."
+        )
+    return f"The measurements leave the ordering of {a} and {b} open in {scope}."
+
+
+def window_scale_line(classes):
+    bandwidth = log2(classes)
+    relation = "=" if classes & (classes - 1) == 0 else "is approximately"
+    return (
+        f"Window scale: Gamma={classes} action classes, g_R=log2({classes}) bits per slot. "
+        f"1 st_R {relation} {bit_text(format(bandwidth, '.10g'))}."
+    )
+
+
+def render_pvm(record, *, markdown=False, details=False):
+    lines = [
+        ("# " if markdown else "") + "Finite-sample window RCC",
+        f"Joint sampling coverage is at least {decimal_string(100 * Fraction(record['coverage']['at_least']), 9)}%.",
+    ]
+    lines.append(window_scale_line(record["atomic_action_classes"]))
+    if any(batch["product"] for batch in record["batches"]):
+        lines.append(
+            "The classical correlation row bounds I(X:Y)/g_R, the contribution of "
+            "correlations between outcomes X and Y to RCC in the measured classical window."
+        )
+    # A report can contain several references or measurements. Keep each
+    # window attached to its declared support even when their labels coincide.
+    contexts = {}
+    for batch in record["batches"]:
+        context = (
+            batch["window_id"],
+            batch["measurement_id"],
+            batch["window_scope"],
+            batch["reference_id"],
+            batch["dimension"],
+        )
+        contexts.setdefault(context, []).append(batch["dataset_id"])
+    for (
+        window,
+        measurement,
+        scope,
+        reference,
+        dimension,
+    ), datasets in contexts.items():
+        kind = (
+            "classical measurement window"
+            if scope == "classical_blocks"
+            else "containing quantum window"
+        )
+        label = f"{window} ({', '.join(datasets)})" if len(contexts) > 1 else window
+        lines.append(
+            f"{label}: {kind} for {measurement}, uniform reference {reference} (support dimension {dimension})."
+        )
+    missing_by_reason = {}
+    rows = list(_rows(record))
+    datasets, quantities = _label_groups(rows)
+    mixed_scopes = len({row.window_scope for row in rows}) > 1
+    for row in rows:
+        if row.lower_st_R is None:
+            value = row.status.replace("_", " ")
+        else:
+            value = f">= {decimal_string(Fraction(row.lower_st_R), 9)}"
+            if row.upper_st_R is not None:
+                value += (
+                    f", <= {decimal_string(Fraction(row.upper_st_R), 9, ROUND_CEILING)}"
+                )
+            value += " st_R"
+        label = f"{row.state} | {row.window}"
+        key = (row.state, row.window)
+        if len(datasets[key]) > 1:
+            label += f" ({row.dataset_id})"
+        shared_name = len(quantities[key]) > 1
+        if mixed_scopes or shared_name:
+            label += f" ({_scope_label(row, shared_name)})"
+        lines.append(f"{label}: {value}")
+    for left, right, difference, label_datasets in _comparisons(record):
+        lines.append(
+            _comparison_line(left, right, difference, label_datasets=label_datasets)
+        )
+    for batch in record["batches"]:
+        origin = COUNT_ORIGIN_LABELS[batch["origin"]]
+        retention = batch["retention"]
+        trials = batch["analyzed_samples"]
+        sampling = origin
+        if retention:
+            kept, discarded = retention["retained"], retention["discarded"]
+            trials = kept + discarded
+            sampling = f"{origin}, {kept:,} retained and {discarded:,} discarded"
+        unit = "trial" if trials == 1 else "trials"
+        lines.append(f"{batch['event_id']}: {trials:,} {unit} ({sampling}).")
+        if details:
+            lines.extend(
+                [
+                    f"Counts for {batch['state_id']} come from dataset {batch['dataset_id']}.",
+                    f"Protocol SHA-256: {batch['protocol_sha256']}",
+                    f"Data SHA-256: {batch['data_sha256']}",
+                ]
+            )
+        if batch["window_scope"] == "containing_quantum":
+            lines.append(
+                "The measured blocks give a lower bound for the containing quantum window."
+            )
+        if retention:
+            if "discounted_state_exact_st_R" in retention:
+                value = decimal_string(
+                    Fraction(retention["discounted_state_exact_st_R"]), 9
+                )
+                lines.append(
+                    f"The retention-weighted contribution is exactly {value} st_R."
+                )
+            else:
+                value = decimal_string(
+                    Fraction(retention["discounted_state_lower_st_R"]), 9
+                )
+                lines.append(
+                    f"The retention-weighted lower bound for the projected state is {value} st_R."
+                )
+        for point in batch["process"]:
+            cost = point["cost"]
+            lines.append(
+                f"At trace-distance tolerance {point['epsilon']}, the one-shot information lower bound is {bit_text(decimal_string(Fraction(point['one_shot_lower_bits']), 9))}."
+            )
+            if cost:
+                line = f"Preparation cost >= {decimal_string(Fraction(cost['lower_bound_slots']), 9)} slots"
+                if cost["integer_lower_bound_slots"] is not None:
+                    line += f" (integer bound {cost['integer_lower_bound_slots']})"
+                lines.append(line + ".")
+            else:
+                missing = tuple(point["missing_process_premises"])
+                missing_by_reason.setdefault(missing, {})[batch["state_id"]] = None
+            if point["cap_ratio_exact"] == "1":
+                lines.append(
+                    "The reference distribution lies within the sampling and smoothing allowance."
+                )
+            elif cost and cost["zero_reason"] == "model_overhead_exhausted":
+                lines.append(
+                    "The information bound fits within the declared model overhead."
+                )
+    for missing, states in missing_by_reason.items():
+        *others, last = states
+        names = f"{', '.join(others)} and {last}" if others else last
+        if missing == ("model",):
+            lines.append(
+                f"To bound the preparation cost for {names}, supply a preparation model."
+            )
+        elif missing == ("process contract for leakage",):
+            lines.append(
+                f"To bound the preparation cost of the retained branch for {names}, specify how the model treats leakage."
+            )
+        else:
+            lines.append(
+                f"To bound the preparation cost for {names}, supply the missing model qualifications: {', '.join(missing)}."
+            )
+    if details:
+        lines.append(f"Run: {record['run_id']}")
+    return ("\n\n" if markdown else "\n").join(lines) + "\n"
+
+
+def export_pvm(record, csv_path, plot_path, overwrite):
+    from .cli import write_atomic
+    from .render import PLOT_FAILURE_MESSAGES
+    from .windows import save_window_figure
+
+    rows = list(_rows(record))
+    source_rows = {
+        row.event_id: number
+        for number, row in enumerate(rows, 1)
+        if row.quantity == "measurement_window"
+    }
+    for batch in record["batches"]:
+        r = batch["retention"]
+        if r:
+            exact = r.get("discounted_state_exact_st_R")
+            rows.append(
+                _WindowExportRow(
+                    batch["state_id"],
+                    batch["window_id"],
+                    exact if exact is not None else r["discounted_state_lower_st_R"],
+                    exact,
+                    "exact" if exact is not None else batch["status"],
+                    batch["dataset_id"],
+                    batch["event_id"],
+                    "retention_weighted_exact"
+                    if exact is not None
+                    else "retention_weighted_lower",
+                    r["retained"],
+                    r["discarded"],
+                    batch["window_scope"],
+                    "measurement_window",
+                )
+            )
+    comparison_labels = {}
+    for left, right, difference, label_datasets in _comparisons(record):
+        if plot_path is not None:
+            comparison_labels[len(rows)] = _comparison_plot_label(
+                left, right, label_datasets, source_rows
+            )
+        reverse = _window_difference_lower(right, left)
+        key = "state_id" if left["state_id"] != right["state_id"] else "dataset_id"
+        rows.append(
+            _WindowExportRow(
+                f"{left[key]} minus {right[key]}",
+                left["window_id"],
+                difference,
+                decimal_string(-Fraction(reverse), rounding=ROUND_CEILING)
+                if reverse is not None
+                else None,
+                "ordering_undetermined"
+                if reverse is None and difference is None
+                else "comparison",
+                f"{left['dataset_id']} minus {right['dataset_id']}",
+                f"{left['event_id']} minus {right['event_id']}",
+                "signed_difference",
+                None,
+                None,
+                left["window_scope"],
+                "measurement_window",
+            )
+        )
+    if csv_path is not None:
+        stream = io.StringIO(newline="")
+        writer = csv.writer(stream)
+        writer.writerow(_WindowExportRow._fields)
+        writer.writerows(rows)
+        write_atomic(csv_path, stream.getvalue(), overwrite=overwrite)
+    if plot_path is None:
+        return
+    from .windows import window_figure
+
+    figure = window_figure(record, plot_path, len(rows))
+    if figure is None:
+        record.setdefault("delivery", {})["plot"] = {
+            "state": "failed",
+            "path": str(plot_path),
+            "reason": PLOT_FAILURE_MESSAGES[record["execution"]["reason"]],
+        }
+        return
+    fig, ax = figure
+    datasets, quantities = _label_groups(rows)
+    labels, positions = [], []
+    height = 0.0
+    color = "#266c85"
+    single_retention = (
+        record["batches"][0]["retention"] if len(record["batches"]) == 1 else None
+    )
+    scope_labels = {
+        "classical_blocks": "Measured classical window",
+        "containing_quantum": "Containing quantum window",
+    }
+    scopes = {row.window_scope for row in rows}
+    for index, row in enumerate(rows):
+        lo, hi = row.lower_st_R, row.upper_st_R
+        wrap = TextWrapper(width=38, max_lines=2, placeholder=f"… [row {index + 1}]")
+        label = comparison_labels.get(index)
+        if label is None:
+            label = wrap.fill(f"{row.state} / {row.window}")
+            if label.endswith(wrap.placeholder):
+                state_label = TextWrapper(
+                    width=38, max_lines=1, placeholder=wrap.placeholder
+                ).fill(row.state)
+                label = state_label + "\n" + wrap.fill(row.window)
+        if row.retained is not None:
+            label += (
+                "\n"
+                + {
+                    "retention_weighted_lower": "Retention-weighted lower bound",
+                    "retention_weighted_exact": "Retention-weighted contribution",
+                    "conditional_window": "Conditional window",
+                }[row.kind]
+            )
+            if single_retention is None:
+                label += f"\n{row.retained:,} retained / {row.discarded:,} discarded"
+        key = (row.state, row.window)
+        if row.kind != "signed_difference" and len(datasets[key]) > 1:
+            label += "\n" + TextWrapper(
+                width=38, max_lines=3, placeholder=wrap.placeholder
+            ).fill(row.dataset_id)
+        shared_name = len(quantities[key]) > 1
+        if len(scopes) > 1 or shared_name:
+            label += "\n" + _scope_label(row, shared_name).capitalize()
+        row_height = 0.13 + 0.21 * (1 + label.count("\n"))
+        y = height + row_height / 2
+        height += row_height
+        labels.append(label)
+        positions.append(y)
+        if row.kind == "retention_weighted_exact":
+            ax.plot(float(Fraction(lo)), y, marker="D", color=color, clip_on=False)
+        elif lo is not None:
+            ax.plot(
+                float(Fraction(lo)),
+                y,
+                marker=">" if hi is None else "o",
+                color=color,
+                clip_on=False,
+            )
+            if hi is not None:
+                ax.hlines(y, float(Fraction(lo)), float(Fraction(hi)), color=color)
+                ax.plot(
+                    float(Fraction(hi)),
+                    y,
+                    marker="|",
+                    markersize=9,
+                    color=color,
+                    clip_on=False,
+                )
+        elif hi is not None:
+            ax.plot(float(Fraction(hi)), y, marker="<", color=color, clip_on=False)
+        else:
+            ax.text(
+                0.03,
+                y,
+                row.status.replace("_", " ").capitalize(),
+                transform=ax.get_yaxis_transform(),
+                va="center",
+                color="0.30",
+            )
+    if all(
+        row.kind != "signed_difference" or row.status == "ordering_undetermined"
+        for row in rows
+    ):
+        ax.set_xlim(left=0, right=max(0.01, ax.get_xlim()[1]))
+    else:
+        ax.axvline(0, color="0.55", linewidth=0.8)
+    fig.set_size_inches(9, max(3.2, height + 1.65))
+    ax.set_yticks(positions, labels)
+    for label in ax.get_yticklabels():
+        label.set_parse_math(False)
+    ax.set_ylim(max(height, 0.3), 0)
+    ax.set_axisbelow(True)
+    ax.grid(axis="x", color="0.9", linewidth=0.7)
+    if any(
+        row.lower_st_R is not None
+        and row.upper_st_R is not None
+        and row.kind != "retention_weighted_exact"
+        for row in rows
+    ):
+        ax.plot([], [], "o", color=color, label="Interval lower endpoint")
+        ax.plot([], [], "|", color=color, markersize=9, label="Interval upper endpoint")
+    if any(row.lower_st_R is not None and row.upper_st_R is None for row in rows):
+        ax.plot([], [], ">", color=color, label="One-sided lower bound")
+    if any(row.lower_st_R is None and row.upper_st_R is not None for row in rows):
+        ax.plot([], [], "<", color=color, label="One-sided upper bound")
+    if any(row.kind == "retention_weighted_exact" for row in rows):
+        ax.plot([], [], "D", color=color, label="Exact value")
+    handles, keys = ax.get_legend_handles_labels()
+    if handles:
+        fig.legend(
+            handles,
+            keys,
+            loc="outside lower center",
+            ncols=min(3, len(keys)),
+            frameon=False,
+        )
+    product = any(b["product"] for b in record["batches"])
+    title = (
+        "Window RCC and the classical correlation contribution"
+        if product
+        else "Finite-sample bounds on window RCC"
+    )
+    fig.suptitle(title, fontweight="bold")
+    coverage = decimal_string(100 * Fraction(record["coverage"]["at_least"]), 9)
+    subtitle = f"Joint sampling coverage at least {coverage}%"
+    if single_retention:
+        subtitle += f"   |   {single_retention['retained']:,} retained / {single_retention['discarded']:,} discarded"
+    ax.set_title(subtitle, loc="left", fontsize=10)
+    quantity = "State-side complexity" if product else "Window RCC"
+    if len(scopes) == 1:
+        quantity += " in the " + scope_labels[next(iter(scopes))].lower()
+    units = r"$\mathrm{st}_R$"
+    if "atomic_action_classes" in record:
+        units += rf", $\Gamma_R={record['atomic_action_classes']}$"
+    ax.set_xlabel(f"{quantity}\n({units})")
+    save_window_figure(fig, plot_path, overwrite)

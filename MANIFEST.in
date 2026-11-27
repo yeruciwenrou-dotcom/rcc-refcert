@@ -7,7 +7,9 @@ include quickstart.py
 include requirements-quickstart.txt
 recursive-include .github *.yml
 recursive-include docs *.md
+include docs/assets/arxiv.svg
 recursive-include examples *.py
+include examples/half_erasure.json
 recursive-include results *.md
 recursive-include results *.json
 recursive-include tests *.py

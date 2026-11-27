@@ -1,17 +1,17 @@
 # Analyze your own finite-control model
 
-Start with the physical process and identify what structure its reference
-background already supplies. Represent the initial resources, allowed channels,
-control language, and charged primitive consistently with that background.
-The [model guide](MODEL_GUIDE.md) explains the finite-control representation
-and its connection to RCC's physical qualifications. With those inputs,
-`rcc-refcert` can prepare a candidate certificate, check it independently,
-and preserve the complete finite input for another researcher to inspect.
+Can a model have a valid reference bound even when its local gain test fails?
+In the first example, the toolkit constructs and verifies a certificate for
+a qubit that alternates between damping and pumping. In the second, it uses
+a verified reference bound for a four-qubit reset register to rule out
+preparations costing less than two slots. The target spectrum and a set of
+simulated measurement counts give the same lower bound.
 
-This guide follows two executable examples. The first studies a reference
-constant when a local sufficient condition fails. The second carries a model
-through numerical certification, a quantum circuit complexity bound, and
-independent reverification. Both use ordinary NumPy arrays and the public Python API.
+Both examples use NumPy and the public Python API. You can share the model,
+certificate and results in one bundle for a colleague to recheck. To adapt
+the model to your apparatus, the [model guide](MODEL_GUIDE.md) explains how
+to represent the structure the background supplies and the operations that
+carry a cost.
 
 For complete-target preparation checks, exact cost intervals and subsystem
 profiles, continue to [preparation costs and complexity profiles](COST_AND_WINDOWS.md). Existing
@@ -28,9 +28,7 @@ these commands from the checkout root:
 .venv/bin/python -m rcc_refcert bundle verify alternating.rccbundle
 ```
 
-All commands in this guide use that environment. On Windows, substitute
-`.venv\Scripts\python.exe`. If you installed the checkout into your own active
-environment, use its interpreter instead. Candidate preparation and complete bundles are available from version 0.2.0.
+Use the [installation instructions](../README.md#install-from-source) for your platform's interpreter. Candidate preparation and complete bundles are available from version 0.2.0.
 
 The example builds a **Bellman–Choi certificate (H.3)**, a set of matrices
 used to bound the code-weighted sum of terminating outputs relative to the
@@ -114,9 +112,9 @@ Run the second example from the checkout:
 qubits and four distinct physical channels: identity with halt, Pauli Z on the
 first qubit, and two noisy resets of that qubit followed by a rotation that
 moves it to the last position. The reset biases are $19/20$ and $1/20$. Each
-instruction has a two-bit codeword and costs one declared primitive slot,
-including halt. A reset together with its rotation is one primitive of this
-model; a hardware gate decomposition would define a different cost problem.
+instruction, including halt, has a two-bit codeword and costs one atomic slot.
+A reset and its rotation form one primitive operation in this model.
+A hardware gate decomposition would define a different cost problem.
 
 The reference and initial state are $I/16$. The complementary resets have a
 reference-preserving average. The weighted halting image is $\sigma/4$ and the
@@ -147,13 +145,13 @@ trials for a rank-one projector, with statistical failure budget $0.01$. The
 script binds the numerical constant before freezing that fixture's protocol.
 Real data must retain the actual protocol fixed before acquisition.
 
-Both paths produce an integer lower bound of **two primitive slots**. Four
+Both paths produce an integer lower bound of **two atomic slots**. Four
 reset-0 instructions followed by halt give a feasible five-slot program.
 For this particular model, a separate structural argument proves five slots
 are necessary: fewer than four resets leave a uniform qubit marginal whose
 trace distance from the target marginal is $0.45$. The example demonstrates the
-certificate-to-bound workflow; its general RCC bound is weaker than that
-specialized structural argument.
+certificate-to-bound workflow; the [exact gain and candidate workflow](COST_AND_WINDOWS.md#a-complete-cost-task)
+certifies the matching five-slot lower and upper endpoints for this task.
 
 ## Adapt the examples to your inputs
 
@@ -217,11 +215,35 @@ checks pass, but the propagated error correction estimate, approximately
 $6.6\times10^{-9}$, exceeds the default budget $10^{-10}$. The second command
 additionally evaluates an explicitly chosen larger error budget. It retains
 the default result and reports the new conservative constant separately.
-Arithmetic remains binary64. Increasing a tolerance changes the accepted
-error budget; it does not increase arithmetic precision.
+Both calculations use binary64 arithmetic.
 
 The examples export the H.4 route for the register. A different route or
 tolerance should be recorded as a distinct analysis with its own inputs.
+
+### Bind a numerical reference to a terminal task
+
+Use `from rcc_refcert import with_reference_certificate` to carry an H.3 or
+H.4 upper constant into a bound. For a uniform reference of dimension `d`,
+construct the model with `np.eye(d) / d`. The adapter binds the actual matrix
+entries. In dimension six, renormalizing this matrix by its floating-point
+trace changes entries by about 2.8 × 10⁻¹⁷. Rebuild the model with the canonical
+reference and verify the certificate again before freezing the measurement
+protocol. A genuinely nonuniform reference, such as a Gibbs state, can go
+through direct H.3/H.4 verification. The terminal adapter currently implements
+the uniform-reference contract.
+
+For an identity channel with equal continuation and halt weights, the automatic
+H.3 candidate at dimensions eight and nine needs constant corrections of about
+2.33 × 10⁻¹⁰ and 3.73 × 10⁻¹⁰. Both exceed the default threshold near 10⁻¹⁰.
+The diagnostic reports the propagated error bound and the threshold
+`tol * max(1, candidate_constant)`. In these examples, repeating verification
+with an explicit `tol=1e-9` accepts a conservative upper constant that includes
+the reserved numerical allowance. At dimension sixteen this candidate needs
+about 3.73 × 10⁻⁹. Alternatively, on that same identity model the Choi envelope
+`J(identity) + np.eye(d*d)/(8*d)` with a proposed constant of 1.25 has enough
+slack to pass at the default tolerance. Choose the proof or tolerance for the
+model at hand. The bound records the verified upper constant, tolerance and
+numerical evidence level.
 
 ## Choose a computation budget
 

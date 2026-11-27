@@ -12,9 +12,12 @@ form a consistent physical and resource description.
 
 The reference has an independent physical origin, identified before target
 selection. Together, the reference and generation model determine the
-structural zero point and resource scale. A change of reference requires a
-corresponding model specification; cross-model cost comparisons also account
-for the resources needed to translate between the models (Appendix A.10).
+structural zero point and resource scale. For two models with a common
+output domain, Appendix A.10 gives a quantitative comparison of optimal
+preparation costs. If every circuit in the first model can be translated
+into the second with uniform bounds on the translated circuit's cost and
+output error, those bounds also relate the two optima at the corresponding
+tolerances (Proposition A.2).
 
 Appendix F constructs an admissible qubit model family with universal
 pure- and mixed-state generation to arbitrary positive tolerance. At each
@@ -38,8 +41,8 @@ constructs the terminating program
 semidensity, verifies reference certificates, evaluates the reference gain of
 individual actions, and tests the corresponding code-length allocation.
 Its terminal-state calculator then accepts declared model inputs and a target's
-exact spectrum or fixed-projector counts to evaluate a quantum circuit
-complexity lower bound in that model's atomic resource units.
+exact spectrum, fixed-effect counts or complete projective readout to evaluate
+a quantum circuit complexity lower bound in that model's atomic resource units.
 
 The preparation-cost workflow combines exact reference-envelope exclusions
 with executed candidate programs to bound a complete target's cost in a
@@ -59,15 +62,24 @@ including physical reference consistency, faithful transcription,
 windowed RCC, cross-reference compilation, the Complexity Window
 Thermodynamics (CWT) interfaces, and the lower-bound theorem.
 
-Section IV and Appendices B–D develop the finite-sample terminal-state audit:
-support treatment, confidence construction, readout calibration, one-shot
-conversion, and multi-path certificate synthesis. The implemented subset uses
-a uniform reference on an ideal support, exact transcription, complete exact
-spectra, or one predeclared projector with fixed-N iid counts. It computes the
-one-sided Hoeffding endpoint, converts the information lower bound through the
-canonical cost inverse, and saves the calculation for replay. Support
-uncertainty, readout/leakage corrections, and multi-path synthesis require the
-broader contracts developed in the paper.
+Section IV and Appendices B–D connect finite measurements to a one-shot
+information bound and, in a qualified model, a lower bound on preparation
+cost. The software accepts complete exact spectra, fixed-projector counts,
+and the responses of a predeclared effect on the target and reference. The
+fixed-effect workflow uses one-sided Hoeffding or Clopper–Pearson endpoints
+with fixed-size iid counts. It can propagate a known binary readout channel
+by taking the preimage of the observed confidence interval (D.38).
+For a complete projective measurement, block ranks give the reference
+weights on the declared uniform support. One joint histogram region bounds
+all requested windows and tolerances. A prespecified projected branch can
+also report a retention-weighted state-side contribution.
+
+Process certificates use the model's declared support, error and cost rules.
+Results from several routes can be combined when they concern the same task
+and their sampling events have joint coverage. In the paper, finite calibration
+of an uncertain channel (D.40) and general leakage corrections require
+additional evidence. The [measurement guide](TERMINAL_BOUNDS.md) and the
+[finite-data studies](FINITE_DATA_STUDIES.md) show the implemented cases.
 
 ## From state information to process cost
 
@@ -86,10 +98,10 @@ It is determined by the control interface. A count of syntax labels or the
 Hilbert-space dimension alone does not determine it. The reference fixes the
 structural zero point, and $g_R$ calibrates information against the model's
 atomic resource scale. Thus $C_R$ is a state-side complexity reading in
-R-structons ($\mathrm{st}_R$), with $1 \mathrm{st}_R=g_R$ bits; preparation cost
-is counted in atomic resource slots. "State-side" identifies where the reading
-is obtained. Its complexity meaning comes from this physical calibration and
-its relation to the process optimum through the RCC theorem.
+R-structons ($\mathrm{st}_R$), with $1\thinspace\mathrm{st}_R = g_R$ bits. The
+model counts preparation cost in atomic resource slots. "State-side" identifies
+where the reading is obtained. Its complexity meaning comes from this physical
+calibration and its relation to the process optimum through the RCC theorem.
 
 Under the exact-transcription hypotheses of Theorem 3.1, the common lower
 bound for every admissible successful history is
@@ -134,8 +146,9 @@ The paper's reference-compatible windows describe RCC complexity at a chosen
 observation resolution (Section V and Appendix E). They retain the reference
 and resource scale while changing the accessible object. The window workflow
 implements explicit
-subsystem reductions with a uniform product reference. The terminal-state
-bound routes use the declared global support or one predeclared projector.
+subsystem reductions and finite projective observations against their declared
+reference. A measured window gives a state-side reading. A process lower bound
+also requires a one-shot witness for the same target and qualified model.
 An exact optimum additionally needs a matching feasible preparation, as in
 the paired-reset example and the closed intervals in the cost workflow.
 
@@ -168,6 +181,15 @@ including classical correlation in the cooling examples; on pure bipartite
 states it equals twice the reduced-state entropy. This identity decomposes
 state-side RCC complexity; the optimum over full preparation histories is
 bounded using the model and one-shot terms above.
+
+The same subsystem quantities enter the fixed-reference entropy balance
+in Proposition 6.2 of the [RCC paper](https://arxiv.org/html/2509.18205v4#S6).
+For a subsystem of dimension $d_A$ with uniform reference, its entropy in
+bits and its calibrated complexity satisfy $S(\rho_A)+g_R C_{R,A}=\log_2 d_A$.
+In the cooling trajectory a reversible compression preserves global entropy
+while changing the target, bath and correlation contributions. A bath
+refresh supplies fresh polarized qubits. The trajectory records the cost
+spent on each step alongside the structure visible through each window.
 
 The [preparation costs and complexity profiles guide](COST_AND_WINDOWS.md) gives editable reset and
 cooling tasks, state comparisons and trajectory probes. The model's reference,
@@ -243,8 +265,7 @@ the same verifier.
 
 In exact mathematics, Theorem H.3 is a necessary and sufficient
 CP-supersolution characterization of $M\preceq C\sigma_R$ for a fixed finite
-model and a given $C$. The software checks a supplied candidate numerically;
-a failed candidate does not establish infeasibility of all such certificates.
+model and a given $C$. For each supplied candidate, the numerical verifier reports the local checks and the resulting constant.
 
 A failed H.70 result rejects that supplied sufficient route. Paired actions
 can satisfy aggregate reference balance even when their separate worst-case
@@ -293,9 +314,9 @@ The executable evidence connects to the RCC results in a precise order:
    and resource conditions, is established.
 
 The finite-control kernel produces levels one and two. The terminal-state
-calculator evaluates the level-four cost inversion conditionally on supplied
-model hypotheses, including the required analytic and transcription arguments.
-A finite calculation alone does not establish the uniform model-family step.
+calculator evaluates the level-four cost inversion for the declared model using
+its analytic and transcription inputs. For a model family, the same domination
+constant must cover every member.
 
 The [paired-reset example](END_TO_END_EXAMPLE.md) follows this connection for
 one fixed finite model. It computes the program semidensity and one-shot
@@ -338,8 +359,8 @@ family-uniform diagnostics, and larger simulation backends. The
 The fixed eight-output example has a complete finite program domain and
 one-slot witnesses for its named pure and mixed targets. It illustrates both
 the continuous bound and the stronger rounding available for declared integer
-atomic-slot costs. These fixed-model witnesses do not establish large-system
-scaling or reachability of arbitrary user targets. Matrix spectral
-certification, approximate transcription, optional stopping, and
-readout/leakage corrections are outside the implemented contract. See
-[Terminal-state bounds](TERMINAL_BOUNDS.md).
+atomic-slot costs. In this example the inputs are a complete exact spectrum or
+fixed-sample projector counts with ideal readout on the declared support.
+[Terminal-state bounds](TERMINAL_BOUNDS.md) also develops the target/reference
+measurement route. The [cluster and cooling studies](FINITE_DATA_STUDIES.md)
+apply the measurement and process calculations to complete research tasks.

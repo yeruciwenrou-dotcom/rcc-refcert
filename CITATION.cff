@@ -2,29 +2,38 @@ cff-version: 1.2.0
 message: "Cite the software version used and the associated RCC paper."
 title: "RCC RefCert: A Research Toolkit for Structure-Fair Quantum Circuit Complexity"
 type: software
-version: 0.3.0
-doi: "10.5281/zenodo.24248347"
-url: "https://github.com/yeruciwenrou-dotcom/rcc-refcert/releases/tag/v0.3.0"
-date-released: 2026-11-15
+version: 0.4.0
+url: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 license: MIT
 repository-code: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 abstract: >-
   RCC RefCert is an open-source toolkit for studying quantum circuit
   complexity. Given a preparation model and final-state data, it computes a
   rigorous lower bound on optimal quantum circuit complexity. The inputs can
-  be an exact target spectrum or projector counts collected under a
-  prespecified measurement protocol. The toolkit implements the
-  Reference-Contingent Complexity (RCC) framework of Liu, Tian and Wu.
-  Structural fairness accounts for the resources supplied by the physical
-  background and those used in preparation. A terminal-state certificate
+  be an exact target spectrum or finite measurement data collected under a
+  prespecified protocol. The toolkit implements the Reference-Contingent
+  Complexity (RCC) framework of Liu, Tian and Wu.
+  Structural fairness takes the structure each background reliably supplies
+  as its reference zero point. Controls and costs are fixed before target
+  selection. RCC counts only the resources used to generate additional
+  structure and measures them on a common calibrated scale, making quantum
+  circuit complexity comparable across physical settings.
+  A terminal-state certificate
   bounds the cost of every circuit that prepares the target to the stated
   accuracy. Researchers can build finite-control quantum models, verify
-  reference certificates and compare candidate preparations. Exact
-  diagonal-preserving models support two-sided cost intervals. General matrix
-  models provide numerical candidate diagnostics. Window RCC uses a common
-  reference and control bandwidth to compare the complexity profiles of pure
-  and mixed states and separate local and correlation contributions. Shared
-  analysis bundles support independent recomputation.
+  reference certificates and compare candidate preparations. In exact
+  diagonal-preserving models, the lower bound and the cost of a successful
+  program bracket the optimum. Their difference bounds the possible saving,
+  and equality proves the program optimal. General matrix models provide
+  numerical candidate diagnostics. Window RCC resolves how
+  complexity is distributed across the subsystems of pure and mixed states
+  at a common reference and control bandwidth, including the local and
+  correlation contributions along a preparation. For a prespecified binary
+  measurement, researchers can plan a sample size for a preparation-cost
+  threshold and certify a lower bound from target and reference counts.
+  Complete outcome histograms give confidence bounds on the RCC difference
+  between two states in the same classical measurement window. A shared analysis
+  bundle carries the inputs and results for independent recomputation.
 keywords:
   - quantum circuit complexity
   - structure-fairness
@@ -64,3 +73,20 @@ preferred-citation:
   year: 2025
   journal: "arXiv preprint arXiv:2509.18205"
   doi: "10.48550/arXiv.2509.18205"
+references:
+  - type: data
+    title: "Measuring the Capabilities of Quantum Computers"
+    authors:
+      - family-names: Proctor
+        given-names: Timothy
+      - family-names: Rudinger
+        given-names: Kenneth
+      - family-names: Nielsen
+        given-names: Erik
+      - family-names: Young
+        given-names: Kevin
+      - family-names: Blume-Kohout
+        given-names: Robin
+    year: 2021
+    doi: "10.5281/zenodo.5197499"
+    license: CC-BY-4.0

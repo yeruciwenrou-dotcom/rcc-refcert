@@ -7,10 +7,18 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Publish the frozen v0.3.0 release to PyPI
+        description: Publish the frozen v0.4.0 release to PyPI
         type: boolean
         required: true
         default: false
+      release_commit:
+        description: Reviewed full commit SHA for publication
+        type: string
+        required: false
+      release_tree:
+        description: Reviewed full tree SHA for publication
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -27,12 +35,20 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: yeruciwenrou-dotcom/rcc-refcert
-          ref: 1450fa755170880993da8f8974ccebf052ef31e8
+          ref: ${{ github.sha }}
           persist-credentials: false
       - name: Verify the immutable release identity
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+          RELEASE_TREE: ${{ inputs.release_tree }}
+          PUBLISH_REQUESTED: ${{ inputs.publish }}
         run: |
-          test "$(git rev-parse HEAD)" = 1450fa755170880993da8f8974ccebf052ef31e8
-          test "$(git rev-parse 'HEAD^{tree}')" = c780a762dd1b29eae15b04632f5c845dc134a654
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          if [ "$PUBLISH_REQUESTED" = "true" ]; then
+            test "$GITHUB_REF" = "refs/heads/main"
+            test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+            test "$(git rev-parse 'HEAD^{tree}')" = "$RELEASE_TREE"
+          fi
           test -z "$(git status --porcelain)"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -53,7 +69,7 @@ jobs:
           with zipfile.ZipFile(wheel) as archive:
               metadata_path, = (n for n in archive.namelist() if n.endswith(".dist-info/METADATA"))
               metadata = BytesParser().parsebytes(archive.read(metadata_path))
-              for name in ("LICENSE", "NOTICE.md"):
+              for name in ("LICENSE", "LICENSES/CC-BY-4.0.txt", "NOTICE.md"):
                   assert any(n.endswith("/licenses/" + name) for n in archive.namelist()), name
               for name in ("reference_report.md", "reference_suite.json"):
                   assert "rcc_refcert/reference_data/" + name in archive.namelist(), name
@@ -62,13 +78,14 @@ jobs:
               source_metadata = BytesParser().parsebytes(archive.extractfile(member).read())
           for item in (metadata, source_metadata):
               assert item["Name"] == "rcc-refcert"
-              assert item["Version"] == "0.3.0"
+              assert item["Version"] == "0.4.0"
               assert item["Requires-Python"] == ">=3.10"
-              assert item["License-Expression"] == "MIT"
+              assert item["License-Expression"] == "MIT AND CC-BY-4.0"
+              assert set(item.get_all("License-File")) == {"LICENSE", "LICENSES/CC-BY-4.0.txt", "NOTICE.md"}
           PY
       - name: Install and reproduce from each distribution
         env:
-          RCC_REFCERT_SOURCE_REVISION: 1450fa755170880993da8f8974ccebf052ef31e8
+          RCC_REFCERT_SOURCE_REVISION: ${{ github.sha }}
         run: |
           distribution_directory="$PWD/dist"
           smoke_script="$PWD/tests/distribution_smoke.py"
@@ -81,7 +98,7 @@ jobs:
             "$environment/bin/python" -m pip install "$artifact"
             mkdir "$installation_root/run"
             cd "$installation_root/run"
-            "$environment/bin/python" -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert') == '0.3.0'"
+            "$environment/bin/python" -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert') == '0.4.0'"
             "$environment/bin/rcc-refcert" reproduce --check
             "$environment/bin/python" "$smoke_script"
             "$environment/bin/python" "$bundle_smoke_script"
@@ -94,7 +111,7 @@ jobs:
         id: distributions
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: rcc-refcert-0.3.0-distributions
+          name: rcc-refcert-0.4.0-distributions
           path: dist/*
           if-no-files-found: error
           retention-days: 14
@@ -110,7 +127,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/project/rcc-refcert/0.3.0/
+      url: https://pypi.org/project/rcc-refcert/0.4.0/
     permissions:
       id-token: write
     steps:
@@ -130,7 +147,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: yeruciwenrou-dotcom/rcc-refcert
-          ref: 1450fa755170880993da8f8974ccebf052ef31e8
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -143,7 +160,7 @@ jobs:
           merge-multiple: true
       - name: Verify PyPI files and install outside a checkout
         env:
-          RCC_REFCERT_SOURCE_REVISION: 1450fa755170880993da8f8974ccebf052ef31e8
+          RCC_REFCERT_SOURCE_REVISION: ${{ github.sha }}
         run: |
           python - <<'PY'
           import hashlib
@@ -151,7 +168,7 @@ jobs:
           from pathlib import Path
           from urllib.request import urlopen
 
-          with urlopen("https://pypi.org/pypi/rcc-refcert/0.3.0/json", timeout=30) as response:
+          with urlopen("https://pypi.org/pypi/rcc-refcert/0.4.0/json", timeout=30) as response:
               published = json.load(response)
           expected = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in Path("expected").iterdir()}
           actual = {p["filename"]: p["digests"]["sha256"] for p in published["urls"]}
@@ -165,8 +182,8 @@ jobs:
           installation_root="$(mktemp -d)"
           python -m venv "$installation_root/environment"
           cd "$installation_root"
-          environment/bin/python -m pip install --no-cache-dir --index-url https://pypi.org/simple "rcc-refcert==0.3.0"
-          environment/bin/python -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert') == '0.3.0'"
+          environment/bin/python -m pip install --no-cache-dir --index-url https://pypi.org/simple "rcc-refcert==0.4.0"
+          environment/bin/python -c "from importlib.metadata import version; import rcc_refcert; assert rcc_refcert.__version__ == version('rcc-refcert') == '0.4.0'"
           environment/bin/rcc-refcert examples
           environment/bin/rcc-refcert reproduce --check
           environment/bin/python "$smoke_script"

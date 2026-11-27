@@ -7,11 +7,20 @@ import textwrap
 
 from .core import InputError
 
+PLOT_FAILURE_MESSAGES = {
+    "optional_plot_dependency_missing": 'install Matplotlib with python -m pip install "matplotlib>=3.8" and rerun the command.',
+    "optional_plot_row_limit": "the figure supports up to 128 rows. Select fewer windows or export the full table with --csv.",
+}
+
+
+def validate_width(width):
+    if type(width) is not int or not 40 <= width <= 240:
+        raise InputError("width: choose an integer from 40 to 240")
+
 
 def render_probe(entry, *, width=80):
     """Read a probe's scientific purpose before exporting its matrix inputs."""
-    if type(width) is not int or not 40 <= width <= 240:
-        raise InputError("width: choose an integer from 40 to 240")
+    validate_width(width)
     parameters = ", ".join(
         f"{key}={value}" for key, value in entry["parameter_defaults"].items()
     )
@@ -85,28 +94,128 @@ def _decision_label(value):
     }.get(value, str(value).replace("_", " "))
 
 
+def _delivery_lines(result):
+    lines = []
+    for name, delivery in result.get("delivery", {}).items():
+        label = "CSV" if name == "csv" else name.capitalize()
+        if delivery["state"] == "failed":
+            reason = delivery["reason"]
+            if name == "plot":
+                reason = PLOT_FAILURE_MESSAGES.get(reason, reason)
+            lines.append(f"{label} was not saved to {delivery['path']}: {reason}")
+        elif delivery["state"] == "saved":
+            lines.append(f"{label} saved to {delivery['path']}.")
+    return lines
+
+
+def density_check_lines(diagnostic, details):
+    reason = diagnostic.get("reason", "invalid density matrix")
+    if reason.startswith("roundoff is unresolved"):
+        reason = (
+            "the strict check found a discrepancy within the numerical tolerance. "
+            "To analyze a corrected copy, select roundoff_only and set a repair budget"
+        )
+    lines = [reason]
+    if details and "trace_error" in diagnostic:
+        policy = diagnostic["policy"]
+        lines.append(
+            f"Density tolerance {policy['tolerance']:.6g}: trace error {diagnostic['trace_error']:.6g}, "
+            f"Hermiticity error {diagnostic['hermiticity_error']:.6g}, "
+            f"minimum eigenvalue {diagnostic['minimum_eigenvalue']:.6g}."
+        )
+        lines.append(
+            "Check the normalization, Hermiticity and positivity of the input matrix."
+        )
+        if "perturbation_trace_norm_half" in diagnostic:
+            lines.append(
+                f"Required correction {diagnostic['perturbation_trace_norm_half']:.6g}, "
+                f"declared repair budget {policy['repair_budget']:.6g}."
+            )
+    return lines
+
+
+def _comparison_task(row):
+    model = row.get("model_id")
+    target = row.get("target_source") or row.get("target_digest")
+    label = (
+        f"Model {model}, full target: {target}"
+        if model and target
+        else f"Task {row['task_core_digest'][:12]}"
+    )
+    return f"{label.rstrip('.')}. Trace-distance tolerance: {row['epsilon_exact']}."
+
+
+def _slot_unit(count):
+    return "slot" if count == 1 else "slots"
+
+
 def render_workflow_result(result, *, format="text", details=False, width=80):
+    """Render a workflow result as a text or Markdown research report."""
     if format == "json":
         return json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
     if format not in {"text", "markdown"}:
         raise InputError("format: choose text, json or markdown")
-    if type(width) is not int or not 40 <= width <= 240:
-        raise InputError("width: choose an integer from 40 to 240")
+    validate_width(width)
+    if result.get("kind") in ("finite_study", "pvm_windows"):
+        if result["kind"] == "finite_study":
+            from .studies import render_study as render_measurement
+        else:
+            from .pvm_render import render_pvm as render_measurement
+        lines = render_measurement(result, details=details).splitlines()
+        lines.extend(_delivery_lines(result))
+        return _format_report(lines, format, width, break_long_words=False)
     if result.get("schema") == "rcc-refcert.cost-comparison":
         lines = [
             "RCC cost comparison",
-            "Common task and tolerance: "
-            + ("yes" if result["comparable_task"] else "no; displayed separately"),
+            "All results use the same preparation task and tolerance."
+            if result["comparable_task"]
+            else "The preparation tasks or tolerances differ. Each result is shown separately.",
         ]
+        lines.append("Cost unit: atomic slots, including halt.")
+        if result["comparable_task"]:
+            lines.append(_comparison_task(result["rows"][0]))
         for row in result["rows"]:
+            if not result["comparable_task"]:
+                lines.append(_comparison_task(row))
             lower = row["lower_bound_slots"]
             upper = row["upper_bound_slots"]
             lower_text = "unavailable" if lower is None else str(lower)
             upper_text = "unavailable" if upper is None else str(upper)
             lines.append(
-                f"{row['run_id']}: lower={lower_text}, upper={upper_text}; "
-                f"{_decision_label(row['decision'])}"
+                f"Run {row['run_id'] if details else row['run_id'][:12]}: "
+                f"lower={lower_text}, upper={upper_text}; {_decision_label(row['decision'])}."
             )
+            if row.get("additive_overhead_upper", 0) and upper is not None:
+                gap = row["additive_overhead_upper"]
+                witnesses = ", ".join(row.get("upper_witness_ids", ()))
+                program = witnesses or "this run's best feasible program"
+                lines.append(
+                    f"  A better preparation could save at most {gap} {_slot_unit(gap)} "
+                    f"over {program}."
+                )
+            elif row["decision"] == "certified_optimal" and row.get(
+                "upper_witness_ids"
+            ):
+                witnesses = ", ".join(row["upper_witness_ids"])
+                lines.append(f"  Optimal {upper}-slot preparation: {witnesses}.")
+            if details:
+                lines.append(f"  Task identity: {row['task_core_digest']}")
+            if "criterion_status" in row:
+                name, threshold = next(iter(result["criterion"].items()))
+                label = (
+                    "additive gap (slots)"
+                    if name == "additive_gap"
+                    else "multiplicative factor"
+                )
+                lines.append(f"  {label} <= {threshold}: {row['criterion_status']}")
+        for saving in result.get("candidate_savings", ()):
+            saved = saving["slots_saved_by_best_candidate"]
+            if saved:
+                run_id = saving["run_id"] if details else saving["run_id"][:12]
+                lines.append(
+                    f"Switching from the best feasible program in run {run_id} to the "
+                    f"lowest-cost program shown saves {saved} {_slot_unit(saved)}."
+                )
     elif result["kind"] == "cost_analysis":
         cost = result["cost"]
         lines = [
@@ -118,24 +227,46 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
             lines.append(
                 f"Cost interval: [{cost['lower_bound_slots']}, {cost['upper_bound_slots']}] atomic slots (halt included)"
             )
-        else:
+        elif cost["decision"] != "numerical_analysis":
+            lower = cost["lower_bound_slots"]
+            upper = cost["upper_bound_slots"]
             lines.append(
                 "Strict lower bound: unavailable"
-                if cost["lower_bound_slots"] is None
-                else f"Lower bound: {cost['lower_bound_slots']} atomic slots"
+                if lower is None
+                else f"Lower bound: {lower} atomic {_slot_unit(lower)}"
             )
             lines.append(
                 "Feasible upper bound: unavailable"
-                if cost["upper_bound_slots"] is None
-                else f"Feasible upper bound: {cost['upper_bound_slots']} atomic slots"
+                if upper is None
+                else f"Feasible upper bound: {upper} atomic {_slot_unit(upper)}"
             )
         lines.append(f"Target trace-distance tolerance: {cost['epsilon_exact']}")
-        if cost["additive_overhead_upper"] is not None:
+        target_check = (result.get("diagnostics") or {}).get("target")
+        if target_check and target_check["outcome"] != "pass":
+            reason, *checks = density_check_lines(target_check, details)
+            lines.append(f"Target density matrix: {reason}.")
+            lines.extend("  " + check for check in checks)
+        gap = cost["additive_overhead_upper"]
+        if gap is not None:
             lines.append(
                 "Best supplied candidate attains the optimum."
-                if cost["additive_overhead_upper"] == 0
-                else f"Best supplied candidate is within {cost['additive_overhead_upper']} slots of the optimum."
+                if gap == 0
+                else f"The best supplied program costs at most {gap} {_slot_unit(gap)} more than the optimum."
             )
+        selection = result.get("gain_selection")
+        if selection:
+            if "submitted" in selection:
+                rejection = selection["submitted"]
+                lines.append(
+                    f"Submitted gain certificate ({rejection['outcome']}): {rejection['message']}"
+                )
+            source = {
+                "user": "supplied in the request",
+                "saved_certificate": "verified certificate from the saved bundle",
+                "preset": "model preset",
+                "reference": "constructed from the reference",
+            }[selection["source"]]
+            lines.append(f"Verified gain certificate: {source}.")
         lines.append("Candidate programs:")
         if not result["candidates"]:
             lines.append("  No candidate supplied.")
@@ -157,9 +288,9 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
                     if c["evidence"] == "exact_rational"
                     else c["numerical_target_status"].replace("_", " ") + " (numerical)"
                 )
-                unit = "slot" if c["slots"] == 1 else "slots"
+                slots = c["slots"]
                 lines.append(
-                    f"  {c['id']}: {c['slots']} {unit}; trace distance {distance}; target {status}"
+                    f"  {c['id']}: {slots} {_slot_unit(slots)}; trace distance {distance}; target {status}"
                 )
         if result["epsilon_scan"]:
             lines.append("Tolerance scan:")
@@ -177,9 +308,10 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
                     f"Budget stop: {result['gain_bound']['stop_reason'].replace('_', ' ')}",
                 ]
             )
-        lines.append(
-            "Scope: the declared model, full target, tolerance and atomic cost."
-        )
+        if cost["decision"] == "numerical_analysis":
+            lines.append(
+                "Trace distances are numerical estimates. The strict preparation-cost interval is unresolved."
+            )
         if result.get("windows"):
             lines.append(
                 "Candidate trajectory windows: "
@@ -197,9 +329,7 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
         from .windows import window_report_lines
 
         lines = window_report_lines(result, details=details)
-    for name, delivery in result.get("delivery", {}).items():
-        if delivery.get("state") == "failed":
-            lines.append(f"{name.capitalize()} was not saved: {delivery['reason']}")
+    lines.extend(_delivery_lines(result))
     if "execution" in result:
         lines.append(f"Execution: {result['execution']['state']}")
         if result["execution"].get("reason"):
@@ -210,22 +340,33 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
             }.get(reason, reason.replace("_", " "))
             lines.append(f"Reason: {explanation}")
         lines.append(f"Run: {result['run_id']}")
+    return _format_report(lines, format, width)
+
+
+def _format_report(lines, format, width, *, break_long_words=True):
     safe = ["".join(max(c, " ") for c in line) for line in lines]
     if format == "markdown":
-        return (
-            "# "
-            + safe[0]
-            + "\n\n"
-            + "\n\n".join(line.replace("|", "\\|") for line in safe[1:])
-            + "\n"
-        )
+        blocks = ["# " + safe[0]]
+        in_list = False
+        for line in safe[1:]:
+            value = line.strip().replace("|", "\\|")
+            if line.startswith("  "):
+                if in_list:
+                    blocks[-1] += "\n- " + value
+                else:
+                    blocks.append("- " + value)
+                in_list = True
+            elif value:
+                blocks.append(value)
+                in_list = False
+        return "\n\n".join(blocks) + "\n"
     return (
         "\n".join(
             textwrap.fill(
                 line,
                 width=width,
                 subsequent_indent="  ",
-                break_long_words=True,
+                break_long_words=break_long_words,
                 break_on_hyphens=False,
             )
             for line in safe

@@ -19,9 +19,9 @@ taken over all admissible successful preparation histories in a chosen model.
 |---|---|---|
 | Section II | formulates structural fairness and defines reference-contingent physical generation models and their qualification conditions | represents a finite-control instance with explicit references, controls, channels, codewords, and halting semantics |
 | Appendix F | constructs admissible native models, including an approximately universal qubit state-generation family, and proves the class is nonempty and nontrivial | reproduces rank coding, reference balance, selected nontrivial-generation constructions, and global-reset witnesses |
-| Appendix H | identifies finite-control semidensities, characterizes fixed-size domination by H.3, and supplies H.4/H.6 sufficient constructions | implements H.1–H.6 realization, fixed-point, domination, certificate, and gain–cost checks |
+| Appendix H | identifies finite-control semidensities, characterizes fixed-size domination by H.3, and supplies H.4/H.6 sufficient constructions | implements the realization, fixed-point, domination and certificate checks in H.1–H.4 and the gain–cost check in H.6. H.5 gives additional perturbation margins |
 | Section III and Appendix A | derive the RCC lower bound from the complete model hypotheses | evaluates uniform-reference exact-spectrum smoothing and canonical cost inversion under declared model inputs; the paired-reset example also verifies a matching one-slot preparation |
-| Section IV and Appendices B–D | convert terminal-state evidence, support treatment, calibration, and multiple audit paths into one-sided RCC lower-bound certificates | implements the fixed-projector, fixed-N Hoeffding route and scalar result records for ideal support and readout; support uncertainty, readout/leakage corrections, and multi-path synthesis remain outside the implementation |
+| Section IV and Appendices B–D | convert terminal-state evidence, support treatment, calibration, and multiple audit paths into one-sided RCC lower-bound certificates | uses fixed-size counts, Hoeffding and Clopper–Pearson endpoints, fixed effects on the target and reference, known binary readout, and complete projective histograms. Compatible witnesses share a joint coverage ledger. A projected branch can carry a retention-weighted state reading |
 | Section II.D, Section V and Appendix E | define the state-side RCC value and reference-compatible observation windows | evaluates state-side RCC complexity in explicit subsystems using a uniform product reference and declared control bandwidth, including local/correlation contributions and candidate trajectories |
 
 The code therefore provides executable evidence for a qualified finite model.
@@ -80,10 +80,9 @@ to reduced states and reports its bipartition identity with mutual information.
 | $\sup_n C_n^\star<\infty$ | fixed-size calculations become a family result through a uniform bound in the scale parameter |
 | main RCC lower bound | combines `RCon`, `TC`, and `RA` with the remaining theorem hypotheses |
 
-The physical qualifications for a custom model remain that model's
-responsibility. The paper establishes the general theorem and explicit
-qualified families; supplying a model name or a passing numerical certificate
-does not establish the other qualifications.
+The paper establishes the general theorem and exhibits qualified families.
+For a custom model, state the physical reference and transcription arguments
+alongside the evidence for reference admissibility.
 
 Section II.D, Eq. (II.14), defines the state-side linear leading term
 $C_R=D(\rho\Vert\sigma_R)/g_R$. Theorem 3.1 retains its spectral, smoothing
@@ -126,7 +125,7 @@ The broader results have distinct roles:
 
 | paper location | broader theoretical scope |
 |---|---|
-| Section V and Appendix E | general reference-compatible observation windows; the software implements explicit subsystem windows with a uniform product reference |
+| Section V and Appendix E | general reference-compatible observation windows. Implementations include subsystem reductions with a uniform product reference and finite projective windows with declared block ranks |
 | Section VI and Appendix I | conditional interfaces with dynamics, energy–entanglement resources and CWT on aligned objects and scales |
 | Appendix A.10 | cross-model cost comparisons requiring reference domination and resource compilation |
 | Section VII.C | exact finite-dimensional structural allocation identities, followed by Conjecture 7.1 on a broader physically calibrated reference covariance |
@@ -142,15 +141,64 @@ cross-model statements retain the hypotheses given in the paper.
 | Appendix A.5 | process-to-information inequality for any admissible history, used under the declared model hypotheses | `bounds/contracts.py`, `bounds/api.py` |
 | Appendix A.6, Theorem A.1, Eqs. (A.40)–(A.41) | exact spectrum cap and normalized trace-distance smoothing against the uniform reference | `bounds/information.py` |
 | Appendix A.7 and Appendices C.1–C.2 | canonical inversion with conservative scalar endpoints and declared cost units | `bounds/scalar.py`, `bounds/api.py` |
+| Eqs. (C.15)–(C.17), (C.26) and (D.46) | Same-effect target and reference responses, hypothesis-test eligibility, joint coverage and the strongest valid cost bound for the task | `bounds/effects.py`, `bounds/information.py` |
 | Eq. (C.18) and Appendix D.3 | convert a fixed-projector probability lower endpoint to a one-shot information lower bound | `bounds/information.py` |
 | Appendix D.1, Eq. (D.5) | one-sided Hoeffding endpoint for a predeclared projector and fixed-N iid sampling | `bounds/contracts.py`, `bounds/information.py` |
+| Appendix D.1, finite-sample alternatives to (D.5) | Enclose one-sided Clopper–Pearson endpoints. The software also designs fixed-size acquisitions for a response or cost threshold using binomial power. | `bounds/binomial.py`, `bounds/planning.py` |
+| Appendix D.5, Eq. (D.38) | Invert a known binary readout over the observed confidence region, with explicit empty and uninformative cases. | `bounds/effects.py` |
 | Appendix D.6, audit-record requirements (pp. 62–63) | model, path, calibration, reference, and evidence fields for the implemented scalar routes | `bounds/records.py` |
 | Appendices H.3–H.4 | verify a supplied proof object and transfer its usable upper constant into the task | `bounds/certificates.py` |
 
-Eq. (D.5) is the Hoeffding formula in Appendix D.1; Appendix D.5 is the
-separate readout/leakage treatment. The calculator implements the former
-under ideal readout and no leakage. Its record schema adds exact input
+Appendix D.1 supplies the sampling guarantees. Appendix D.5 propagates them
+through a known readout channel in the fixed-effect route. Equation (D.40)
+also accounts for a calibration confidence region over channels. These process
+calculations use the declared no-leakage support. The record schema adds exact input
 snapshots, hashes, and same-version replay to the paper's reporting fields.
 The H.3/H.4 adapter retains the matrix kernel's numerical evidence level.
 Full assumptions and the fixed eight-output example are in
 [Terminal-state bounds](TERMINAL_BOUNDS.md).
+
+## Finite histogram calculation
+
+For the uniform reference on dimension $d$, a complete projective measurement
+with ranks $r_i$ induces weights $u_i=r_i/d$. Its classical algebra
+$\mathrm{span}\{P_i\}$ replaces each block by its maximally mixed state with
+the measured mass. Equation (V.13) gives the general lower bound. In the
+measured classical algebra, the reading equals $D(p\Vert u)/g_R$ by
+Appendix E, Section 7, Eqs. (E.32)–(E.33). The equality condition following
+(E.33) requires vanishing coherences between blocks and maximal mixing within
+each occupied block. For a containing quantum algebra, the counts give a
+one-sided lower bound by data processing. The counts workflow applies D.32 to the full
+predeclared alphabet of size $m$. For $m>1$ it uses the upper enclosure of
+$t=\min(1,\sqrt{\ln[(2^m-2)/\delta]/(2N)})$ in total variation about the
+empirical histogram $h$. For $m=1$ the only possible distribution is known.
+
+**Lower endpoint.** If the TV ball contains $u$, its minimum KL divergence
+is zero. For $0<t<T(h,u)$, sort $h_i/u_i$. Raise ratios below a common level
+$a$ and lower ratios above a common level $b$, moving mass $t$ on either
+side. The resulting $q_i=\min(\max(h_i,a u_i),b u_i)$ is normalized. To see
+optimality, the stationarity condition for normalization and the TV constraint
+requires the KL gradient $\log(q_i/u_i)+1$ to be constant on each of the sets
+$q_i>h_i$ and $q_i<h_i$. At an unchanged coordinate the TV subgradient fills
+the interval between these constants. The clipped ratios meet these conditions,
+and $a\le b$ gives a nonnegative TV multiplier. Convexity establishes the
+minimum. At $t=0$ use $h$ directly. Thresholds and masses use rational arithmetic.
+
+**Upper endpoint.** The entropy continuity bound with $v=\min(t,1-1/m)$ gives
+$|H(p)-H(h)|\le h_2(v)+v\log_2(m-1)$. The reference cross-entropy varies by
+at most $t\log_2(u_{\max}/u_{\min})$. Add both terms to $D(h\Vert u)$ and
+cap at $\log_2(1/u_{\min})$. Divide both endpoints by the same $g_R$. The
+upper endpoint encloses the classical block reading even at unequal ranks.
+
+**One-shot information and cost.** At preparation tolerance $\epsilon$,
+contractivity and the triangle inequality give an effective radius
+$s=\min(1,\epsilon+t)$. To cap every frequency at $z u_i$ requires removing
+$\sum_i(h_i-zu_i)_+$ mass. For $z\ge1$ the other coordinates have enough room
+to receive it, so this mass is precisely the smallest TV displacement for that
+cap. The smallest feasible $z\ge1$ gives a lower bound $\log_2 z$ on the
+smooth one-shot information. When $z>1$ the upper-threshold outcomes witness
+the floor as a pooled effect. Eligible process models use C.4 cost inversion;
+all calculations share the same joint event. Distinct acquisition events spend
+their allocated failure probabilities once (D.46). All reported numerical
+endpoints are rounded outwards. The implementation works with the outcome
+counts and ranks without expanding a spectrum of length $d$.

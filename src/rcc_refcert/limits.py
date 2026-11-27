@@ -15,6 +15,8 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class ComputationLimits:
+    """Resource ceilings for dense model checks and certificate verification."""
+
     max_enumeration_nodes: int = 100_000
     max_matrix_elements: int = 1_048_576
 

@@ -9,7 +9,7 @@
   },
   "producer": {
     "name": "rcc-refcert",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "schema": "rcc-refcert.reference-suite-freeze",
   "schema_version": 2,
@@ -87,7 +87,7 @@
             },
             {
               "evidence": "numerical",
-              "message": "fixed-model initial blocks are dominated by the supplied envelopes; family-uniform boundedness is a separate analytic obligation",
+              "message": "the supplied envelopes dominate the fixed model's initial blocks",
               "name": "H.72-fixed-model-initial",
               "outcome": "pass",
               "tolerance": 1e-10,
@@ -157,7 +157,7 @@
             },
             {
               "evidence": "numerical",
-              "message": "fixed-model initial blocks are dominated by the supplied envelopes; family-uniform boundedness is a separate analytic obligation",
+              "message": "the supplied envelopes dominate the fixed model's initial blocks",
               "name": "H.72-fixed-model-initial",
               "outcome": "pass",
               "tolerance": 1e-10,
@@ -227,7 +227,7 @@
             },
             {
               "evidence": "numerical",
-              "message": "fixed-model initial blocks are dominated by the supplied envelopes; family-uniform boundedness is a separate analytic obligation",
+              "message": "the supplied envelopes dominate the fixed model's initial blocks",
               "name": "H.72-fixed-model-initial",
               "outcome": "pass",
               "tolerance": 1e-10,
@@ -297,7 +297,7 @@
             },
             {
               "evidence": "numerical",
-              "message": "fixed-model initial blocks are dominated by the supplied envelopes; family-uniform boundedness is a separate analytic obligation",
+              "message": "the supplied envelopes dominate the fixed model's initial blocks",
               "name": "H.72-fixed-model-initial",
               "outcome": "pass",
               "tolerance": 1e-10,
@@ -679,7 +679,7 @@
               },
               {
                 "evidence": "numerical",
-                "message": "fixed-model initial blocks are dominated by the supplied envelopes; family-uniform boundedness is a separate analytic obligation",
+                "message": "the supplied envelopes dominate the fixed model's initial blocks",
                 "name": "H.72-fixed-model-initial",
                 "outcome": "pass",
                 "tolerance": 1e-10,
@@ -1341,7 +1341,7 @@
               },
               {
                 "evidence": "numerical",
-                "message": "fixed-model initial blocks are dominated by the supplied envelopes; family-uniform boundedness is a separate analytic obligation",
+                "message": "the supplied envelopes dominate the fixed model's initial blocks",
                 "name": "H.72-fixed-model-initial",
                 "outcome": "pass",
                 "tolerance": 1e-10,
@@ -1453,7 +1453,7 @@
       },
       {
         "case": {
-          "interpretation": "The full transient spectral radius is one. The least fixed-point semantics remains valid, while the Neumann/linear-inverse route reaches its boundary. The minimum reference-domination constant (H.34) remains unevaluated by this method; a finite truncation alone does not determine it.",
+          "interpretation": "The transient spectral radius is one. The partial sum records the terminating mass through the chosen depth. H.34 uses the complete least fixed-point semidensity.",
           "kind": "boundary",
           "name": "dark-nonhalting",
           "paper_references": [

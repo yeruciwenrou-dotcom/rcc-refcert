@@ -1,4 +1,4 @@
-"""Normalized trace-distance spectral cap and fixed-projector information."""
+"""Normalized trace-distance spectral cap and fixed-effect information."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from .scalar import (
     InputError,
     Interval,
     Scalar,
+    UnsupportedContract,
     ln_interval,
     log2_interval,
     rational,
@@ -61,6 +62,7 @@ class SpectralInformation:
 def spectral_information(
     values: Sequence[Scalar], dimension: int, epsilon: Scalar
 ) -> SpectralInformation:
+    """Enclose the smoothed one-shot information and its spectral terms for a uniform reference."""
     d = require_int(dimension, "dimension", 1)
     if d > 4096:
         raise BudgetError("reference spectrum dimension exceeds 4096")
@@ -113,7 +115,9 @@ def spectral_information(
     )
 
 
-def hoeffding_lower(hits: int, samples: int, delta: Scalar) -> Interval:
+def _hoeffding_estimate_and_radius(
+    hits: int, samples: int, delta: Scalar
+) -> tuple[Fraction, Interval]:
     n = require_int(samples, "samples", 1)
     h = require_int(hits, "hits", 0)
     if n > 10**12:
@@ -128,20 +132,61 @@ def hoeffding_lower(hits: int, samples: int, delta: Scalar) -> Interval:
         sqrt_interval(variance_scale.lower).lower,
         sqrt_interval(variance_scale.upper).upper,
     )
-    return (Interval.point(Fraction(h, n)) - radius).positive_part()
+    return Fraction(h, n), radius
 
 
-def projection_information(
-    occupancy_lower: Scalar, rank: int, dimension: int, smoothing_radius: Scalar
+def hoeffding_lower(hits: int, samples: int, delta: Scalar) -> Interval:
+    """Enclose the lower one-sided endpoint; use its lower edge for inference."""
+    estimate, radius = _hoeffding_estimate_and_radius(hits, samples, delta)
+    return (Interval.point(estimate) - radius).positive_part()
+
+
+def hoeffding_upper(hits: int, samples: int, delta: Scalar) -> Interval:
+    """Enclose the upper one-sided endpoint; use its upper edge for inference."""
+    estimate, radius = _hoeffding_estimate_and_radius(hits, samples, delta)
+    one = Fraction(1)
+    return Interval(
+        min(one, estimate + radius.lower), min(one, estimate + radius.upper)
+    )
+
+
+def _effect_information(
+    occupancy_lower: Scalar, reference_upper: Fraction, smoothing_radius: Scalar
 ) -> Interval:
-    d = require_int(dimension, "dimension", 1)
-    k = require_int(rank, "rank", 1)
-    if k > d:
-        raise InputError("projector rank cannot exceed reference dimension")
     p = rational(occupancy_lower, "occupancy_lower")
     eps = rational(smoothing_radius, "smoothing_radius")
     if not (0 <= p <= 1 and 0 <= eps <= 1):
         raise InputError("occupancy and radius must lie in [0,1]")
     if p <= eps:
         return Interval.point(0)
-    return log2_interval((p - eps) * d / k).positive_part()
+    return log2_interval((p - eps) / reference_upper).positive_part()
+
+
+def fixed_effect_information(
+    occupancy_lower: Scalar, reference_upper: Scalar, smoothing_radius: Scalar
+) -> Interval:
+    """Enclose the finite information floor of C.15 for one fixed effect.
+
+    The target lower and reference upper responses must hold on a common
+    event for the same measurement. A zero reference requires a separate
+    support analysis. The returned interval encloses the computed floor.
+    """
+    upper = rational(reference_upper, "reference_upper")
+    if not 0 <= upper <= 1:
+        raise InputError("reference_upper must lie in [0,1]")
+    if upper == 0:
+        raise UnsupportedContract(
+            "zero reference response requires a support assessment"
+        )
+    return _effect_information(occupancy_lower, upper, smoothing_radius)
+
+
+def projection_information(
+    occupancy_lower: Scalar, rank: int, dimension: int, smoothing_radius: Scalar
+) -> Interval:
+    """Enclose the information floor from a projector occupancy lower bound and smoothing radius."""
+    d = require_int(dimension, "dimension", 1)
+    k = require_int(rank, "rank", 1)
+    if k > d:
+        raise InputError("projector rank cannot exceed reference dimension")
+    return _effect_information(occupancy_lower, Fraction(k, d), smoothing_radius)
