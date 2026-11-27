@@ -12,9 +12,12 @@ form a consistent physical and resource description.
 
 The reference has an independent physical origin, identified before target
 selection. Together, the reference and generation model determine the
-structural zero point and resource scale. A change of reference requires a
-corresponding model specification; cross-model cost comparisons also account
-for the resources needed to translate between the models (Appendix A.10).
+structural zero point and resource scale. For two models with a common
+output domain, Appendix A.10 gives a quantitative comparison of optimal
+preparation costs. If every circuit in the first model can be translated
+into the second with uniform bounds on the translated circuit's cost and
+output error, those bounds also relate the two optima at the corresponding
+tolerances (Proposition A.2).
 
 Appendix F constructs an admissible qubit model family with universal
 pure- and mixed-state generation to arbitrary positive tolerance. At each
