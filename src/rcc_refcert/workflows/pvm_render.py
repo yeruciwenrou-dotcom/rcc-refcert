@@ -92,9 +92,13 @@ def _scope_label(row, shared_name):
     return "measured classical window"
 
 
-def _comparison_line(left, right, forward):
-    key = "state_id" if left["state_id"] != right["state_id"] else "dataset_id"
-    a, b = left[key], right[key]
+def _comparison_line(left, right, forward, *, label_datasets):
+    a, b = left["state_id"], right["state_id"]
+    if a == b:
+        a, b = left["dataset_id"], right["dataset_id"]
+    elif label_datasets:
+        a = f"{a} ({left['dataset_id']})"
+        b = f"{b} ({right['dataset_id']})"
     scope = left["window_id"]
     reverse = _window_difference_lower(right, left)
     lower = Fraction(forward) if forward is not None else None
@@ -111,6 +115,8 @@ def _comparison_line(left, right, forward):
             f"Window RCC for {first} is at least as large as for {second} in {scope}."
         )
     difference = f"For {scope}, the window RCC difference ({a} minus {b})"
+    if label_datasets and left["state_id"] != right["state_id"]:
+        difference = f"For {scope}, window RCC for {a} minus that for {b}"
     if lower is not None and other is not None:
         return f"{difference} lies between {decimal_string(lower, 10)} and {decimal_string(-other, 10, ROUND_CEILING)} st_R."
     if lower is not None:
@@ -173,7 +179,6 @@ def render_pvm(record, *, markdown=False, details=False):
     missing_by_reason = {}
     rows = list(_rows(record))
     datasets, quantities = _label_groups(rows)
-    by_event = {b["event_id"]: b for b in record["batches"]}
     mixed_scopes = len({row.window_scope for row in rows}) > 1
     for row in rows:
         if row.lower_st_R is None:
@@ -193,9 +198,23 @@ def render_pvm(record, *, markdown=False, details=False):
         if mixed_scopes or shared_name:
             label += f" ({_scope_label(row, shared_name)})"
         lines.append(f"{label}: {value}")
+    by_event = {b["event_id"]: b for b in record["batches"]}
+    comparisons = []
+    acquisitions_by_pair = defaultdict(set)
     for comparison in record["comparisons"]:
         left, right = (by_event[event] for event in comparison["events"])
-        lines.append(_comparison_line(left, right, comparison["difference_lower_st_R"]))
+        key = (left["window_id"], frozenset((left["state_id"], right["state_id"])))
+        acquisitions_by_pair[key].add(frozenset(comparison["events"]))
+        comparisons.append((key, left, right, comparison["difference_lower_st_R"]))
+    for key, left, right, difference in comparisons:
+        lines.append(
+            _comparison_line(
+                left,
+                right,
+                difference,
+                label_datasets=len(acquisitions_by_pair[key]) > 1,
+            )
+        )
     for batch in record["batches"]:
         origin = COUNT_ORIGIN_LABELS[batch["origin"]]
         retention = batch["retention"]

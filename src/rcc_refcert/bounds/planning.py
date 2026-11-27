@@ -108,17 +108,6 @@ def plan_counts(request):
         raise InputError(
             "supply the prior reference data exactly for a sampled reference"
         )
-    ref_event = None
-    if ref["kind"] == "counts":
-        reference, ref_event = arm_response(
-            ref,
-            "reference",
-            p["effect"],
-            frozen["arm_sha256"]["reference"],
-            request["reference_data"],
-        )
-    else:
-        reference = rational(ref["response"])
     spec = keys(request["derivation"], {"smoothing_radius"}, "derivation", {"eta"})
     radius = probability(spec["smoothing_radius"], "smoothing radius")
     if "eta" in spec:
@@ -140,6 +129,27 @@ def plan_counts(request):
     goal = keys(request["goal"], set(), "goal", {"response_above", "cost_above_slots"})
     if len(goal) != 1:
         raise InputError("choose one response or cost goal")
+    response_goal = "response_above" in goal
+    if response_goal:
+        threshold = probability(goal["response_above"], "response threshold")
+    else:
+        if missing:
+            raise InputError("cost planning requires a qualified process task")
+        budget = rational(goal["cost_above_slots"], "cost budget")
+        if budget < 0:
+            raise InputError("cost budget must be nonnegative")
+
+    ref_event = None
+    if ref["kind"] == "counts":
+        reference, ref_event = arm_response(
+            ref,
+            "reference",
+            p["effect"],
+            frozen["arm_sha256"]["reference"],
+            request["reference_data"],
+        )
+    else:
+        reference = rational(ref["response"])
     alpha = rational(arm["delta"])
     failure = alpha + (rational(ref["delta"]) if ref_event else 0)
     result = {
@@ -162,21 +172,15 @@ def plan_counts(request):
         if dimension is not None
         else Fraction(1)
     )
-    if "response_above" in goal:
-        threshold = probability(goal["response_above"], "response threshold")
+    if response_goal:
 
         def passes(value):
             return value > threshold
 
         result["ideal_threshold_strict"] = str(threshold)
     else:
-        if missing:
-            raise InputError("cost planning requires a qualified process task")
         if reference == 0:
             return {**result, "status": "zero_reference_requires_support_assessment"}
-        budget = rational(goal["cost_above_slots"], "cost budget")
-        if budget < 0:
-            raise InputError("cost budget must be nonnegative")
 
         def passes(value):
             info = fixed_effect_information(value, reference, radius)
@@ -207,7 +211,7 @@ def plan_counts(request):
         return {**result, "status": "uninformative_readout"}
     offset = f if slope > 0 else 1 - f
     favourable = p["effect"]["accept" if slope > 0 else "reject"]
-    if "response_above" in goal:
+    if response_goal:
         threshold_obs = offset + abs(slope) * threshold
     else:
 

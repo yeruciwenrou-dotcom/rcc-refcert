@@ -563,8 +563,10 @@ def window_report_lines(result, *, details=False):
 
 def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=False):
     """Export global, subsystem and correlation readings or measured-window intervals to CSV and figures."""
-    from .cli import write_atomic
+    from .cli import validate_output_paths, write_atomic
 
+    if csv_path is not None and plot_path is not None:
+        validate_output_paths((), (csv_path, plot_path))
     if result.get("kind") == "pvm_windows":
         from .pvm_render import export_pvm
 

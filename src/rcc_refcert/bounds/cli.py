@@ -112,20 +112,15 @@ def run(arguments) -> int:
     saved = []
     delivery_errors = []
     try:
-        from ..workflows.cli import write_atomic
+        from ..workflows.cli import validate_output_paths, write_atomic
 
         destinations = [
-            path.resolve()
+            path
             for key in ("output", "bundle", "counts_request")
             if (path := getattr(arguments, key, None)) is not None
         ]
         source = getattr(arguments, "input", None)
-        if len(set(destinations)) != len(destinations) or (
-            source is not None and source.resolve() in destinations
-        ):
-            raise InputError(
-                "Choose distinct paths for the input, report, counts request and bundle."
-            )
+        validate_output_paths([source] if source is not None else [], destinations)
         for path in destinations:
             if path.exists() and not arguments.overwrite:
                 raise FileExistsError(

@@ -216,6 +216,46 @@ def test_prior_reference_preserved_and_billed_once():
         plan_counts(q)
 
 
+def test_plan_validates_the_goal_before_reporting_a_reference_conflict(
+    tmp_path, capsys
+):
+    from rcc_refcert.cli import main
+
+    measured = load_template("effect-counts")
+    measured["protocol"]["effect"]["calibration"] = calibration("1/2", "1/4")
+    measured["data"]["reference"]["counts"] = {"yes": 0, "no": 1000}
+    rebind(measured)
+    plan = load_template("sample-plan")
+    plan["protocol"] = measured["protocol"]
+    del plan["protocol"]["target"]["samples"]
+    plan["reference_data"] = measured["data"]["reference"]
+    source = tmp_path / "plan.json"
+
+    for goal, task, message in (
+        (
+            {"cost_above_slots": 1},
+            None,
+            "cost planning requires a qualified process task",
+        ),
+        ({"response_above": 2}, None, "response threshold must lie in [0,1]"),
+        ({"cost_above_slots": -1}, measured["task"], "cost budget must be nonnegative"),
+    ):
+        plan["goal"] = goal
+        if task is not None:
+            plan["task"] = task
+        source.write_text(json.dumps(plan))
+        for fmt in ("text", "json"):
+            assert main(["bound", "plan", str(source), "--format", fmt]) == 2
+            output = capsys.readouterr().out
+            if fmt == "json":
+                assert json.loads(output)["message"] == message
+            else:
+                assert message in output
+    for goal in ({"response_above": "1/2"}, {"cost_above_slots": 1}):
+        plan["goal"] = goal
+        assert plan_counts(plan)["status"] == "empty_reference_readout_preimage"
+
+
 def test_resources_degenerate_design_and_strict_threshold():
     with pytest.raises(BudgetError):
         clopper_pearson_lower(10, 4097, "1/20")

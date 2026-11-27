@@ -126,7 +126,7 @@ the complete example from the checkout:
 
 ```bash
 .venv/bin/python examples/cyclic_reset_workflow.py --bundle cyclic-reset.rccbundle
-python -m rcc_refcert bundle verify cyclic-reset.rccbundle --output cyclic-reset-verification.json
+.venv/bin/python -m rcc_refcert bundle verify cyclic-reset.rccbundle --output cyclic-reset-verification.json
 ```
 
 Use a new filename for each exported bundle and verification report. The

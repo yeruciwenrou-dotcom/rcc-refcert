@@ -640,6 +640,35 @@ def test_comparison_report_uses_both_window_intervals_in_either_input_order():
     ) < report.index("Protocol SHA-256")
 
 
+def test_comparison_sentences_identify_each_repeated_measurement():
+    from rcc_refcert.workflows import render_workflow_result
+
+    request = fixture("bell-ghz-counts")
+    pilot_pair = []
+    for original in request["batches"].copy():
+        entry = deepcopy(original)
+        protocol, data = entry["protocol"], entry["data"]
+        dataset = "pilot " + protocol["state_id"]
+        protocol.update(dataset_id=dataset, event_id=dataset + " shots", samples=120)
+        data["dataset_id"] = dataset
+        data["counts"] = {k: v * 120 // 20000 for k, v in data["counts"].items()}
+        freeze(entry)
+        request["batches"].append(entry)
+        pilot_pair.append(protocol["event_id"])
+    request["comparisons"].append(pilot_pair[::-1])
+    result = analyze_windows(request)
+    for fmt in ("text", "markdown"):
+        report = " ".join(render_workflow_result(result, format=fmt).split())
+        assert (
+            "0.3708678405 st_R higher for Bell pair (Bell pair synthetic shots) "
+            "than for GHZ reduced pair (GHZ reduced pair synthetic shots)" in report
+        )
+        assert (
+            "window RCC for GHZ reduced pair (pilot GHZ reduced pair) minus that for "
+            "Bell pair (pilot Bell pair) lies between -" in report
+        )
+
+
 def test_retention_export_separates_conditional_interval_and_discounted_lower(tmp_path):
     import csv
 

@@ -405,6 +405,45 @@ def test_field_errors_identify_the_object_and_keys():
     assert keys({"a": 1}, {"a"}) == {"a": 1}
 
 
+@pytest.mark.parametrize("template", ["window-state", "pvm-counts"])
+def test_window_exports_check_both_destinations_before_writing(tmp_path, template):
+    from rcc_refcert.bounds import InputError
+
+    result = analyze_windows(load_workflow_template(template))
+    path = tmp_path / "windows.svg"
+    with pytest.raises(InputError, match="distinct output paths"):
+        export_window_files(result, csv_path=str(path), plot_path=path, overwrite=True)
+    assert not path.exists()
+
+
+def test_hard_link_to_experiment_is_rejected_before_other_outputs(tmp_path):
+    from rcc_refcert.bounds import load_template
+
+    source = tmp_path / "experiment.json"
+    source.write_text(json.dumps(load_template("sample-plan")))
+    original = source.read_bytes()
+    alias = tmp_path / "report.json"
+    alias.hardlink_to(source)
+    counts = tmp_path / "new-counts.json"
+    assert (
+        main(
+            [
+                "bound",
+                "plan",
+                str(source),
+                "--counts-request",
+                str(counts),
+                "--output",
+                str(alias),
+                "--overwrite",
+            ]
+        )
+        == 2
+    )
+    assert source.samefile(alias) and source.read_bytes() == original
+    assert not counts.exists()
+
+
 def test_bound_output_protection_and_cost_trajectory_files(tmp_path):
     from rcc_refcert.cli import main
 

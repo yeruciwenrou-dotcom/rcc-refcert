@@ -8,7 +8,9 @@ import sys
 import tempfile
 import uuid
 from importlib.resources import files
+from itertools import combinations
 from pathlib import Path
+from unicodedata import normalize
 
 from ..limits import ResourceLimitError, _resource_diagnostic
 from .api import analyze_cost, compare_cost_results
@@ -248,6 +250,57 @@ def _output_options(parser):
     )
 
 
+def _path_location(path):
+    """Identify the existing ancestor and any remaining names on its filesystem."""
+    path = Path(path).resolve()
+    for ancestor in (path, *path.parents):
+        try:
+            status = ancestor.stat()
+        except (FileNotFoundError, NotADirectoryError):
+            continue
+        return ancestor, status, path.parts[len(ancestor.parts) :]
+    raise FileNotFoundError(path)
+
+
+def _same_location(left, right):
+    parent, left_stat, left_names = left
+    _, right_stat, right_names = right
+    if not os.path.samestat(left_stat, right_stat) or len(left_names) != len(
+        right_names
+    ):
+        return False
+    if left_names == right_names:
+        return True
+    for a, b in zip(left_names, right_names):
+        if normalize("NFD", a).casefold() != normalize("NFD", b).casefold():
+            return False
+    # Both outputs are new. Let the destination filesystem compare the spellings,
+    # without creating anything at either requested path.
+    with tempfile.TemporaryDirectory(prefix=".rcc-path-", dir=parent) as scratch:
+        probe = Path(scratch).joinpath(*left_names)
+        probe.parent.mkdir(parents=True, exist_ok=True)
+        probe.touch()
+        return Path(scratch).joinpath(*right_names).exists()
+
+
+def validate_output_paths(sources, destinations):
+    if not destinations:
+        return
+    outputs = [(path, _path_location(path)) for path in destinations]
+    for source in sources:
+        src = _path_location(source)
+        for path, location in outputs:
+            if _same_location(src, location):
+                raise InputError(
+                    f"Output {path} would replace input {source}. Choose a different output path."
+                )
+    for (first, left), (second, right) in combinations(outputs, 2):
+        if _same_location(left, right):
+            raise InputError(
+                f"Outputs {first} and {second} would use the same file. Choose distinct output paths."
+            )
+
+
 def write_atomic(path, content, *, overwrite=False):
     destination = Path(path)
     if destination.exists() and not overwrite:
@@ -389,22 +442,19 @@ def run(arguments):
         destinations = [
             getattr(arguments, k, None) for k in ("output", "bundle", "plot", "csv")
         ]
-        destinations = [p.resolve() for p in destinations if p is not None]
+        destinations = [p for p in destinations if p is not None]
         if arguments.output_format != "json":
             validate_width(arguments.width)
         if getattr(arguments, "plot", None) is not None:
             from .windows import validate_plot_path
 
             validate_plot_path(arguments.plot)
-        if len(set(destinations)) != len(destinations):
-            raise InputError("output paths must be distinct")
         sources = (
             arguments.inputs
             if arguments.workflow_command == "compare"
             else [arguments.input]
         )
-        if any(p in {s.resolve() for s in sources} for p in destinations):
-            raise InputError("output paths must not overwrite input files")
+        validate_output_paths(sources, destinations)
         for path in destinations:
             if path.exists() and not arguments.overwrite:
                 raise FileExistsError(
