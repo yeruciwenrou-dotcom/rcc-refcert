@@ -66,6 +66,11 @@ def test_small_sample_integer_gain_and_freeze():
     r = bound_from_counts(q)
     assert F(r["target_response_lower_exact"]) > F(3, 8)
     assert r["cost"]["integer_lower_bound_slots"] == 1
+    threshold = 1 - F(q["derivation"]["eta"])
+    assert (
+        f"target lower bound is below the required acceptance threshold of {threshold}"
+        in render_record(r)
+    )
     q["protocol"]["target"]["method"] = "hoeffding"
     with pytest.raises(InputError, match="frozen"):
         bound_from_counts(q)
@@ -111,7 +116,9 @@ def test_calibrated_record_bundle(f, h, decision, tmp_path):
     assert "Observed" in report
     if decision == "readout_conflict":
         assert event["ideal_feasible_interval"] is None and r["cost"] is None
-        assert "target counts are incompatible with the declared readout" in report
+        assert "target confidence interval lies outside the response range" in report
+        assert "Affected witnesses:" in render_record(r, details=True)
+        assert report.count("declared readout") == 1
         assert ">= unavailable" not in report and "None" not in report
     path = tmp_path / "study.rccbundle"
     save_effect_bundle(path, q, r)

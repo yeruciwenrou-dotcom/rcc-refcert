@@ -478,8 +478,6 @@ def validate_effect_record(record, request=None):
 
 
 _DIAGNOSTICS = {
-    "empty_readout_preimage": "the observed confidence region has no preimage under the declared readout",
-    "target_lower_below_one_minus_eta": "the certified target acceptance is below 1 - eta",
     "eta_plus_radius_must_be_less_than_one": "eta plus the smoothing radius must be below one",
     "sampling_margin_exhausted": "the target lower endpoint does not exceed the smoothing radius",
     "zero_reference_requires_support_assessment": "a deterministic zero reference requires a support assessment",
@@ -528,6 +526,16 @@ def render_effect_record(record, *, details=False):
         lines.append(
             "To bound the preparation cost, supply the preparation model and target tolerance."
         )
+    elif record["support_diagnostic"] == "empty_readout_preimage":
+        if a is None and b is None:
+            outside = "the target and reference confidence intervals lie"
+        elif a is None:
+            outside = "the target confidence interval lies"
+        else:
+            outside = "the reference confidence interval lies"
+        lines.append(
+            f"Process cost unavailable: {outside} outside the response range of the declared readout."
+        )
     else:
         lines.append(
             "Process cost unavailable: "
@@ -539,16 +547,11 @@ def render_effect_record(record, *, details=False):
     lines.append(
         f"Fixed effect {p['effect']['id']} | target {p['target']['state_id']} | reference {p['reference']['state_id']}"
     )
-    lines.append(
-        f"Target response >= {decimal_string(Fraction(a), 8)}"
-        if a is not None
-        else "The target counts are incompatible with the declared readout."
-    )
-    if b is None:
-        lines.append("The reference counts are incompatible with the declared readout.")
-    elif record["reference_source"] == "exact":
+    if a is not None:
+        lines.append(f"Target response >= {decimal_string(Fraction(a), 8)}")
+    if record["reference_source"] == "exact":
         lines.append(f"Known reference response = {b}")
-    else:
+    elif b is not None:
         source = (
             "sampled reference"
             if record["reference_source"] == "counts"
@@ -599,15 +602,25 @@ def render_effect_record(record, *, details=False):
         "fixed_effect_C15": "Fixed-effect witness (C.15)",
         "hypothesis_test_C16_C17": "Hypothesis-test witness (C.16–C.17)",
     }
+    affected = []
     for route in record["routes"]:
         info = route["information_floor_bits"]
-        result = (
-            f">= {decimal_string(Fraction(info['lower']), 8)} bits"
-            if info
-            else _DIAGNOSTICS.get(route["reason"], route["reason"])
-        )
-        lines.append(f"{route_labels[route['route']]}: {result}")
+        label = route_labels[route["route"]]
+        reason = route["reason"]
+        if info:
+            result = f">= {decimal_string(Fraction(info['lower']), 8)} bits"
+        elif reason and reason == record["support_diagnostic"]:
+            affected.append(label)
+            continue
+        elif reason == "target_lower_below_one_minus_eta":
+            threshold = 1 - Fraction(request["derivation"]["eta"])
+            result = f"the target lower bound is below the required acceptance threshold of {threshold} (1 - eta)"
+        else:
+            result = _DIAGNOSTICS.get(reason, reason)
+        lines.append(f"{label}: {result}")
     if details:
+        if affected:
+            lines.append("Affected witnesses: " + ", ".join(affected))
         lines.extend(
             [
                 f"Acquisition SHA-256: {record['protocol_sha256']}",

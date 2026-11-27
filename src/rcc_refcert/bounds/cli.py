@@ -291,7 +291,7 @@ def _render_plan(result):
         explanations = {
             "threshold_unreachable": "The goal exceeds what this measurement can certify.",
             "uninformative_readout": "This readout has the same response for both ideal outcomes.",
-            "empty_reference_readout_preimage": "The reference observations conflict with the declared readout.",
+            "empty_reference_readout_preimage": "The reference confidence interval lies outside the response range of the declared readout.",
             "zero_reference_requires_support_assessment": "The zero reference response requires a support assessment.",
         }
         lines.append(explanations[result["status"]])
