@@ -275,7 +275,11 @@ def test_retained_batches_keep_their_identity_and_calibration_in_the_figure(
     second = deepcopy(first)
     request["batches"].append(second)
     for entry, label in zip(request["batches"], ["run-A", "run-B"]):
-        entry["protocol"].update(dataset_id=label, event_id=label + "-measurement")
+        entry["protocol"].update(
+            state_id="Two-qubit preparation with a long common name in the retained ensemble",
+            dataset_id=label,
+            event_id=label + "-measurement",
+        )
         entry["protocol"]["retention"]["event_id"] = label + "-retention"
         entry["data"]["dataset_id"] = label
         freeze(entry)
@@ -286,6 +290,8 @@ def test_retained_batches_keep_their_identity_and_calibration_in_the_figure(
         ax = fig.axes[0]
         labels = [label.get_text() for label in ax.get_yticklabels()]
         assert len(set(labels)) == len(labels) == 10
+        for quantity in ("A", "B", "classical correlation"):
+            assert sum(quantity in label.splitlines() for label in labels) == 2
         assert all(
             sum(batch in label for label in labels) == 5 for batch in ["run-A", "run-B"]
         )

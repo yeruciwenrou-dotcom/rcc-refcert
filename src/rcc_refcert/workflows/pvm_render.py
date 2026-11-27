@@ -358,6 +358,11 @@ def export_pvm(record, csv_path, plot_path, overwrite):
         lo, hi = row.lower_st_R, row.upper_st_R
         wrap = TextWrapper(width=38, max_lines=2, placeholder=f"… [row {index + 1}]")
         label = wrap.fill(f"{row.state} / {row.window}")
+        if label.endswith(wrap.placeholder):
+            state_label = TextWrapper(
+                width=38, max_lines=1, placeholder=wrap.placeholder
+            ).fill(row.state)
+            label = state_label + "\n" + wrap.fill(row.window)
         if row.retained is not None:
             label += (
                 "\n"
@@ -370,7 +375,9 @@ def export_pvm(record, csv_path, plot_path, overwrite):
             if single_retention is None:
                 label += f"\n{row.retained:,} retained / {row.discarded:,} discarded"
         if len(datasets[row.state, row.window, row.kind]) > 1:
-            label += "\n" + TextWrapper(width=38).fill(row.dataset_id)
+            label += "\n" + TextWrapper(
+                width=38, max_lines=3, placeholder=wrap.placeholder
+            ).fill(row.dataset_id)
         if len(scopes) > 1:
             label += "\n" + scope_labels[row.window_scope]
         row_height = 0.13 + 0.21 * (1 + label.count("\n"))
