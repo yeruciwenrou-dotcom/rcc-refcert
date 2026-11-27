@@ -10,14 +10,25 @@ lower bound on optimal quantum circuit complexity** from final-state data.
 Use the target state's exact spectrum or counts collected under a
 prespecified measurement protocol.
 
-You can model preparations with measurement, feed-forward and reset. In exact
-diagonal-preserving models, a program that reaches the target within tolerance
-is provably optimal if its cost matches the lower bound. A density matrix lets
-you map complexity across the subsystems of a pure or mixed state. Complete
-outcome counts from a projective measurement give confidence intervals for the
-complexity it resolves in one state or for the difference in that reading
-between two states measured the same way. A colleague can independently
-recompute the analysis from a single bundle.
+You can build a preparation model with measurement, feed-forward and reset,
+then certify its reference upper bound. In an exact diagonal-preserving model,
+a program that reaches the target within tolerance is provably optimal if its
+cost matches the lower bound. If its cost is higher, the gap limits how much
+a better program for the same task could save.
+
+A density matrix lets you map complexity across the subsystems of a pure or
+mixed state. Counts for all outcomes of a projective measurement give a
+confidence interval for the state's RCC reading in the measured classical
+window. With the same measurement on two states, you can also compute a
+confidence interval for the difference between their readings.
+
+To start with hardware data, import the published counts from IBM's five-qubit
+Vigo processor. The bundled histogram records 1,024 shots of a single circuit.
+The same command reads counts from your own experiment when you specify which
+qubit each readout bit represents. [Run the IBM Vigo example](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/8dd7af90950a470ca7a6832d4862e963bd8b3194/docs/FINITE_DATA_STUDIES.md#check-the-mapping-on-a-hardware-file).
+
+Share the inputs and results in a single evidence bundle so a colleague can
+independently recompute the analysis.
 
 The toolkit is based on **Reference-Contingent Complexity (RCC)**, introduced by
 Liu, Tian and Wu in
