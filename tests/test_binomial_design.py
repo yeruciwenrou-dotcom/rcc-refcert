@@ -20,6 +20,7 @@ from rcc_refcert.bounds import (
     render_record,
     replay_record,
 )
+from rcc_refcert.bounds.cli import _render_plan
 from rcc_refcert.bundle import verify_analysis_bundle
 from rcc_refcert.workflows import save_effect_bundle
 
@@ -106,9 +107,12 @@ def test_calibrated_record_bundle(f, h, decision, tmp_path):
     assert replay_record(r)["matches"]
     event = r["coverage"]["events"][0]
     assert event["endpoint"] == ("lower" if F(f) + F(h) <= 1 else "upper")
-    assert "Observed" in render_record(r)
+    report = render_record(r)
+    assert "Observed" in report
     if decision == "readout_conflict":
         assert event["ideal_feasible_interval"] is None and r["cost"] is None
+        assert "target counts are incompatible with the declared readout" in report
+        assert ">= unavailable" not in report and "None" not in report
     path = tmp_path / "study.rccbundle"
     save_effect_bundle(path, q, r)
     assert verify_analysis_bundle(path)["historical_results_supported"]
@@ -162,6 +166,9 @@ def test_cost_plan_matches_all_counts_at_fixed_n(method, flip):
     r = plan_counts(q)
     follow = r["counts_request"]
     assert r["counted_outcome"] == ("no" if flip else "yes")
+    report = _render_plan(r)
+    assert "requires more than 1/100 atomic slots" in report
+    assert repr(r["counted_outcome"]) in report
     for k in range(26):
         yes = 25 - k if flip else k
         follow["data"]["target"].update(
@@ -219,7 +226,25 @@ def test_resources_degenerate_design_and_strict_threshold():
     q.update(fixed_samples=1)
     del q["max_samples"]
     q["protocol"]["target"]["delta"] = "1/2"
-    assert plan_counts(q)["minimum_hits"] == 2
+    result = plan_counts(q)
+    assert result["minimum_hits"] == 2
+    assert "No count of 'yes' at this sample size meets the goal" in _render_plan(
+        result
+    )
+
+
+def test_plan_report_preserves_both_ends_of_a_certifying_range():
+    request = load_template("sample-plan")
+    request["task"] = load_template("effect-counts")["task"]
+    request["protocol"]["target"]["state_id"] = request["task"]["target"]["id"]
+    request["protocol"]["reference"]["response"] = "1/16"
+    request.update(
+        goal={"response_above": "1/10"}, expected_response="1/5", fixed_samples=200
+    )
+    del request["max_samples"]
+    result = plan_counts(request)
+    assert (result["minimum_hits"], result["maximum_hits"]) == (28, 60)
+    assert "Counts of 'yes' from 28 through 60, inclusive" in _render_plan(result)
 
 
 def test_calibration_schema_and_nullable_receiving_record():
@@ -246,7 +271,10 @@ def test_cli_exports_once_and_keeps_the_frozen_acquisition(tmp_path, capsys):
     command = ["bound", "plan", str(plan), "--counts-request", str(dest)]
     assert main(command) == 0
     report = capsys.readouterr().out
-    assert "112" in report and "97" in report
+    assert "ideal target acceptance probability exceeds 4/5" in report
+    assert "coverage of at least 95%" in report and "112 target trials" in report
+    assert "at least 97 'yes' outcomes" in report
+    assert "at least 90.7795% (requested power 90%)" in report
     original = dest.read_bytes()
     q = json.loads(original)
     assert q["data"]["target"]["counts"] == {"yes": None, "no": None}

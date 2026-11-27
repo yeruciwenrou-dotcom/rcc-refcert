@@ -6,13 +6,22 @@ from fractions import Fraction
 
 from .._version import __version__
 from .binomial import CP, CP_MAX_N, HOEFFDING, sampling_endpoint
-from .contracts import QUALIFICATION_NAMES, Task, canonical_hash, json_ready, keys, text
+from .contracts import (
+    COUNT_ORIGIN_LABELS,
+    QUALIFICATION_NAMES,
+    Task,
+    canonical_hash,
+    json_ready,
+    keys,
+    text,
+)
 from .information import fixed_effect_information
 from .scalar import (
     BudgetError,
     InputError,
     ceil_fraction,
     decimal_string,
+    probability_text,
     rational,
     require_int,
 )
@@ -482,7 +491,7 @@ _DIAGNOSTICS = {
 
 
 def render_effect_record(record, *, details=False):
-    from decimal import ROUND_CEILING
+    from decimal import ROUND_CEILING, ROUND_FLOOR
 
     request = record["provenance"]["input_snapshot"]
     p = request["protocol"]
@@ -527,11 +536,30 @@ def render_effect_record(record, *, details=False):
                 or ", ".join(record["missing_process_premises"])
             )
         )
-    lines += [
-        f"Fixed effect {p['effect']['id']} | target {p['target']['state_id']} | reference {p['reference']['state_id']}",
-        f"Target response >= {decimal_string(Fraction(a), 8) if a is not None else 'unavailable'}; reference response <= {decimal_string(Fraction(b), 8, ROUND_CEILING) if b is not None else 'unavailable'} ({record['reference_source']})",
-        f"Joint sampling coverage >= {record['coverage']['coverage_at_least_exact']}",
-    ]
+    lines.append(
+        f"Fixed effect {p['effect']['id']} | target {p['target']['state_id']} | reference {p['reference']['state_id']}"
+    )
+    lines.append(
+        f"Target response >= {decimal_string(Fraction(a), 8)}"
+        if a is not None
+        else "The target counts are incompatible with the declared readout."
+    )
+    if b is None:
+        lines.append("The reference counts are incompatible with the declared readout.")
+    elif record["reference_source"] == "exact":
+        lines.append(f"Known reference response = {b}")
+    else:
+        source = (
+            "sampled reference"
+            if record["reference_source"] == "counts"
+            else "declared upper bound"
+        )
+        lines.append(
+            f"Reference response <= {decimal_string(Fraction(b), 8, ROUND_CEILING)} ({source})"
+        )
+    lines.append(
+        f"Joint sampling coverage is at least {probability_text(record['coverage']['coverage_at_least_exact'])}."
+    )
     if request.get("task"):
         task = request["task"]
         lines.append(
@@ -549,15 +577,24 @@ def render_effect_record(record, *, details=False):
     lines.append(f"Smoothing radius: {request['derivation']['smoothing_radius']}")
     for event in record["coverage"]["events"]:
         lines.append(
-            f"  {event['role']}: {event['origin']}, dataset {event['dataset_id']}, failure budget {event['delta']}"
+            f"  {event['role'].capitalize()}: {COUNT_ORIGIN_LABELS[event['origin']]}, dataset {event['dataset_id']}, failure budget {event['delta']}"
         )
         if "observed_endpoint_exact" in event:
             direction = event["endpoint"]
-            lines.append(
-                f"    Observed {direction} endpoint: {event['observed_endpoint_exact']} | compatible ideal interval: {event['ideal_feasible_interval']}"
-            )
+            exact = event["observed_endpoint_exact"]
+            rounding = ROUND_FLOOR if direction == "lower" else ROUND_CEILING
+            reading = exact if details else decimal_string(Fraction(exact), 8, rounding)
+            lines.append(f"    Observed {direction} endpoint: {reading}")
+            ideal = event["ideal_feasible_interval"]
+            if ideal is not None:
+                lo, hi = ideal
+                if not details:
+                    lo = decimal_string(Fraction(lo), 8)
+                    hi = decimal_string(Fraction(hi), 8, ROUND_CEILING)
+                lines.append(f"    Compatible ideal response interval: [{lo}, {hi}]")
         if "method" in event:
-            lines.append(f"    Endpoint method: {event['method']}")
+            method = {CP: "Clopper–Pearson", HOEFFDING: "Hoeffding"}[event["method"]]
+            lines.append(f"    Endpoint method: {method}")
     route_labels = {
         "fixed_effect_C15": "Fixed-effect witness (C.15)",
         "hypothesis_test_C16_C17": "Hypothesis-test witness (C.16–C.17)",

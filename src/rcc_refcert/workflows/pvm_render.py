@@ -9,6 +9,7 @@ from math import log2
 from textwrap import TextWrapper
 from typing import NamedTuple
 
+from ..bounds.contracts import COUNT_ORIGIN_LABELS
 from ..bounds.scalar import decimal_string
 from .pvm import _window_difference_lower
 
@@ -138,12 +139,12 @@ def render_pvm(record, *, markdown=False, details=False):
         if repeated[state, name] > 1:
             label += f" ({dataset})"
         lines.append(f"{label}: {value}")
+    by_event = {b["event_id"]: b for b in record["batches"]}
+    for comparison in record["comparisons"]:
+        left, right = (by_event[event] for event in comparison["events"])
+        lines.append(_comparison_line(left, right, comparison["difference_lower_st_R"]))
     for batch in record["batches"]:
-        origin = {
-            "observed_counts": "observed counts",
-            "simulation": "simulated counts",
-            "synthetic_fixture": "synthetic counts",
-        }[batch["origin"]]
+        origin = COUNT_ORIGIN_LABELS[batch["origin"]]
         retention = batch["retention"]
         trials = batch["analyzed_samples"]
         sampling = origin
@@ -156,7 +157,7 @@ def render_pvm(record, *, markdown=False, details=False):
         if details:
             lines.extend(
                 [
-                    f"Dataset {batch['dataset_id']} measures {batch['state_id']} against {batch['reference_id']}.",
+                    f"Counts for {batch['state_id']} come from dataset {batch['dataset_id']}.",
                     f"Protocol SHA-256: {batch['protocol_sha256']}",
                     f"Data SHA-256: {batch['data_sha256']}",
                 ]
@@ -201,10 +202,6 @@ def render_pvm(record, *, markdown=False, details=False):
                 lines.append(
                     "The information bound fits within the declared model overhead."
                 )
-    by_event = {b["event_id"]: b for b in record["batches"]}
-    for comparison in record["comparisons"]:
-        left, right = (by_event[event] for event in comparison["events"])
-        lines.append(_comparison_line(left, right, comparison["difference_lower_st_R"]))
     for missing, states in missing_by_reason.items():
         *others, last = states
         names = f"{', '.join(others)} and {last}" if others else last

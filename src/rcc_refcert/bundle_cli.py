@@ -21,12 +21,22 @@ def _historical_support(value):
 
 def render_bundle_report(report: dict) -> str:
     if report.get("schema_version") in (2, 3, 4, 5):
-        lines = [
-            "RCC workflow evidence",
-            f"Task: {report['kind']}",
-            f"Stored record consistency: {report['record_consistency']}",
-        ]
         inspecting = report["schema"] == "rcc-refcert.bundle-inspection"
+        task = {
+            "cost_analysis": "preparation cost",
+            "window_analysis": "subsystem complexity profiles",
+            "fixed_effect_counts": "a fixed-effect measurement",
+            "pvm_windows": "finite-sample window RCC",
+            "finite_study": "a finite-data study",
+        }.get(report["kind"], str(report["kind"]).replace("_", " "))
+        lines = [f"RCC evidence for {task}"]
+        consistency = report["record_consistency"]
+        if consistency == "input_bindings_pass":
+            lines.append("The saved result identifies the same inputs as the archive.")
+        elif consistency == "pass":
+            lines.append("The saved record passed its consistency checks.")
+        else:
+            lines.append(f"Stored record consistency: {consistency}")
         author = (
             report["producer"]
             if inspecting
@@ -39,18 +49,20 @@ def render_bundle_report(report: dict) -> str:
                 f"The schema-2 manifest records a different environment (rcc-refcert {pack['version']})."
             )
         if inspecting:
+            decision = report["historical_decision"]
             if report["schema_version"] == 5:
-                lines.append(f"Study: {report['historical_decision']}")
-            else:
-                lines.append(f"Historical decision: {report['historical_decision']}")
-            if report["schema_version"] in (4, 5):
-                lines.append(
-                    "Inspect checks the saved input bindings. Use bundle verify to recompute the conclusions."
-                )
-            else:
-                lines.append(
-                    "Inspect checks the saved record. Use bundle verify to recompute the result."
-                )
+                study = {
+                    "cluster": "six-qubit cluster state",
+                    "cooling": "three-qubit algorithmic cooling",
+                }.get(decision, str(decision).replace("_", " "))
+                lines.append(f"Study: {study}")
+            elif decision not in ("window_analysis", "finite_sample_windows"):
+                from .workflows.render import _decision_label
+
+                lines.append(f"Archived result: {_decision_label(decision)}")
+            lines.append(
+                "Use rcc-refcert bundle verify to recompute the result from the archived inputs."
+            )
         else:
             if report["schema_version"] == 3:
                 from .bounds.api import render_record as render_result

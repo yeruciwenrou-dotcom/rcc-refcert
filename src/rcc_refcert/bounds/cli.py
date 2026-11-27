@@ -4,12 +4,19 @@ from __future__ import annotations
 
 import json
 from decimal import Decimal
+from fractions import Fraction
 from importlib import resources
 
 from .api import bound_from_counts, bound_from_spectrum, render_record, replay_record
 from .contracts import keys, prepare_protocol
 from .effects import PROTOCOL, REQUEST, prepare_effect_protocol
-from .scalar import BudgetError, InputError, UnsupportedContract
+from .scalar import (
+    BudgetError,
+    InputError,
+    UnsupportedContract,
+    decimal_string,
+    probability_text,
+)
 
 
 def load_template(name: str = "spectrum") -> dict:
@@ -217,28 +224,77 @@ def _render_result(arguments, result):
         return json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
     if arguments.bound_command != "plan":
         return render_record(result, details=arguments.details)
-    descriptions = {
-        "power_met": "The design reaches the requested power.",
-        "fixed_n_below_power": "This fixed sample size falls short of the requested power.",
-        "search_limit_reached": "No sample size in the searched range reached the requested power.",
-        "threshold_unreachable": "The goal exceeds what this measurement can certify.",
-        "uninformative_readout": "This readout has the same response for both ideal outcomes.",
-        "empty_reference_readout_preimage": "The reference observations conflict with the declared readout.",
-        "zero_reference_requires_support_assessment": "The zero reference response requires a support assessment.",
-    }
-    lines = [descriptions[result["status"]]]
+    return _render_plan(result)
+
+
+def _render_plan(result):
+    request = result["design_request"]
+    protocol = request["protocol"]
+    goal = result["goal"]
+    if "response_above" in goal:
+        claim = (
+            f"the ideal target acceptance probability exceeds {goal['response_above']}"
+        )
+    else:
+        budget = goal["cost_above_slots"]
+        unit = "slot" if Fraction(budget) == 1 else "slots"
+        task = request["task"]
+        claim = (
+            f"preparation in model {task['model']['id']} requires more than {budget} atomic {unit} "
+            f"at trace-distance tolerance {task['target']['epsilon']}"
+        )
+    coverage = probability_text(result["joint_coverage_at_least_exact"])
+    lines = [
+        f"Fixed-sample plan for {protocol['effect']['id']} on {protocol['target']['state_id']}",
+        f"The goal is to certify that {claim}, with sampling coverage of at least {coverage}.",
+    ]
+    requested = probability_text(result["target_power"])
     if "samples" in result:
-        lines.append(
-            f"Trials: {result['samples']} | counted outcome: {result['counted_outcome']}"
-        )
-        if result["minimum_hits"] <= result["maximum_hits"]:
-            lines.append(
-                f"Passing counts: {result['minimum_hits']} to {result['maximum_hits']} | design power >= {result['design_power_lower']}"
-            )
+        n = result["samples"]
+        low, high = result["minimum_hits"], result["maximum_hits"]
+        outcome = repr(result["counted_outcome"])
+        unit = "trial" if n == 1 else "trials"
+        lines.append(f"Set the sample size to {n:,} target {unit} before measurement.")
+        if low > high:
+            lines.append(f"No count of {outcome} at this sample size meets the goal.")
+            lines.append(f"The design power is zero (requested {requested}).")
         else:
-            lines.append("No count at this sample size meets the goal.")
+            if low == high or high == n:
+                count = "exactly" if low == high else "at least"
+                unit = "outcome" if low == 1 else "outcomes"
+                lines.append(
+                    f"Record {count} {low} {outcome} {unit} to certify the threshold."
+                )
+            else:
+                lines.append(
+                    f"Counts of {outcome} from {low} through {high}, inclusive, certify the threshold."
+                )
+            forecasts = [v["ideal_response"] for v in result["sensitivity"]]
+            forecast = (
+                f"If the ideal target acceptance probability is {forecasts[0]}"
+                if forecasts[0] == forecasts[-1]
+                else f"For ideal target acceptance probabilities from {forecasts[0]} to {forecasts[-1]}"
+            )
+            power = decimal_string(100 * Fraction(result["design_power_lower"]), 6)
+            lines.append(
+                f"{forecast}, the probability of obtaining a certifying count is at least {power}% "
+                f"(requested power {requested})."
+            )
+            if result["status"] == "fixed_n_below_power":
+                lines.append("This sample size falls short of the requested power.")
     elif result["status"] == "search_limit_reached":
+        n = result["samples_evaluated_through"]
         lines.append(
-            f"Checked every sample size through {result['samples_evaluated_through']}"
+            f"No sample size from 1 to {n} reached the requested power of {requested}."
         )
+    else:
+        explanations = {
+            "threshold_unreachable": "The goal exceeds what this measurement can certify.",
+            "uninformative_readout": "This readout has the same response for both ideal outcomes.",
+            "empty_reference_readout_preimage": "The reference observations conflict with the declared readout.",
+            "zero_reference_requires_support_assessment": "The zero reference response requires a support assessment.",
+        }
+        lines.append(explanations[result["status"]])
+    if result["reference_event"] is not None:
+        lines.append("The design uses the previously measured reference sample.")
     return "\n".join(lines) + "\n"

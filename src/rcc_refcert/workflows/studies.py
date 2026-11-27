@@ -4,7 +4,13 @@ from decimal import ROUND_CEILING
 from fractions import Fraction as F
 
 from .._version import __version__
-from ..bounds.contracts import canonical_hash, json_ready, keys, text
+from ..bounds.contracts import (
+    COUNT_ORIGIN_LABELS,
+    canonical_hash,
+    json_ready,
+    keys,
+    text,
+)
 from ..bounds.effects import probability
 from ..bounds.scalar import InputError, decimal_string, require_int
 from .core import WorkflowLimits, digest, json_value
@@ -596,11 +602,7 @@ def render_study(r, *, markdown=False, details=False):
     for key, source in r["sources"].items():
         origins.setdefault(source["origin"], []).append(labels[key])
     for origin, settings in origins.items():
-        label = {
-            "synthetic_fixture": "synthetic counts",
-            "simulation": "simulated counts",
-            "observed_counts": "observed counts",
-        }[origin]
+        label = COUNT_ORIGIN_LABELS[origin]
         if origin == "synthetic_fixture" and all(
             source["source"] == EXAMPLE_COUNT_SOURCE
             for source in r["sources"].values()

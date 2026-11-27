@@ -500,13 +500,12 @@ def window_report_lines(result, *, details=False):
     from .render import _decision_label
 
     ref = result["reference"]
-    lines = [
-        "RCC subsystem complexity profiles",
-        f"Decision: {_decision_label(result['decision'])}",
+    lines = ["RCC subsystem complexity profiles"]
+    if result["decision"] != "window_analysis":
+        lines.append(f"Decision: {_decision_label(result['decision'])}")
+    lines += [
         f"Reference: uniform product support; Gamma={ref['gamma_exact']}; g_R={_window_bits(ref['g_bits'])} per atomic slot",
-        f"Scale source: {ref['source']}",
-        "C = entropy deficit / g_R: state-side complexity in st_R (1 st_R = g_R bits).",
-        "The information numerator is log2(d_A) - S(rho_A); entropies are in bits.",
+        "C is the state-side RCC reading in st_R (1 st_R = g_R bits).",
     ]
     records = {record["id"]: record for record in result["effective_request"]["states"]}
     for profile in result["profiles"]:
@@ -556,15 +555,27 @@ def window_report_lines(result, *, details=False):
             left = ", ".join(profile["partition"]["left"]["keep"])
             right = ", ".join(profile["partition"]["right"]["keep"])
             lines.append(
-                f"  Correlation contribution ({left} | {right}): {_window_number(profile['partition']['total_correlation_scaled'])} st_R; Total correlation: {_window_bits(profile['partition']['total_correlation_bits'])}"
+                f"  Correlation contribution ({left} | {right}): {_window_number(profile['partition']['total_correlation_scaled'])} st_R"
+            )
+            lines.append(
+                f"  Total correlation: {_window_bits(profile['partition']['total_correlation_bits'])}"
             )
         if details:
             lines.append(f"  State identity: {profile['state_digest']}")
+    lines.append(f"Scale source: {ref['source']}")
     lines.append(
-        "Entropies use binary64 logarithms. Values below 1e-12 in magnitude "
-        "display as ~0; JSON and CSV retain the original values. "
-        "Mixed-state total correlation includes classical correlation."
+        "For each subsystem A, C = [log2(d_A) - S(rho_A)] / g_R. Entropies are in bits."
     )
+    if details:
+        lines.append(
+            "Entropies use binary64 logarithms. Values below 1e-12 in magnitude display as ~0. JSON and CSV retain the original values."
+        )
+    elif any("~0 " in line for line in lines):
+        lines.append("Values displayed as ~0 have magnitude below 1e-12.")
+    if any(p.get("partition") is not None for p in result["profiles"]):
+        lines.append(
+            "For mixed states, total correlation can include classical correlations."
+        )
     return lines
 
 

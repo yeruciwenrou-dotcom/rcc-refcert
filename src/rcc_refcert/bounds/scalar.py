@@ -141,6 +141,14 @@ def decimal_string(q: Fraction, digits: int = 48, rounding: str = ROUND_FLOOR) -
     return str(ctx.divide(Decimal(q.numerator), Decimal(q.denominator)))
 
 
+def probability_text(value) -> str:
+    """Display an exact probability as a short percentage when possible."""
+    q = Fraction(value)
+    percent = 100 * q
+    display = decimal_string(percent, 8)
+    return f"{display}%" if Fraction(display) == percent else str(q)
+
+
 def _ln_decimal_bound(d: Decimal, lower: bool) -> Fraction:
     if d == 1:
         return Fraction(0)

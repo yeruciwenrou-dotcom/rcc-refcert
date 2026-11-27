@@ -6,6 +6,7 @@ from fractions import Fraction
 
 from .._version import __version__
 from .contracts import (
+    COUNT_ORIGIN_LABELS,
     Task,
     canonical_hash,
     json_ready,
@@ -23,6 +24,7 @@ from .scalar import (
     decimal_string,
     invert_canonical,
     log2_interval,
+    probability_text,
     rational,
     require_int,
 )
@@ -283,10 +285,11 @@ def render_record(result: dict, *, details: bool = False) -> str:
     )
     if result["confidence"]:
         lines.append(
-            "Sampling coverage at least: "
-            + result["confidence"]["coverage_at_least_exact"]
+            "Sampling coverage is at least "
+            + probability_text(result["confidence"]["coverage_at_least_exact"])
+            + "."
         )
-        lines.append("Data source: " + result["information"]["data_origin"])
+        lines.append("Data source: " + COUNT_ORIGIN_LABELS[info["data_origin"]])
     lines.append(f"Calculation: {result['analysis_state']}")
     if c["zero_reason"]:
         lines.append("Zero-bound explanation: " + ZERO_EXPLANATIONS[c["zero_reason"]])

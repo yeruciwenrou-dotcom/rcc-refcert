@@ -12,6 +12,11 @@ from fractions import Fraction
 from .scalar import BudgetError, InputError, UnsupportedContract, rational, require_int
 
 QUALIFICATION_NAMES = {"RCon", "TC", "RA"}
+COUNT_ORIGIN_LABELS = {
+    "observed_counts": "observed counts",
+    "simulation": "simulated counts",
+    "synthetic_fixture": "synthetic counts",
+}
 MATRIX_HASH_FORMAT = "rcc-refcert.matrix-bytes.v1"
 
 

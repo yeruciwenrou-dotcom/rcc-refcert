@@ -466,7 +466,9 @@ def test_comparison_report_uses_both_window_intervals_in_either_input_order():
 
     raw = load_workflow_template("bell-ghz-counts")
     for _ in range(2):
-        report = render_workflow_result(analyze_windows(raw), format="markdown")
+        report = render_workflow_result(
+            analyze_windows(raw), format="markdown", details=True
+        )
         assert (
             "0.3708678405 st_R higher for Bell pair than for GHZ reduced pair" in report
         )
@@ -478,6 +480,9 @@ def test_comparison_report_uses_both_window_intervals_in_either_input_order():
         ):
             assert detail in report
         assert report.count("supply a preparation model") == 1
+        assert report.index("0.3708678405 st_R higher") < report.index(
+            "Protocol SHA-256"
+        )
         raw["comparisons"][0].reverse()
 
     left, right = raw["batches"]
@@ -488,8 +493,12 @@ def test_comparison_report_uses_both_window_intervals_in_either_input_order():
     for entry in raw["batches"]:
         entry["protocol"]["measurement"]["window_scope"] = "containing_quantum"
         freeze(entry)
-    report = render_workflow_result(analyze_windows(raw), format="markdown")
-    assert "leave the ordering of Bell pair and GHZ reduced pair open" in report
+    report = render_workflow_result(
+        analyze_windows(raw), format="markdown", details=True
+    )
+    assert report.index(
+        "leave the ordering of Bell pair and GHZ reduced pair open"
+    ) < report.index("Protocol SHA-256")
 
 
 def test_retention_export_separates_conditional_interval_and_discounted_lower(tmp_path):
