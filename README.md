@@ -14,6 +14,8 @@ The toolkit is based on **Reference-Contingent Complexity (RCC)**, introduced by
 Liu, Tian and Wu in
 *[Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound](https://arxiv.org/abs/2509.18205)*.
 
+**[Quick start](#quick-start)** · Run the spectrum example to certify a lower bound on circuit complexity.
+
 **Model certification and optimality.** You can build a preparation model
 with measurement, feed-forward and reset, then certify its reference upper
 bound. In an exact diagonal-preserving model, a program that reaches the
@@ -89,21 +91,34 @@ state was produced.
 | [Share a calculation for independent verification](#reverify-a-shared-analysis) | Share the original inputs and results in a single bundle. A colleague can use it to recompute the result independently. |
 | [Reproduce the paper's reference calculations](#reference-cases) | Rerun the bundled cases and compare the outputs with the frozen reference results. The [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/PAPER_MAP.md) links each calculation to the corresponding equations. |
 
-> **New in 0.4.0**
->
-> Plan a fixed sample size for a preparation-cost threshold and certify a lower
-> bound from target and reference counts, accounting for known binary readout
-> errors.
-> Full outcome histograms give finite-sample intervals for RCC in the measured
-> classical window and for the difference between two states measured there.
-> Import [Qiskit readouts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/FINITE_DATA_STUDIES.md#your-counts-and-qiskit-registers) from your own runs
-> or check bit order with [archived IBM Vigo counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/FINITE_DATA_STUDIES.md#check-the-mapping-on-a-hardware-file).
-> With the simulated six-qubit cluster-state counts, each of the two alternating
-> X/Z settings certifies at least one slot. Together they certify at least two.
-> The cooling study proves that six slots are optimal for the full three-qubit
-> target at trace-distance tolerance 1/50. In the [half-erasure benchmark](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/COST_AND_WINDOWS.md#build-a-half-erasure-channel),
-> an analytic solution gives an independent check on the optimal cost.
-> [Full release notes](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/CHANGELOG.md#040).
+## New in 0.4.0
+
+**What you can do**
+
+- **Plan a measurement and certify a lower bound.** Choose a preparation-cost
+  threshold and an expected hit rate to find how many shots to take and how
+  many hits would certify the bound. Test it with target and reference counts,
+  accounting for known false-positive and false-negative rates.
+- **Compare window RCC between two states.** Full outcome counts from the same
+  projective measurement give a confidence interval for each state's RCC in
+  the measured classical window. If the interval for the difference excludes
+  zero, it tells you which state has the higher reading.
+- **Import hardware counts.** Read [Qiskit results](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/FINITE_DATA_STUDIES.md#your-counts-and-qiskit-registers)
+  from your own runs. Use the [archived IBM Vigo counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/FINITE_DATA_STUDIES.md#check-the-mapping-on-a-hardware-file)
+  to check which readout bit represents each qubit.
+
+**What the examples show**
+
+- **Six-qubit cluster state (simulated counts).** Each of the two alternating
+  X/Z settings certifies at least **one atomic slot**. Together they certify
+  at least **two slots**.
+- **Three-qubit cooling.** At trace-distance tolerance `1/50`, **six slots are
+  optimal** for the full three-qubit target.
+- **[Half-erasure channel](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/COST_AND_WINDOWS.md#build-a-half-erasure-channel).**
+  At tolerance `1/20`, the computed cost interval is **[3, 4] slots**.
+  The reachable populations independently establish the optimum at **four slots**.
+
+[Full release notes](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/CHANGELOG.md#040)
 
 ## Quick start
 
