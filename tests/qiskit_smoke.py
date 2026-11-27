@@ -1,5 +1,8 @@
 """Exercise actual Qiskit V2 data containers and paired register shots."""
 
+import json
+from importlib.resources import files
+
 import numpy as np
 from qiskit.primitives import BitArray, DataBin, SamplerPubResult
 
@@ -8,6 +11,17 @@ from rcc_refcert.workflows import import_readout, qiskit_readout
 
 
 def main():
+    data_dir = files("rcc_refcert.workflows").joinpath("data")
+    vigo = json.loads(data_dir.joinpath("ibm_vigo_counts.json").read_bytes())["counts"]
+    # Reconstruct a Qiskit histogram for q[i] measured into meas[i]. The archive prints Q0 first.
+    native_counts = {outcome[::-1]: count for outcome, count in vigo.items()}
+    pub = SamplerPubResult(
+        DataBin(meas=BitArray.from_counts(native_counts, num_bits=5))
+    )
+    qubits = ["Q0", "Q1", "Q2", "Q3", "Q4"]
+    layout = {"registers": [{"name": "meas", "bits_lsb_first": qubits}], "axes": qubits}
+    assert import_readout(qiskit_readout(pub, layout), layout)["counts"] == vigo
+
     a = BitArray.from_samples(["01", "10", "01"], num_bits=2)
     b = BitArray.from_samples(["0", "1", "0"], num_bits=1)
     pub = SamplerPubResult(DataBin(a=a, b=b))

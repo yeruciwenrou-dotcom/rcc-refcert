@@ -69,7 +69,7 @@ jobs:
           with zipfile.ZipFile(wheel) as archive:
               metadata_path, = (n for n in archive.namelist() if n.endswith(".dist-info/METADATA"))
               metadata = BytesParser().parsebytes(archive.read(metadata_path))
-              for name in ("LICENSE", "NOTICE.md"):
+              for name in ("LICENSE", "LICENSES/CC-BY-4.0.txt", "NOTICE.md"):
                   assert any(n.endswith("/licenses/" + name) for n in archive.namelist()), name
               for name in ("reference_report.md", "reference_suite.json"):
                   assert "rcc_refcert/reference_data/" + name in archive.namelist(), name
@@ -80,7 +80,8 @@ jobs:
               assert item["Name"] == "rcc-refcert"
               assert item["Version"] == "0.4.0"
               assert item["Requires-Python"] == ">=3.10"
-              assert item["License-Expression"] == "MIT"
+              assert item["License-Expression"] == "MIT AND CC-BY-4.0"
+              assert set(item.get_all("License-File")) == {"LICENSE", "LICENSES/CC-BY-4.0.txt", "NOTICE.md"}
           PY
       - name: Install and reproduce from each distribution
         env:

@@ -7,6 +7,7 @@ import os
 import sys
 import tempfile
 import uuid
+from importlib.resources import files
 from pathlib import Path
 
 from ..limits import ResourceLimitError, _resource_diagnostic
@@ -181,8 +182,18 @@ def add_commands(commands):
         "import-counts",
         help="reorder raw counts or joint shots using an explicit register layout",
     )
-    convert.add_argument("input", type=Path)
-    convert.add_argument("layout", type=Path)
+    source = convert.add_mutually_exclusive_group(required=True)
+    source.add_argument(
+        "input", nargs="?", type=Path, help="JSON counts or joint shots"
+    )
+    source.add_argument(
+        "--example",
+        choices=("ibm-vigo",),
+        help="use packaged hardware counts and layout",
+    )
+    convert.add_argument(
+        "layout", nargs="?", type=Path, help="layout for the input file"
+    )
     probe = commands.add_parser(
         "probe", help="find and export executable research probes"
     )
@@ -298,14 +309,22 @@ def run(arguments):
         ):
             from .readouts import import_readout
 
-            print(
-                json.dumps(
-                    import_readout(
-                        _read_request(arguments.input), _read_request(arguments.layout)
-                    ),
-                    indent=2,
+            if arguments.example:
+                if arguments.layout is not None:
+                    raise InputError("the packaged example supplies its own layout")
+                data_dir = files(__package__).joinpath("data")
+                counts = read_json(
+                    data_dir.joinpath("ibm_vigo_counts.json").read_bytes()
                 )
-            )
+                layout = read_json(
+                    data_dir.joinpath("ibm_vigo_layout.json").read_bytes()
+                )
+            else:
+                if arguments.layout is None:
+                    raise InputError("supply a layout file alongside the input file")
+                counts = _read_request(arguments.input)
+                layout = _read_request(arguments.layout)
+            print(json.dumps(import_readout(counts, layout), indent=2))
             return 0
         if arguments.command == "study" and arguments.workflow_command == "template":
             from .studies import study_template

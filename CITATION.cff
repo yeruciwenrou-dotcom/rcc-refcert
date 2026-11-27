@@ -4,7 +4,9 @@ title: "RCC RefCert: A Research Toolkit for Structure-Fair Quantum Circuit Compl
 type: software
 version: 0.4.0
 url: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
-license: MIT
+license:
+  - MIT
+  - CC-BY-4.0
 repository-code: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 abstract: >-
   RCC RefCert is an open-source toolkit for studying quantum circuit

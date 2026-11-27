@@ -3,7 +3,7 @@
 import json
 from copy import deepcopy
 from fractions import Fraction as F
-from pathlib import Path
+from importlib.resources import files
 from types import SimpleNamespace
 
 import pytest
@@ -112,16 +112,53 @@ def test_cooling_scopes_sampling_and_change_of_model():
 
 
 def test_archived_hardware_counts_and_projected_axis():
-    root = Path(__file__).resolve().parents[1] / "examples" / "readouts"
-    data = json.loads((root / "sherbrooke_counts.json").read_text())
-    layout = json.loads((root / "sherbrooke_layout.json").read_text())
-    for axis, expected in (("c0", 524), ("c3", 291)):
-        r = import_readout(data, {**layout, "axes": [axis]})
-        assert r["samples"] == 1024 and r["counts"]["1"] == expected
+    root = files("rcc_refcert.workflows").joinpath("data")
+    data = json.loads(root.joinpath("ibm_vigo_counts.json").read_bytes())
+    layout = json.loads(root.joinpath("ibm_vigo_layout.json").read_bytes())
+    # Third circuit in the Vigo source file, in its printed Q0-through-Q4 order.
+    expected = {
+        "00011": 1,
+        "10001": 1,
+        "00001": 21,
+        "00100": 22,
+        "00110": 1,
+        "00101": 909,
+        "00111": 13,
+        "01001": 1,
+        "01101": 14,
+        "01111": 1,
+        "10100": 1,
+        "10101": 39,
+    }
+    joint = import_readout(data, layout)
+    assert joint["counts"] == expected and joint["samples"] == 1024
+    reversed_layout = deepcopy(layout)
+    reversed_layout["registers"][0]["bits_lsb_first"].reverse()
+    for mapping, endpoints in ((layout, (41, 1000)), (reversed_layout, (1000, 41))):
+        for axis, ones in zip(("Q0", "Q4"), endpoints):
+            r = import_readout(data, {**mapping, "axes": [axis]})
+            assert r["samples"] == 1024 and r["counts"]["1"] == ones
     with pytest.raises(InputError):
         import_readout({"counts": {"01": 1}}, layout)
     with pytest.raises(InputError):
-        import_readout({"counts": {"0101": -1}}, layout)
+        import_readout({"counts": {"01010": -1}}, layout)
+
+
+def test_import_counts_cli_packaged_and_custom_paths(tmp_path, capsys):
+    args = ["study", "import-counts"]
+    assert main([*args, "--example", "ibm-vigo"]) == 0
+    sample = json.loads(capsys.readouterr().out)
+    assert sample["counts"]["00101"] == 909 and sample["samples"] == 1024
+    data = tmp_path / "observations.json"
+    layout = tmp_path / "layout.json"
+    data.write_text(json.dumps({"counts": {"10000": 3}}))
+    layout.write_text(json.dumps({**sample["layout"], "axes": ["Q0"]}))
+    assert main([*args, str(data), str(layout)]) == 0
+    assert json.loads(capsys.readouterr().out)["counts"] == {"1": 3}
+    assert main([*args, str(data)]) == 2
+    with pytest.raises(SystemExit) as error:
+        main([*args, str(data), str(layout), "--example", "ibm-vigo"])
+    assert error.value.code == 2
 
 
 def test_qiskit_adapter_preserves_shot_pairing_and_rejects_unselected_locations():

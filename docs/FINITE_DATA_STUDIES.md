@@ -218,20 +218,31 @@ Select one parameter point on every broadcast axis. For a two-dimensional grid p
 
 ### Check the mapping on a hardware file
 
-From the source checkout, run:
+The installed toolkit includes 1,024 shots from a five-qubit circuit on IBM
+Vigo. Import the archived histogram with its qubit layout:
 
 ```sh
-python -m rcc_refcert study import-counts examples/readouts/sherbrooke_counts.json examples/readouts/sherbrooke_layout.json
+python -m rcc_refcert study import-counts --example ibm-vigo
 ```
 
-These are 1,024 published shots from register `c_reg` on IBM Sherbrooke.
-Displaying classical axes in order c0, c1, c2, c3 yields 524 ones on c0
-and 291 on c3. Both bit orders preserve the shot total. This example
-checks the archived register data and makes no assumption about its physical
-preparation cost.
-[Original hardware counts](https://github.com/TriumDesigns/emergent-spacetime-quantum-circuits/blob/68850e5e7ae94f1e90200b6e4d764eff8d33a932/Emergence-quantum-exp/exp-1-4-qubit-emergence/run_emergence_ibm%20%20raw%20result%20counts%20and%20data.txt)
+The pyGSTi file displays the qubits from Q0 on the left to Q4 on the right.
+The output reproduces all 12 observed outcomes. The circuit's target string
+`00101` occurs 909 times. Q0 reads 1 on 41 shots and Q4 on 1,000 shots.
+Reversing the bit order exchanges these two counts while preserving the
+1,024-shot total.
 
-The [redistribution notice](../NOTICE.md) identifies the source and license of the four-qubit hardware counts.
+The [counts](../src/rcc_refcert/workflows/data/ibm_vigo_counts.json) preserve the printed strings. The
+[layout](../src/rcc_refcert/workflows/data/ibm_vigo_layout.json) names this five-bit field `vigo` and lists its
+bits from right to left, as required by `bits_lsb_first`. For your own
+histogram, supply both files to the same command:
+
+```sh
+python -m rcc_refcert study import-counts my_counts.json my_layout.json
+```
+
+Proctor et al. published the original pyGSTi record with their quantum
+processor benchmarks. The [source record](../src/rcc_refcert/workflows/data/ibm_vigo_source.json) identifies the
+archive member, row and conversion. [Dataset and license](../NOTICE.md)
 
 ## References
 
@@ -241,6 +252,5 @@ The [redistribution notice](../NOTICE.md) identifies the source and license of t
 - **Asymptotic limits of heat-bath algorithmic cooling.** Sadegh Raeisi and Michele Mosca,
   [Asymptotic Bound for Heat-Bath Algorithmic Cooling](https://doi.org/10.1103/PhysRevLett.114.100404),
   *Physical Review Letters* **114**, 100404 (2015).
-- **IBM Sherbrooke counts.** Ankitkumar Patel,
-  [Emergent Spacetime Signatures from Minimal Quantum Circuits: Entanglement, Entropy, and Real-Hardware Evidence](https://github.com/TriumDesigns/emergent-spacetime-quantum-circuits/blob/68850e5e7ae94f1e90200b6e4d764eff8d33a932/Emergent%20spacetime%20signatures%20on%20IBM%20quantum%20computer.pdf)
-  (2025). The 1,024 shots used to check register order come from the four-qubit experiment.
+- **IBM Vigo counts.** Timothy Proctor et al., [Measuring the capabilities of quantum computers](https://doi.org/10.1038/s41567-021-01409-7),
+  *Nature Physics* **18**, 75–79 (2022). [Benchmark data on Zenodo](https://doi.org/10.5281/zenodo.5197499)

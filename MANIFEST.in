@@ -21,5 +21,3 @@ recursive-include src/rcc_refcert/bundle_data *.json
 recursive-include src/rcc_refcert/workflows/data *.json
 include RCC_Workflows_Quickstart.ipynb
 recursive-include tests/fixtures *.rccbundle *.md
-
-recursive-include examples/readouts *.json

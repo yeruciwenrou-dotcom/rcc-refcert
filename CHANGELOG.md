@@ -24,8 +24,8 @@ window.
   three-qubit target at trace-distance tolerance 1/50. Joint counts track the
   target and bath before and after the final refresh. Both studies accept raw
   counts or joint Qiskit readouts and can be recomputed from a shared bundle. The
-  [IBM Sherbrooke example](docs/FINITE_DATA_STUDIES.md#check-the-mapping-on-a-hardware-file)
-  shows how to import hardware counts.
+  [IBM Vigo example](docs/FINITE_DATA_STUDIES.md#check-the-mapping-on-a-hardware-file)
+  uses archived five-qubit counts to check which bit belongs to each qubit.
 - **See which gain certificate supports a cost bound.** An empty or invalid
   certificate now gives a diagnostic for the submitted input. To try the
   automatic certificate as well, set `on_gain_failure` to `"auto"`. The

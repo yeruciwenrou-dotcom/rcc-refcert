@@ -8,8 +8,8 @@ dynamic = ["version"]
 description = "Certify lower bounds on optimal quantum circuit complexity from final-state data, compare preparation costs and map complexity across subsystems"
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
-license-files = ["LICENSE", "NOTICE.md"]
+license = "MIT AND CC-BY-4.0"
+license-files = ["LICENSE", "LICENSES/CC-BY-4.0.txt", "NOTICE.md"]
 authors = [
   {name = "HongZheng Liu"},
   {name = "YiNuo Tian"},

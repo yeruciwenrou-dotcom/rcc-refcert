@@ -4,30 +4,20 @@ The source code in this repository is released under the MIT License. Citation
 metadata for the software and associated RCC paper are provided in
 [`CITATION.cff`](CITATION.cff).
 
-## IBM Sherbrooke measurement counts
+## IBM Vigo measurement counts
 
-The `c_reg` counts in [sherbrooke_counts.json](examples/readouts/sherbrooke_counts.json)
-come from Ankitkumar Patel's [four-qubit hardware run](https://github.com/TriumDesigns/emergent-spacetime-quantum-circuits/blob/68850e5e7ae94f1e90200b6e4d764eff8d33a932/Emergence-quantum-exp/exp-1-4-qubit-emergence/run_emergence_ibm%20%20raw%20result%20counts%20and%20data.txt).
-The [upstream license](https://github.com/TriumDesigns/emergent-spacetime-quantum-circuits/blob/68850e5e7ae94f1e90200b6e4d764eff8d33a932/LICENSE) follows.
+Timothy Proctor, Kenneth Rudinger, Erik Nielsen, Kevin Young and Robin
+Blume-Kohout published the counts in *Measuring the Capabilities of Quantum
+Computers* (2021). The data are licensed under [Creative Commons Attribution
+4.0 International](https://creativecommons.org/licenses/by/4.0/).
+[Original dataset](https://doi.org/10.5281/zenodo.5197499) ·
+[Associated paper](https://doi.org/10.1038/s41567-021-01409-7) ·
+[License text](LICENSES/CC-BY-4.0.txt)
 
-MIT License
-
-Copyright (c) 2025 Trium Designs Pvt. Ltd.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+The [packaged histogram](src/rcc_refcert/workflows/data/ibm_vigo_counts.json)
+transcribes the 12 nonzero outcome-count pairs on line 4 (including the
+header) of `supplement/data/ibmq_vigo/11_06_19/data/dataset.txt`. It
+preserves the bit strings and counts printed in that pyGSTi record. RCC
+RefCert supplies a [qubit layout](src/rcc_refcert/workflows/data/ibm_vigo_layout.json)
+and [source metadata](src/rcc_refcert/workflows/data/ibm_vigo_source.json) for
+the JSON conversion.
