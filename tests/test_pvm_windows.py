@@ -495,7 +495,11 @@ def test_comparison_report_uses_both_window_intervals_in_either_input_order():
 def test_retention_export_separates_conditional_interval_and_discounted_lower(tmp_path):
     import csv
 
-    from rcc_refcert.workflows import analyze_pvm_windows, export_window_files
+    from rcc_refcert.workflows import (
+        analyze_pvm_windows,
+        export_window_files,
+        render_workflow_result,
+    )
 
     request = fixture("retained-counts")
     result = analyze_pvm_windows(request)
@@ -511,6 +515,11 @@ def test_retention_export_separates_conditional_interval_and_discounted_lower(tm
     )
     assert float(discounted["lower_st_R"]) == pytest.approx(0.35268060472)
     assert (discounted["retained"], discounted["discarded"]) == ("20000", "5000")
+    report = render_workflow_result(result)
+    assert (
+        "25,000 trials (synthetic counts, 20,000 retained and 5,000 discarded)"
+        in " ".join(report.split())
+    )
     entry = request["batches"][0]
     entry["protocol"]["samples"] = 4096
     entry["protocol"]["retention"]["method"] = "clopper_pearson"
@@ -597,6 +606,7 @@ def test_exports_distinguish_zero_retained_shots_from_zero_probability(
         "retention_weighted_exact" if known_zero else "retention_weighted_lower"
     )
     report = render_workflow_result(result, format="markdown")
+    assert "25,000 trials (synthetic counts, 0 retained and 25,000 discarded)" in report
     assert ("contribution is exactly 0 st_R" in report) == known_zero
     if find_spec("matplotlib"):
         from matplotlib import rc_context

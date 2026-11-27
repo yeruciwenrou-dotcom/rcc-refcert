@@ -144,9 +144,15 @@ def render_pvm(record, *, markdown=False, details=False):
             "simulation": "simulated counts",
             "synthetic_fixture": "synthetic counts",
         }[batch["origin"]]
-        lines.append(
-            f"{batch['event_id']}: {batch['analyzed_samples']} trials ({origin})."
-        )
+        retention = batch["retention"]
+        trials = batch["analyzed_samples"]
+        sampling = origin
+        if retention:
+            kept, discarded = retention["retained"], retention["discarded"]
+            trials = kept + discarded
+            sampling = f"{origin}, {kept:,} retained and {discarded:,} discarded"
+        unit = "trial" if trials == 1 else "trials"
+        lines.append(f"{batch['event_id']}: {trials:,} {unit} ({sampling}).")
         if details:
             lines.extend(
                 [
@@ -159,17 +165,20 @@ def render_pvm(record, *, markdown=False, details=False):
             lines.append(
                 "The measured blocks give a lower bound for the containing quantum window."
             )
-        if batch["retention"]:
-            r = batch["retention"]
-            shots = f"Of the shots, {r['retained']} were retained and {r['discarded']} discarded."
-            if "discounted_state_exact_st_R" in r:
-                value = decimal_string(Fraction(r["discounted_state_exact_st_R"]), 9)
+        if retention:
+            if "discounted_state_exact_st_R" in retention:
+                value = decimal_string(
+                    Fraction(retention["discounted_state_exact_st_R"]), 9
+                )
                 lines.append(
-                    f"{shots} The retention-weighted contribution is exactly {value} st_R."
+                    f"The retention-weighted contribution is exactly {value} st_R."
                 )
             else:
+                value = decimal_string(
+                    Fraction(retention["discounted_state_lower_st_R"]), 9
+                )
                 lines.append(
-                    f"{shots} The retention-weighted lower bound for the projected state is {decimal_string(Fraction(r['discounted_state_lower_st_R']), 9)} st_R."
+                    f"The retention-weighted lower bound for the projected state is {value} st_R."
                 )
         for point in batch["process"]:
             cost = point["cost"]
