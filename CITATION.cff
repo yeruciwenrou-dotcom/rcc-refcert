@@ -4,9 +4,7 @@ title: "RCC RefCert: A Research Toolkit for Structure-Fair Quantum Circuit Compl
 type: software
 version: 0.4.0
 url: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
-license:
-  - MIT
-  - CC-BY-4.0
+license: MIT
 repository-code: "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 abstract: >-
   RCC RefCert is an open-source toolkit for studying quantum circuit
@@ -74,3 +72,20 @@ preferred-citation:
   year: 2025
   journal: "arXiv preprint arXiv:2509.18205"
   doi: "10.48550/arXiv.2509.18205"
+references:
+  - type: data
+    title: "Measuring the Capabilities of Quantum Computers"
+    authors:
+      - family-names: Proctor
+        given-names: Timothy
+      - family-names: Rudinger
+        given-names: Kenneth
+      - family-names: Nielsen
+        given-names: Erik
+      - family-names: Young
+        given-names: Kevin
+      - family-names: Blume-Kohout
+        given-names: Robin
+    year: 2021
+    doi: "10.5281/zenodo.5197499"
+    license: CC-BY-4.0
