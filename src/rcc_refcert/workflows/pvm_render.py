@@ -6,6 +6,7 @@ from collections import defaultdict
 from decimal import ROUND_CEILING
 from fractions import Fraction
 from math import log2
+from os.path import commonprefix
 from textwrap import TextWrapper
 from typing import NamedTuple
 
@@ -90,6 +91,55 @@ def _scope_label(row, shared_name):
     if shared_name and row.quantity == "classical_correlation":
         return "correlation between the measured outcomes"
     return "measured classical window"
+
+
+def _comparisons(record):
+    by_event = {batch["event_id"]: batch for batch in record["batches"]}
+    acquisitions_by_pair = defaultdict(set)
+    comparisons = []
+    for comparison in record.get("comparisons", []):
+        events = comparison["events"]
+        left, right = (by_event[event] for event in events)
+        key = (left["window_id"], frozenset((left["state_id"], right["state_id"])))
+        acquisitions_by_pair[key].add(frozenset(events))
+        comparisons.append((key, left, right, comparison["difference_lower_st_R"]))
+    for key, left, right, difference in comparisons:
+        yield left, right, difference, len(acquisitions_by_pair[key]) > 1
+
+
+def _comparison_plot_label(left, right, label_datasets, source_rows):
+    wrap = TextWrapper(width=38, break_on_hyphens=False)
+
+    def name(batch, field):
+        value = " ".join(batch[field].split())
+        if len(value) <= 3 * wrap.width:
+            return value
+        head, tail = value[: wrap.width].rstrip(), value[-24:].lstrip()
+        other = right if batch is left else left
+        other_value = " ".join(other[field].split())
+        if (
+            value != other_value
+            and value[: wrap.width] == other_value[: wrap.width]
+            and value[-24:] == other_value[-24:]
+        ):
+            start = len(commonprefix((value, other_value))) - 8
+            head = f"{value[:12].rstrip()} … {value[start : start + 24].strip()}"
+        number = source_rows[batch["event_id"]]
+        return f"{head} … {tail} [row {number}]"
+
+    window = name(left, "window_id")
+    if left["state_id"] == right["state_id"]:
+        a, b = name(left, "dataset_id"), name(right, "dataset_id")
+        window = f"{name(left, 'state_id')} / {window}"
+    else:
+        a, b = name(left, "state_id"), name(right, "state_id")
+        if label_datasets or a == b:
+            a += f" ({name(left, 'dataset_id')})"
+            b += f" ({name(right, 'dataset_id')})"
+    relation = f"{a} minus {b}"
+    if len(relation) > wrap.width:
+        relation = wrap.fill(a) + "\n" + wrap.fill(f"minus {b}")
+    return relation + "\n" + wrap.fill(window)
 
 
 def _comparison_line(left, right, forward, *, label_datasets):
@@ -198,22 +248,9 @@ def render_pvm(record, *, markdown=False, details=False):
         if mixed_scopes or shared_name:
             label += f" ({_scope_label(row, shared_name)})"
         lines.append(f"{label}: {value}")
-    by_event = {b["event_id"]: b for b in record["batches"]}
-    comparisons = []
-    acquisitions_by_pair = defaultdict(set)
-    for comparison in record["comparisons"]:
-        left, right = (by_event[event] for event in comparison["events"])
-        key = (left["window_id"], frozenset((left["state_id"], right["state_id"])))
-        acquisitions_by_pair[key].add(frozenset(comparison["events"]))
-        comparisons.append((key, left, right, comparison["difference_lower_st_R"]))
-    for key, left, right, difference in comparisons:
+    for left, right, difference, label_datasets in _comparisons(record):
         lines.append(
-            _comparison_line(
-                left,
-                right,
-                difference,
-                label_datasets=len(acquisitions_by_pair[key]) > 1,
-            )
+            _comparison_line(left, right, difference, label_datasets=label_datasets)
         )
     for batch in record["batches"]:
         origin = COUNT_ORIGIN_LABELS[batch["origin"]]
@@ -299,9 +336,13 @@ def export_pvm(record, csv_path, plot_path, overwrite):
     from .render import PLOT_FAILURE_MESSAGES
     from .windows import save_window_figure
 
-    by_event = {b["event_id"]: b for b in record["batches"]}
     rows = list(_rows(record))
-    for event, batch in by_event.items():
+    source_rows = {
+        row.event_id: number
+        for number, row in enumerate(rows, 1)
+        if row.quantity == "measurement_window"
+    }
+    for batch in record["batches"]:
         r = batch["retention"]
         if r:
             exact = r.get("discounted_state_exact_st_R")
@@ -313,7 +354,7 @@ def export_pvm(record, csv_path, plot_path, overwrite):
                     exact,
                     "exact" if exact is not None else batch["status"],
                     batch["dataset_id"],
-                    event,
+                    batch["event_id"],
                     "retention_weighted_exact"
                     if exact is not None
                     else "retention_weighted_lower",
@@ -323,23 +364,27 @@ def export_pvm(record, csv_path, plot_path, overwrite):
                     "measurement_window",
                 )
             )
-    for comparison in record.get("comparisons", []):
-        left, right = (by_event[event] for event in comparison["events"])
+    comparison_labels = {}
+    for left, right, difference, label_datasets in _comparisons(record):
+        if plot_path is not None:
+            comparison_labels[len(rows)] = _comparison_plot_label(
+                left, right, label_datasets, source_rows
+            )
         reverse = _window_difference_lower(right, left)
         key = "state_id" if left["state_id"] != right["state_id"] else "dataset_id"
         rows.append(
             _WindowExportRow(
                 f"{left[key]} minus {right[key]}",
                 left["window_id"],
-                comparison["difference_lower_st_R"],
+                difference,
                 decimal_string(-Fraction(reverse), rounding=ROUND_CEILING)
                 if reverse is not None
                 else None,
                 "ordering_undetermined"
-                if reverse is None and comparison["difference_lower_st_R"] is None
+                if reverse is None and difference is None
                 else "comparison",
                 f"{left['dataset_id']} minus {right['dataset_id']}",
-                " minus ".join(comparison["events"]),
+                f"{left['event_id']} minus {right['event_id']}",
                 "signed_difference",
                 None,
                 None,
@@ -381,12 +426,14 @@ def export_pvm(record, csv_path, plot_path, overwrite):
     for index, row in enumerate(rows):
         lo, hi = row.lower_st_R, row.upper_st_R
         wrap = TextWrapper(width=38, max_lines=2, placeholder=f"… [row {index + 1}]")
-        label = wrap.fill(f"{row.state} / {row.window}")
-        if label.endswith(wrap.placeholder):
-            state_label = TextWrapper(
-                width=38, max_lines=1, placeholder=wrap.placeholder
-            ).fill(row.state)
-            label = state_label + "\n" + wrap.fill(row.window)
+        label = comparison_labels.get(index)
+        if label is None:
+            label = wrap.fill(f"{row.state} / {row.window}")
+            if label.endswith(wrap.placeholder):
+                state_label = TextWrapper(
+                    width=38, max_lines=1, placeholder=wrap.placeholder
+                ).fill(row.state)
+                label = state_label + "\n" + wrap.fill(row.window)
         if row.retained is not None:
             label += (
                 "\n"
@@ -399,7 +446,7 @@ def export_pvm(record, csv_path, plot_path, overwrite):
             if single_retention is None:
                 label += f"\n{row.retained:,} retained / {row.discarded:,} discarded"
         key = (row.state, row.window)
-        if len(datasets[key]) > 1:
+        if row.kind != "signed_difference" and len(datasets[key]) > 1:
             label += "\n" + TextWrapper(
                 width=38, max_lines=3, placeholder=wrap.placeholder
             ).fill(row.dataset_id)

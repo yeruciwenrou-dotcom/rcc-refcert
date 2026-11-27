@@ -669,6 +669,112 @@ def test_comparison_sentences_identify_each_repeated_measurement():
         )
 
 
+@pytest.mark.parametrize(
+    "case", ["single", "same_order", "opposite_order", "same_state"]
+)
+def test_plotted_window_differences_identify_both_measurements(
+    tmp_path, monkeypatch, case
+):
+    import csv
+
+    pytest.importorskip("matplotlib")
+    from rcc_refcert.workflows import export_window_files, windows
+
+    request = fixture("bell-ghz-counts")
+    originals = request["batches"]
+    request["batches"], request["comparisons"] = [], []
+    runs = ["Primary", "Pilot"] if case.endswith("_order") else ["Primary"]
+    prefix = (
+        "Reference preparation after calibration and readout of the two-qubit system"
+    )
+    expected_labels = []
+    for run in runs:
+        pair, names = [], []
+        for original in originals:
+            entry = deepcopy(original)
+            protocol, data = entry["protocol"], entry["data"]
+            short_name = protocol["state_id"]
+            state = prefix if case == "same_state" else f"{prefix} {short_name}"
+            dataset = f"{run} {short_name}"
+            event = dataset + " acquisition"
+            protocol.update(state_id=state, dataset_id=dataset, event_id=event)
+            data["dataset_id"] = dataset
+            freeze(entry)
+            request["batches"].append(entry)
+            pair.append(event)
+            if case == "same_state":
+                names.append(dataset)
+            elif len(runs) > 1:
+                names.append(f"{state} ({dataset})")
+            else:
+                names.append(state)
+        if case == "opposite_order" and run == "Pilot":
+            pair.reverse()
+            names.reverse()
+        request["comparisons"].append(pair)
+        window = "Bell-basis blocks"
+        if case == "same_state":
+            window = f"{prefix} / {window}"
+        expected_labels.append(f"{names[0]} minus {names[1]} {window}")
+
+    csv_path = tmp_path / "windows.csv"
+
+    def inspect(fig, path, overwrite):
+        fig.canvas.draw()
+        ax = fig.axes[0]
+        boxes = [
+            label.get_window_extent(fig.canvas.get_renderer())
+            for label in ax.get_yticklabels()
+        ]
+        assert all(fig.bbox.contains(box.x0, box.y0) for box in boxes)
+        assert all(upper.y0 > lower.y1 for upper, lower in pairwise(boxes))
+        labels = ax.get_yticklabels()[-len(runs) :]
+        assert [
+            " ".join(label.get_text().split()) for label in labels
+        ] == expected_labels
+        with csv_path.open(newline="") as handle:
+            rows = [
+                r for r in csv.DictReader(handle) if r["kind"] == "signed_difference"
+            ]
+        for event_pair, row, line, label in zip(
+            request["comparisons"],
+            rows,
+            ax.collections[-len(runs) :],
+            labels,
+            strict=True,
+        ):
+            assert row["event_id"] == " minus ".join(event_pair)
+            (segment,) = line.get_segments()
+            y = label.get_position()[1]
+            assert tuple(segment[0]) == (float(row["lower_st_R"]), y)
+            assert tuple(segment[1]) == (float(row["upper_st_R"]), y)
+
+    monkeypatch.setattr(windows, "save_window_figure", inspect)
+    export_window_files(
+        analyze_windows(request), csv_path=csv_path, plot_path=tmp_path / "windows.png"
+    )
+
+
+def test_abbreviated_plot_operands_keep_their_distinguishing_text():
+    from rcc_refcert.workflows.pvm_render import _comparison_plot_label
+
+    left, right = [b["protocol"] for b in fixture("bell-ghz-counts")["batches"]]
+    for batch, name in ((left, "Bell-pair"), (right, "GHZ-pair")):
+        batch["state_id"] = "x" * 1950 + name + "y" * 1950
+        batch["window_id"] = batch["measurement"]["window"]
+    rows = {left["event_id"]: 1, right["event_id"]: 2}
+    for a, b, first, second in (
+        (left, right, "Bell-pair", "GHZ-pair"),
+        (right, left, "GHZ-pair", "Bell-pair"),
+    ):
+        label = " ".join(_comparison_plot_label(a, b, False, rows).split())
+        before, after = label.split(" minus ")
+        assert first in before and second in after
+        assert f"[row {rows[a['event_id']]}]" in before
+        assert f"[row {rows[b['event_id']]}]" in after
+        assert len(label) < 300
+
+
 def test_retention_export_separates_conditional_interval_and_discounted_lower(tmp_path):
     import csv
 
