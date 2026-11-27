@@ -108,9 +108,10 @@ In Windows PowerShell 5.1, use this command for the template step to save
 python -m rcc_refcert bound template spectrum | Out-File -Encoding ascii -FilePath spectrum.json
 ```
 
-The template supplies a four-dimensional target spectrum and the model
-parameters. The integer lower bound is **one atomic slot**. Every circuit
-that prepares this target to the stated accuracy must use at least one slot.
+In the supplied model, every circuit that prepares the four-dimensional target
+to the stated accuracy needs at least **one atomic slot**. In 0.4.0, the report
+also gives the calibrated one-shot reading in R-structons (`st_R`) and shows
+the entropy deficit, the gain from spectral skew and the loss from smoothing in bits.
 To run your own calculation, replace the spectrum and model parameters in
 `spectrum.json`, or follow the [measurement protocol](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/TERMINAL_BOUNDS.md#fixed-projector-counts)
 for projector counts. The [terminal-state guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/TERMINAL_BOUNDS.md)
@@ -396,17 +397,23 @@ The values are `True`, `15/14` numerically, and `"fail"` for the deliberately
 failed local gain–cost test in the [reference cases](#reference-cases). The model
 still passes its supplied Bellman–Choi and reference-potential certificate checks.
 
-The [model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/MODEL_GUIDE.md) shows how to build a model with `Action`
-and `FiniteControlModel`, audit it, and verify supplied certificates. For
-target-state calculations, the [bounds guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/TERMINAL_BOUNDS.md) covers
-`bound_from_spectrum`, `bound_from_counts`, `prepare_protocol`,
-`with_reference_certificate`, `validate_record` and `replay_record`.
+The [model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/MODEL_GUIDE.md) shows how to build a controller with `Action` and
+`FiniteControlModel` and verify its reference certificate. In `rcc_refcert`,
+`bound_from_spectrum` gives a circuit complexity lower bound from an exact target
+spectrum. For a binary measurement, `plan_counts` can [choose a sample size for a cost threshold](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/TERMINAL_BOUNDS.md#plan-a-fixed-sample-size).
+Use `prepare_effect_protocol` to fix the measurement before sampling and
+`bound_from_counts` to [certify a bound from target and reference counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/TERMINAL_BOUNDS.md#target-and-reference-counts-for-the-same-effect).
 
-For preparation costs and subsystem complexity profiles, import from
-`rcc_refcert.workflows`.
-The [workflow guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/COST_AND_WINDOWS.md) introduces
-`analyze_cost`, `compare_cost_results`, `analyze_windows`, `export_probe` and
-`save_workflow_bundle` with executable examples.
+In `rcc_refcert.workflows`, `analyze_windows` maps subsystem complexity from a
+density matrix. With complete projective histograms, `analyze_pvm_windows`
+[bounds one state's window RCC or the difference between two states measured in the same window](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/COST_AND_WINDOWS.md#finite-sample-windows).
+
+To compare preparation programs, `analyze_cost` and `compare_cost_results` show
+how close a feasible program comes to the lower bound. If you already have a lower bound
+and a verified feasible upper bound in atomic slots, `compose_interval`
+[combines them for the same task at compatible tolerances](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/COST_AND_WINDOWS.md#a-complete-cost-task).
+The guides also show how to [replay a bound calculation](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/TERMINAL_BOUNDS.md#records-zero-results-and-replay)
+and [share a workflow for independent verification](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/COST_AND_WINDOWS.md#share-and-reverify-a-workflow).
 
 ## Why reference-contingent complexity
 
@@ -467,10 +474,11 @@ reading in R-structons ($\mathrm{st}_R$), with
 $1\thinspace\mathrm{st}_R = g_R$ bits. It is the linear leading term of the
 lower bound under the paper's regularity conditions.
 
-Two mixed states with the same entropy have the same global RCC reading at
-this reference and control scale. If one has a larger maximum eigenvalue, its
+At this reference and control scale, two mixed states with the same entropy
+have the same global RCC reading. In the [three-qubit example](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/TERMINAL_BOUNDS.md#equal-entropy-different-one-shot-complexity-evidence),
+one state has a larger maximum eigenvalue and therefore greater
 spectral skew, $\Delta_{\rm spec}(\rho)=S(\rho)-H_{\min}(\rho)\geq 0$,
-is greater. This term adds to the entropy deficit before smoothing and can
+which adds to the entropy deficit before smoothing and can
 tighten the one-shot lower bound on circuit complexity. The
 [scientific scope](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/SCIENTIFIC_SCOPE.md#from-state-information-to-process-cost)
 gives the full cost bound, including the smoothing loss at the chosen
@@ -550,6 +558,12 @@ budgets are checked before enumeration or dense matrix construction, and
 unresolved precision is reported explicitly. The
 [model guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/MODEL_GUIDE.md#numerical-and-resource-limits)
 describes limits and certificate error budgets.
+
+On a many-qubit device, target and reference counts for a prespecified binary
+event can certify a circuit complexity lower bound in a qualified model without
+full state tomography. A [coarse projective measurement](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/COST_AND_WINDOWS.md#finite-sample-windows)
+can likewise bound the RCC visible in that window from a complete histogram
+over a few outcomes. Resolving a rare event may still require many shots.
 
 ## Further reading
 
