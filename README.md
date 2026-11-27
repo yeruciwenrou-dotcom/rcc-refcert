@@ -10,6 +10,10 @@ lower bound on optimal quantum circuit complexity** from final-state data.
 Use the target state's exact spectrum or counts collected under a
 prespecified measurement protocol.
 
+The toolkit is based on **Reference-Contingent Complexity (RCC)**, introduced by
+Liu, Tian and Wu in
+*[Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound](https://arxiv.org/abs/2509.18205)*.
+
 **Model certification and optimality.** You can build a preparation model
 with measurement, feed-forward and reset, then certify its reference upper
 bound. In an exact diagonal-preserving model, a program that reaches the
@@ -17,23 +21,20 @@ target within tolerance is provably optimal if its cost matches the lower
 bound. If its cost is higher, the gap limits how much a better program for
 the same task could save.
 
-**Window RCC.** A density matrix lets you map complexity across the
-subsystems of a pure or mixed state. Counts for all outcomes of a projective
-measurement give a confidence interval for the state's RCC reading in the
-measured classical window. With the same measurement on two states, you can
-also compute a confidence interval for the difference between their readings.
+**How complexity varies across subsystems and states.** A density matrix
+lets you map complexity across the subsystems of a pure or mixed state.
+Counts for all outcomes of a projective measurement give a confidence
+interval for the state's RCC reading in the measured classical window.
+With the same measurement on two states, you can also compute a confidence
+interval for the difference between their readings.
 
 **Hardware counts.** Import the published counts from IBM's five-qubit
 Vigo processor. The bundled histogram records 1,024 shots of a single circuit.
 The same command reads counts from your own experiment when you specify which
 qubit each readout bit represents. [Run the IBM Vigo example](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/a3965776a63ec4c49348d1f843f61826d329a3fa/docs/FINITE_DATA_STUDIES.md#check-the-mapping-on-a-hardware-file).
 
-Share the inputs and results in a single evidence bundle so a colleague can
-independently recompute the analysis.
-
-The toolkit is based on **Reference-Contingent Complexity (RCC)**, introduced by
-Liu, Tian and Wu in
-[*Structure-Fair Quantum Circuit Complexity: An Auditable Information-Theoretic Lower Bound*](https://arxiv.org/abs/2509.18205).
+**Independent verification.** Share the inputs and results in a single
+evidence bundle so a colleague can recompute the analysis.
 
 ## Features of reference-contingent complexity
 
