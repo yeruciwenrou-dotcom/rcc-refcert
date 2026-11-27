@@ -522,3 +522,91 @@ def test_retention_export_separates_conditional_interval_and_discounted_lower(tm
 
     with pytest.raises(BudgetError):
         freeze(entry)
+
+
+def test_export_names_the_scope_and_an_undetermined_comparison(tmp_path):
+    import csv
+    from importlib.util import find_spec
+
+    from rcc_refcert.workflows import export_window_files
+
+    request = fixture("bell-ghz-counts")
+    for entry in request["batches"]:
+        entry["protocol"]["measurement"]["window_scope"] = "containing_quantum"
+        freeze(entry)
+    result = analyze_windows(request)
+    path = tmp_path / "pair.csv"
+    export_window_files(result, csv_path=path)
+    with path.open(newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert {row["window_scope"] for row in rows} == {"containing_quantum"}
+    comparison = rows[-1]
+    assert comparison["status"] == "ordering_undetermined"
+    assert comparison["lower_st_R"] == comparison["upper_st_R"] == ""
+    if find_spec("matplotlib"):
+        from matplotlib import rc_context
+
+        svg = tmp_path / "pair.svg"
+        with rc_context({"svg.fonttype": "none"}):
+            export_window_files(result, plot_path=svg)
+        assert "Ordering undetermined" in svg.read_text()
+
+    # The local projective marginals and their correlation still describe classical outcomes.
+    request = fixture("product-counts")
+    entry = request["batches"][0]
+    entry["protocol"]["measurement"]["window_scope"] = "containing_quantum"
+    freeze(entry)
+    export_window_files(analyze_windows(request), csv_path=path, overwrite=True)
+    with path.open(newline="") as stream:
+        joint, *components = csv.DictReader(stream)
+    assert joint["window_scope"] == "containing_quantum"
+    assert len(components) == 3
+    assert all(row["window_scope"] == "classical_blocks" for row in components)
+
+
+@pytest.mark.parametrize("known_zero", [False, True])
+def test_exports_distinguish_zero_retained_shots_from_zero_probability(
+    tmp_path, known_zero
+):
+    import csv
+    from importlib.util import find_spec
+
+    from rcc_refcert.workflows import export_window_files, render_workflow_result
+
+    request = fixture("retained-counts")
+    entry = request["batches"][0]
+    protocol = entry["protocol"]
+    entry["data"].update(counts={}, discarded=protocol["samples"])
+    if known_zero:
+        protocol["retention"] = {
+            "state": "normalized_projected",
+            "method": "known",
+            "probability": "0",
+            "source": "Declared zero retention probability for this preparation.",
+        }
+    freeze(entry)
+    result = analyze_windows(request)
+    path = tmp_path / "retained.csv"
+    export_window_files(result, csv_path=path)
+    with path.open(newline="") as stream:
+        conditional, weighted = csv.DictReader(stream)
+    assert conditional["lower_st_R"] == conditional["upper_st_R"] == ""
+    assert weighted["lower_st_R"] == "0"
+    assert weighted["upper_st_R"] == ("0" if known_zero else "")
+    assert weighted["kind"] == (
+        "retention_weighted_exact" if known_zero else "retention_weighted_lower"
+    )
+    report = render_workflow_result(result, format="markdown")
+    assert ("contribution is exactly 0 st_R" in report) == known_zero
+    if find_spec("matplotlib"):
+        from matplotlib import rc_context
+
+        svg = tmp_path / "retained.svg"
+        with rc_context({"svg.fonttype": "none"}):
+            export_window_files(result, plot_path=svg)
+        drawing = svg.read_text()
+        assert ("Exact value" in drawing) == known_zero
+        assert ("One-sided lower bound" in drawing) != known_zero
+        assert (
+            "Conditional state undefined" if known_zero else "No retained observations"
+        ) in drawing

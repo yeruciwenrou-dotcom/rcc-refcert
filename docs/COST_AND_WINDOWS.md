@@ -537,12 +537,16 @@ python -m rcc_refcert window analyze windows.json --format markdown --output rep
 
 Install `.[plots]` from this checkout; ordinary analysis only needs NumPy.
 Plotting supports SVG, PNG and PDF and is limited to 128 displayed rows.
-For complete projective readouts, each CSV row identifies the dataset and
-sampling event. When two acquisitions share a state and window, their plot
-labels also show the dataset. Each horizontal row corresponds to one CSV
+For complete projective readouts, each CSV row identifies the dataset,
+sampling event and window scope. When two acquisitions share a state and
+window, their plot labels also show the dataset. Each horizontal row corresponds to one CSV
 data row. Exceptionally long labels include its row number. A dot and an
 end cap mark a two-sided interval. A right-pointing triangle marks a
-one-sided lower bound.
+one-sided lower bound. If two lower bounds leave the ordering open, the
+difference row reads “Ordering undetermined” and its CSV endpoints are empty.
+For a branch with known zero retention probability, a diamond marks the exact
+zero weighted contribution. When retention probability is estimated from
+counts, zero retained shots gives a one-sided lower bound of zero.
 Missing optional plotting dependencies preserve the computed scientific result
 and mark the presentation step partial. Output files are exclusive by default;
 `--overwrite` explicitly selects atomic replacement. Inputs and output paths

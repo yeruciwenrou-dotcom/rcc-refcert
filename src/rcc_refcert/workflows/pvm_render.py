@@ -7,6 +7,7 @@ from decimal import ROUND_CEILING
 from fractions import Fraction
 from math import log2
 from textwrap import TextWrapper
+from typing import NamedTuple
 
 from ..bounds.scalar import decimal_string
 from .pvm import _window_difference_lower
@@ -28,6 +29,7 @@ def _rows(record):
                 batch["status"],
                 batch["dataset_id"],
                 batch["event_id"],
+                window["scope"] if window else batch["window_scope"],
             )
         if batch["product"]:
             c = batch["product"]["classical_correlation_st_R"]
@@ -39,6 +41,7 @@ def _rows(record):
                 batch["status"],
                 batch["dataset_id"],
                 batch["event_id"],
+                "classical_blocks",
             )
 
 
@@ -123,7 +126,7 @@ def render_pvm(record, *, markdown=False, details=False):
     missing_by_reason = {}
     rows = list(_rows(record))
     repeated = Counter((state, name) for state, name, *_ in rows)
-    for state, name, lo, hi, status, dataset, _ in rows:
+    for state, name, lo, hi, status, dataset, _, _ in rows:
         if lo is None:
             value = status.replace("_", " ")
         else:
@@ -158,9 +161,16 @@ def render_pvm(record, *, markdown=False, details=False):
             )
         if batch["retention"]:
             r = batch["retention"]
-            lines.append(
-                f"Of the shots, {r['retained']} were retained and {r['discarded']} discarded. The retention-weighted lower bound for the projected state is {decimal_string(Fraction(r['discounted_state_lower_st_R']), 9)} st_R."
-            )
+            shots = f"Of the shots, {r['retained']} were retained and {r['discarded']} discarded."
+            if "discounted_state_exact_st_R" in r:
+                value = decimal_string(Fraction(r["discounted_state_exact_st_R"]), 9)
+                lines.append(
+                    f"{shots} The retention-weighted contribution is exactly {value} st_R."
+                )
+            else:
+                lines.append(
+                    f"{shots} The retention-weighted lower bound for the projected state is {decimal_string(Fraction(r['discounted_state_lower_st_R']), 9)} st_R."
+                )
         for point in batch["process"]:
             cost = point["cost"]
             lines.append(
@@ -206,13 +216,27 @@ def render_pvm(record, *, markdown=False, details=False):
     return ("\n\n" if markdown else "\n").join(lines) + "\n"
 
 
+class _WindowExportRow(NamedTuple):
+    state: str
+    window: str
+    lower_st_R: str | None
+    upper_st_R: str | None
+    status: str
+    dataset_id: str
+    event_id: str
+    kind: str
+    retained: int | None
+    discarded: int | None
+    window_scope: str
+
+
 def export_pvm(record, csv_path, plot_path, overwrite):
     from .cli import write_atomic
     from .windows import save_window_figure
 
     by_event = {b["event_id"]: b for b in record["batches"]}
     rows = []
-    for state, name, lo, hi, status, dataset, event in _rows(record):
+    for state, name, lo, hi, status, dataset, event, scope in _rows(record):
         retention = by_event[event]["retention"]
         kept, discarded = (
             (retention["retained"], retention["discarded"])
@@ -221,23 +245,39 @@ def export_pvm(record, csv_path, plot_path, overwrite):
         )
         kind = "conditional_window" if retention else "measured_window"
         rows.append(
-            (state, name, lo, hi, status, dataset, event, kind, kept, discarded)
+            _WindowExportRow(
+                state,
+                name,
+                lo,
+                hi,
+                status,
+                dataset,
+                event,
+                kind,
+                kept,
+                discarded,
+                scope,
+            )
         )
     for event, batch in by_event.items():
         r = batch["retention"]
         if r:
+            exact = r.get("discounted_state_exact_st_R")
             rows.append(
-                (
+                _WindowExportRow(
                     batch["state_id"],
                     batch["window_id"],
-                    r["discounted_state_lower_st_R"],
-                    None,
-                    batch["status"],
+                    exact if exact is not None else r["discounted_state_lower_st_R"],
+                    exact,
+                    "exact" if exact is not None else batch["status"],
                     batch["dataset_id"],
                     event,
-                    "retention_weighted_lower",
+                    "retention_weighted_exact"
+                    if exact is not None
+                    else "retention_weighted_lower",
                     r["retained"],
                     r["discarded"],
+                    batch["window_scope"],
                 )
             )
     for comparison in record.get("comparisons", []):
@@ -245,38 +285,28 @@ def export_pvm(record, csv_path, plot_path, overwrite):
         reverse = _window_difference_lower(right, left)
         key = "state_id" if left["state_id"] != right["state_id"] else "dataset_id"
         rows.append(
-            (
+            _WindowExportRow(
                 f"{left[key]} minus {right[key]}",
                 left["window_id"],
                 comparison["difference_lower_st_R"],
                 decimal_string(-Fraction(reverse), rounding=ROUND_CEILING)
                 if reverse is not None
                 else None,
-                "comparison",
+                "ordering_undetermined"
+                if reverse is None and comparison["difference_lower_st_R"] is None
+                else "comparison",
                 f"{left['dataset_id']} minus {right['dataset_id']}",
                 " minus ".join(comparison["events"]),
                 "signed_difference",
                 None,
                 None,
+                left["window_scope"],
             )
         )
     if csv_path is not None:
         stream = io.StringIO(newline="")
         writer = csv.writer(stream)
-        writer.writerow(
-            (
-                "state",
-                "window",
-                "lower_st_R",
-                "upper_st_R",
-                "status",
-                "dataset_id",
-                "event_id",
-                "kind",
-                "retained",
-                "discarded",
-            )
-        )
+        writer.writerow(_WindowExportRow._fields)
         writer.writerows(rows)
         write_atomic(csv_path, stream.getvalue(), overwrite=overwrite)
     if plot_path is None:
@@ -296,44 +326,77 @@ def export_pvm(record, csv_path, plot_path, overwrite):
         }
         return
     fig, ax = figure
-    repeated = Counter((state, name) for state, name, *_ in rows)
+    repeated = Counter((row.state, row.window) for row in rows)
     labels, positions = [], []
     height = 0.0
     color = "#266c85"
     single_retention = (
         record["batches"][0]["retention"] if len(record["batches"]) == 1 else None
     )
-    for index, (state, name, lo, hi, _, dataset, _, kind, kept, discarded) in enumerate(
-        rows
-    ):
+    scope_labels = {
+        "classical_blocks": "Measured classical window",
+        "containing_quantum": "Containing quantum window",
+    }
+    scopes = {row.window_scope for row in rows}
+    for index, row in enumerate(rows):
+        lo, hi = row.lower_st_R, row.upper_st_R
         wrap = TextWrapper(width=38, max_lines=2, placeholder=f"… [row {index + 1}]")
-        label = wrap.fill(f"{state} / {name}")
-        if kept is not None:
-            scope = (
-                "Retention-weighted lower bound"
-                if kind == "retention_weighted_lower"
-                else "Conditional window"
+        label = wrap.fill(f"{row.state} / {row.window}")
+        if row.retained is not None:
+            label += (
+                "\n"
+                + {
+                    "retention_weighted_lower": "Retention-weighted lower bound",
+                    "retention_weighted_exact": "Retention-weighted contribution",
+                    "conditional_window": "Conditional window",
+                }[row.kind]
             )
-            label += f"\n{scope}"
             if single_retention is None:
-                label += f" · {kept:,} retained / {discarded:,} discarded"
-        if repeated[state, name] > 1 and kept is None:
-            label += "\n" + wrap.fill(dataset)
+                label += f" · {row.retained:,} retained / {row.discarded:,} discarded"
+        if repeated[row.state, row.window] > 1 and row.retained is None:
+            label += "\n" + wrap.fill(row.dataset_id)
+        if len(scopes) > 1:
+            label += "\n" + scope_labels[row.window_scope]
         row_height = 0.13 + 0.21 * (1 + label.count("\n"))
         y = height + row_height / 2
         height += row_height
         labels.append(label)
         positions.append(y)
-        if lo is not None:
+        if row.kind == "retention_weighted_exact":
+            ax.plot(float(Fraction(lo)), y, marker="D", color=color, clip_on=False)
+        elif lo is not None:
             ax.plot(
-                float(Fraction(lo)), y, marker=">" if hi is None else "o", color=color
+                float(Fraction(lo)),
+                y,
+                marker=">" if hi is None else "o",
+                color=color,
+                clip_on=False,
             )
             if hi is not None:
                 ax.hlines(y, float(Fraction(lo)), float(Fraction(hi)), color=color)
-                ax.plot(float(Fraction(hi)), y, marker="|", markersize=9, color=color)
+                ax.plot(
+                    float(Fraction(hi)),
+                    y,
+                    marker="|",
+                    markersize=9,
+                    color=color,
+                    clip_on=False,
+                )
         elif hi is not None:
-            ax.plot(float(Fraction(hi)), y, marker="<", color=color)
-    if all(row[7] != "signed_difference" for row in rows):
+            ax.plot(float(Fraction(hi)), y, marker="<", color=color, clip_on=False)
+        else:
+            ax.text(
+                0.03,
+                y,
+                row.status.replace("_", " ").capitalize(),
+                transform=ax.get_yaxis_transform(),
+                va="center",
+                color="0.30",
+            )
+    if all(
+        row.kind != "signed_difference" or row.status == "ordering_undetermined"
+        for row in rows
+    ):
         ax.set_xlim(left=0, right=max(0.01, ax.get_xlim()[1]))
     else:
         ax.axvline(0, color="0.55", linewidth=0.8)
@@ -344,13 +407,20 @@ def export_pvm(record, csv_path, plot_path, overwrite):
     ax.set_ylim(max(height, 0.3), 0)
     ax.set_axisbelow(True)
     ax.grid(axis="x", color="0.9", linewidth=0.7)
-    if any(lo is not None and hi is not None for _, _, lo, hi, *_ in rows):
+    if any(
+        row.lower_st_R is not None
+        and row.upper_st_R is not None
+        and row.kind != "retention_weighted_exact"
+        for row in rows
+    ):
         ax.plot([], [], "o", color=color, label="Interval lower endpoint")
         ax.plot([], [], "|", color=color, markersize=9, label="Interval upper endpoint")
-    if any(lo is not None and hi is None for _, _, lo, hi, *_ in rows):
+    if any(row.lower_st_R is not None and row.upper_st_R is None for row in rows):
         ax.plot([], [], ">", color=color, label="One-sided lower bound")
-    if any(lo is None and hi is not None for _, _, lo, hi, *_ in rows):
+    if any(row.lower_st_R is None and row.upper_st_R is not None for row in rows):
         ax.plot([], [], "<", color=color, label="One-sided upper bound")
+    if any(row.kind == "retention_weighted_exact" for row in rows):
+        ax.plot([], [], "D", color=color, label="Exact value")
     handles, keys = ax.get_legend_handles_labels()
     if handles:
         fig.legend(
@@ -369,6 +439,8 @@ def export_pvm(record, csv_path, plot_path, overwrite):
         subtitle += f"   |   {single_retention['retained']:,} retained / {single_retention['discarded']:,} discarded"
     ax.set_title(subtitle, loc="left", fontsize=10)
     quantity = "State-side complexity" if product else "Window RCC"
+    if len(scopes) == 1:
+        quantity += " in the " + scope_labels[next(iter(scopes))].lower()
     units = r"$\mathrm{st}_R$"
     if "atomic_action_classes" in record:
         units += rf", $\Gamma_R={record['atomic_action_classes']}$"
