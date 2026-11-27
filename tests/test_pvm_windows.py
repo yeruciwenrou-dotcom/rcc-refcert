@@ -620,3 +620,24 @@ def test_exports_distinguish_zero_retained_shots_from_zero_probability(
         assert (
             "Conditional state undefined" if known_zero else "No retained observations"
         ) in drawing
+
+
+def test_missing_plot_dependency_gives_a_working_install_hint(
+    tmp_path, monkeypatch, capsys
+):
+    import sys
+
+    monkeypatch.setitem(sys.modules, "matplotlib.backends.backend_agg", None)
+    source = tmp_path / "request.json"
+    source.write_text(json.dumps(fixture("bell-ghz-counts")))
+    csv_path = tmp_path / "result.csv"
+    plot_path = tmp_path / "result.png"
+    args = ["window", "analyze", str(source), "--plot", str(plot_path)]
+    assert main([*args, "--csv", str(csv_path), "--format", "markdown"]) == 1
+    report = capsys.readouterr().out
+    assert 'python -m pip install "matplotlib>=3.8"' in report
+    assert "0.3708678405 st_R higher" in report
+    assert csv_path.is_file() and not plot_path.exists()
+    assert main([*args, "--format", "json"]) == 1
+    result = json.loads(capsys.readouterr().out)
+    assert result["delivery"]["plot"]["reason"] == "optional_plot_dependency_missing"

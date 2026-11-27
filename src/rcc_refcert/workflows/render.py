@@ -7,6 +7,11 @@ import textwrap
 
 from .core import InputError
 
+PLOT_FAILURE_MESSAGES = {
+    "optional_plot_dependency_missing": 'install Matplotlib with python -m pip install "matplotlib>=3.8" and rerun the command.',
+    "optional_plot_row_limit": "the figure supports up to 128 rows. Select fewer windows or export the full table with --csv.",
+}
+
 
 def validate_width(width):
     if type(width) is not int or not 40 <= width <= 240:
@@ -94,9 +99,10 @@ def _delivery_lines(result):
     for name, delivery in result.get("delivery", {}).items():
         label = "CSV" if name == "csv" else name.capitalize()
         if delivery["state"] == "failed":
-            lines.append(
-                f"{label} was not saved to {delivery['path']}: {delivery['reason']}"
-            )
+            reason = delivery["reason"]
+            if name == "plot":
+                reason = PLOT_FAILURE_MESSAGES.get(reason, reason)
+            lines.append(f"{label} was not saved to {delivery['path']}: {reason}")
         elif delivery["state"] == "saved":
             lines.append(f"{label} saved to {delivery['path']}.")
     return lines

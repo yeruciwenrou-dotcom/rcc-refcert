@@ -241,6 +241,7 @@ class _WindowExportRow(NamedTuple):
 
 def export_pvm(record, csv_path, plot_path, overwrite):
     from .cli import write_atomic
+    from .render import PLOT_FAILURE_MESSAGES
     from .windows import save_window_figure
 
     by_event = {b["event_id"]: b for b in record["batches"]}
@@ -324,14 +325,10 @@ def export_pvm(record, csv_path, plot_path, overwrite):
 
     figure = window_figure(record, plot_path, len(rows))
     if figure is None:
-        reason = {
-            "optional_plot_dependency_missing": "install the plots extra to render the figure",
-            "optional_plot_row_limit": "the figure supports up to 128 rows",
-        }[record["execution"]["reason"]]
         record.setdefault("delivery", {})["plot"] = {
             "state": "failed",
             "path": str(plot_path),
-            "reason": reason,
+            "reason": PLOT_FAILURE_MESSAGES[record["execution"]["reason"]],
         }
         return
     fig, ax = figure
