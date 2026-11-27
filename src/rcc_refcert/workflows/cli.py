@@ -59,9 +59,12 @@ def add_commands(commands):
                 help="freeze a complete PVM acquisition before collecting counts",
             )
             freeze.add_argument("input", type=Path)
-        analyze = sub.add_parser(
-            "analyze", help="analyze a request and optionally save complete evidence"
+        analyze_help = (
+            "test which programs reach the target and report the available cost bounds"
+            if name == "cost"
+            else "map subsystem complexity from a state or bound window RCC from measured counts"
         )
+        analyze = sub.add_parser("analyze", help=analyze_help, description=analyze_help)
         analyze.add_argument("input", type=Path, help="JSON analysis request")
         analyze.add_argument(
             "--bundle",
@@ -88,7 +91,9 @@ def add_commands(commands):
         analyze.add_argument("--csv", type=Path, help="save window quantities as CSV")
         if name == "cost":
             compare = sub.add_parser(
-                "compare", help="compare saved cost result JSON files"
+                "compare",
+                help="compare feasible program costs and see how much a better program could save",
+                description="Compare feasible program costs and see how much a better program could save.",
             )
             compare.add_argument(
                 "inputs",
@@ -104,10 +109,12 @@ def add_commands(commands):
             )
             threshold = compare.add_mutually_exclusive_group()
             threshold.add_argument(
-                "--additive-gap", help="certify an additive overhead in slots"
+                "--additive-gap",
+                help="test whether a program is within this many slots of optimal",
             )
             threshold.add_argument(
-                "--multiplicative-factor", help="certify a multiplicative overhead"
+                "--multiplicative-factor",
+                help="test whether a program costs at most this multiple of the optimum",
             )
             _output_options(compare)
     study = commands.add_parser(

@@ -111,7 +111,10 @@ def _delivery_lines(result):
 def density_check_lines(diagnostic, details):
     reason = diagnostic.get("reason", "invalid density matrix")
     if reason.startswith("roundoff is unresolved"):
-        reason = "roundoff remains under the current policy. To allow a small correction, select roundoff_only and supply a repair budget"
+        reason = (
+            "the strict check found a discrepancy within the numerical tolerance. "
+            "To analyze a corrected copy, select roundoff_only and set a repair budget"
+        )
     lines = [reason]
     if details and "trace_error" in diagnostic:
         policy = diagnostic["policy"]
@@ -164,8 +167,9 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
     if result.get("schema") == "rcc-refcert.cost-comparison":
         lines = [
             "RCC cost comparison",
-            "Common task and tolerance: "
-            + ("yes" if result["comparable_task"] else "no; displayed separately"),
+            "All results use the same preparation task and tolerance."
+            if result["comparable_task"]
+            else "The preparation tasks or tolerances differ. Each result is shown separately.",
         ]
         lines.append("Cost unit: atomic slots, including halt.")
         if result["comparable_task"]:
@@ -184,12 +188,16 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
             if row.get("additive_overhead_upper", 0) and upper is not None:
                 gap = row["additive_overhead_upper"]
                 witnesses = ", ".join(row.get("upper_witness_ids", ()))
-                program = (
-                    f"Upper-bound program ({witnesses})"
-                    if witnesses
-                    else "The program attaining the upper bound"
+                program = witnesses or "this run's best feasible program"
+                lines.append(
+                    f"  A better preparation could save at most {gap} {_slot_unit(gap)} "
+                    f"over {program}."
                 )
-                lines.append(f"  {program} can save at most {gap} {_slot_unit(gap)}.")
+            elif row["decision"] == "certified_optimal" and row.get(
+                "upper_witness_ids"
+            ):
+                witnesses = ", ".join(row["upper_witness_ids"])
+                lines.append(f"  Optimal {upper}-slot preparation: {witnesses}.")
             if details:
                 lines.append(f"  Task identity: {row['task_core_digest']}")
             if "criterion_status" in row:
@@ -200,6 +208,14 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
                     else "multiplicative factor"
                 )
                 lines.append(f"  {label} <= {threshold}: {row['criterion_status']}")
+        for saving in result.get("candidate_savings", ()):
+            saved = saving["slots_saved_by_best_candidate"]
+            if saved:
+                run_id = saving["run_id"] if details else saving["run_id"][:12]
+                lines.append(
+                    f"Switching from the best feasible program in run {run_id} to the "
+                    f"lowest-cost program shown saves {saved} {_slot_unit(saved)}."
+                )
     elif result["kind"] == "cost_analysis":
         cost = result["cost"]
         lines = [

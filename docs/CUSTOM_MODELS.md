@@ -1,17 +1,17 @@
 # Analyze your own finite-control model
 
-Start with the physical process and identify what structure its reference
-background already supplies. Represent the initial resources, allowed channels,
-control language, and charged primitive consistently with that background.
-The [model guide](MODEL_GUIDE.md) explains the finite-control representation
-and its connection to RCC's physical qualifications. With those inputs,
-`rcc-refcert` can prepare a candidate certificate, check it independently,
-and preserve the complete finite input for another researcher to inspect.
+Can a model have a valid reference bound even when its local gain test fails?
+In the first example, the toolkit constructs and verifies a certificate for
+a qubit that alternates between damping and pumping. In the second, it uses
+a verified reference bound for a four-qubit reset register to rule out
+preparations costing less than two slots. The target spectrum and a set of
+simulated measurement counts give the same lower bound.
 
-This guide follows two executable examples. The first studies a reference
-constant when a local sufficient condition fails. The second carries a model
-through numerical certification, a quantum circuit complexity bound, and
-independent reverification. Both use ordinary NumPy arrays and the public Python API.
+Both examples use NumPy and the public Python API. You can share the model,
+certificate and results in one bundle for a colleague to recheck. To adapt
+the model to your apparatus, the [model guide](MODEL_GUIDE.md) explains how
+to represent the structure the background supplies and the operations that
+carry a cost.
 
 For complete-target preparation checks, exact cost intervals and subsystem
 profiles, continue to [preparation costs and complexity profiles](COST_AND_WINDOWS.md). Existing

@@ -10,13 +10,13 @@ gain–cost conditions. This makes
 it possible to study state preparation, reset, feedback, and looping control
 under one explicit cost convention.
 
-A model contribution is scientifically useful when it asks a new structural
-question: Which resource is doing the target-shortening work? Does the declared
-reference absorb the background already supplied? Can the program prior remain
-uniformly dominated across a scale family? Which local action needs more code
-or fuel? The package answers the finite-instance certificate part of these
-questions. The corresponding RCC analysis supplies the physical interpretation,
-faithful transcription, and family-uniform arguments.
+The audit shows which actions concentrate output weight most strongly
+relative to the reference and whether their code lengths cover that gain.
+Even when the local test fails, a global certificate can still bound the
+combined output of all halting programs in the same model. The
+[alternating-qubit example](CUSTOM_MODELS.md#prepare-and-verify-a-candidate)
+shows both results side by side. Extending such a bound across a family of
+models calls for an argument that applies at every size.
 
 Formally, the model is a finite prefix-coded syntax graph whose actions carry
 total quantum channels between transient control blocks or into a common

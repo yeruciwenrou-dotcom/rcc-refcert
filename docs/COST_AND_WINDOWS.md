@@ -191,16 +191,17 @@ Save machine results with `--format json --output result.json`, then use:
 python -m rcc_refcert cost compare result-a.json result-b.json
 ```
 
-Candidates can be ranked as improvements only for a common full task and
-tolerance. Models, target directions, support, tensor axes and costs are bound
-to the task identity. Equal spectra alone do not identify equal targets.
-Different tasks are displayed separately.
+`cost compare` checks which runs used the same model, complete target and
+tolerance. It reports results for different tasks separately, even when their
+target spectra agree. The task identity includes the target's basis and tensor
+axes, its support and the model's cost rules.
 
-For a reported interval `[L,U]`, L is the lower bound and U is the cost of the
-best supplied feasible candidate. `U-L` bounds that candidate's additive
-overhead relative to the optimum; `U/L` gives a multiplicative bound when `L>0`.
-The multiplicative ratio requires a positive lower bound. A feasible program
-supplies an upper bound. Crossed endpoints (`L>U`) signal conflicting evidence.
+For the same task, the report answers two questions. How many slots can you
+save by switching to the best program already supplied? How much could any
+better program save? In a run with interval `[L,U]`, the best feasible
+program costs U slots and a better one could save at most `U-L`. When `L>0`,
+its cost is at most `U/L` times the optimum. Crossed endpoints (`L>U`)
+signal conflicting evidence.
 
 Use `cost compare --additive-gap 0` to test optimality, or supply
 `criterion={"additive_gap": 0}` to the Python API. A closed interval such as

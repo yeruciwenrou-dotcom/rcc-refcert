@@ -140,6 +140,18 @@ def test_half_erasure_candidate_and_tolerance_change_the_conclusion():
         "at most 1 slot",
     ):
         assert detail in report
+    assert (
+        "A better preparation could save at most 1 slot over 3-erasure-then-halt."
+        in report
+    )
+    assert "Optimal 3-slot preparation: 2-erasure-then-halt." in report
+    assert "lowest-cost program shown saves 1 slot." in report
     request["candidates"].append(short)
     request["epsilon"] = "1/20"
-    assert analyze_cost(request)["cost"]["interval_slots"] == [3, 4]
+    different = analyze_cost(request)
+    assert different["cost"]["interval_slots"] == [3, 4]
+    separate = " ".join(
+        render_workflow_result(compare_cost_results([closed, different])).split()
+    )
+    assert "Each result is shown separately" in separate
+    assert "Switching from" not in separate

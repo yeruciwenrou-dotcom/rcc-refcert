@@ -10,18 +10,19 @@ window.
 
 - **Design a measurement and certify a lower bound.** Given a response or
   cost threshold and an expected hit rate, find the number of shots to take
-  and the number of hits needed to pass. Use the same binary measurement on
+  and which hit counts would certify that threshold. Use the same binary measurement on
   the target and reference, or supply a known reference response. The
   calculation can account for known false-positive and false-negative rates.
 - **Compare window RCC from counts.** Use the counts for every outcome of a
   projective measurement to put confidence bounds on RCC in the measured
-  classical window. Two states measured in that same window can be ordered
-  when their intervals separate. For a containing quantum window, the
-  measurement gives a lower bound for each state. If a projection selects only part of the sample, you can also
-  weight its contribution by the probability of retaining a shot.
-- **Compare measurement settings and preparation programs.** For the same
-  noisy six-qubit cluster state, either local setting alone certifies at least
-  one slot in the default example. Combining the two raises the lower bound to
+  classical window. With two states, the interval for their difference shows
+  which has the higher reading whenever it excludes zero. For a containing
+  quantum window, the measurement gives a lower bound for each state. If a
+  projection retains only part of the sample, you can weight its contribution
+  by the probability of retaining a shot.
+- **Compare measurement settings and preparation programs.** With the default
+  simulated counts for the noisy six-qubit cluster state, either local setting
+  alone certifies at least one slot. Combining the two raises the lower bound to
   two slots. In the cooling study, a six-slot program is optimal for the full
   three-qubit target at trace-distance tolerance 1/50. Joint counts track the
   target and bath before and after the final refresh. Both studies accept raw
