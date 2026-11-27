@@ -1,7 +1,7 @@
 # RCC RefCert
 
 [![arXiv: 2509.18205](https://raw.githubusercontent.com/yeruciwenrou-dotcom/rcc-refcert/a3965776a63ec4c49348d1f843f61826d329a3fa/docs/assets/arxiv.svg)](https://arxiv.org/abs/2509.18205)
-[![PyPI](https://img.shields.io/pypi/v/rcc-refcert)](https://pypi.org/project/rcc-refcert/)
+[![PyPI](https://img.shields.io/pypi/v/rcc-refcert?cacheSeconds=300)](https://pypi.org/project/rcc-refcert/)
 [![Software DOI (all versions)](https://img.shields.io/badge/DOI%20%28all%20versions%29-10.5281%2Fzenodo.22544967-darkgreen)](https://doi.org/10.5281/zenodo.22544967)
 
 **RCC RefCert** is an open-source toolkit for studying quantum circuit complexity.
