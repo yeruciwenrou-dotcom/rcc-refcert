@@ -15,10 +15,9 @@ abstract: >-
   Complexity (RCC) framework of Liu, Tian and Wu.
   Structural fairness takes the structure each background reliably supplies
   as its reference zero point. Controls and costs are fixed before target
-  selection. Measuring the resources used to generate additional structure
-  on a common scale gives each model a calibrated cost. A quantitative comparison
-  of optimal costs across models requires a common output domain and bounds on
-  the cost and error of translating programs between the models.
+  selection. RCC counts only the resources used to generate additional
+  structure and measures them on a common calibrated scale, making quantum
+  circuit complexity comparable across physical settings.
   A terminal-state certificate
   bounds the cost of every circuit that prepares the target to the stated
   accuracy. Researchers can build finite-control quantum models, verify
