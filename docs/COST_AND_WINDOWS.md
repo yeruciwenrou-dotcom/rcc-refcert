@@ -364,7 +364,7 @@ a preparation model. These installed examples use synthetic counts.
 
 | Template | Question answered |
 |---|---|
-| `bell-ghz-counts` | Can one Bell-basis measurement distinguish the window RCC of a Bell pair and the reduced pair of a GHZ state? |
+| `bell-ghz-counts` | What difference in window RCC do the Bell-basis counts certify between a Bell pair and a reduced GHZ pair? |
 | `pvm-counts` | Which group of outcomes certifies the strongest one-shot information floor at the requested tolerance, and what preparation budget does it exclude? |
 | `product-counts` | How much of the joint computational-basis reading comes from the two marginals and how much from correlations? |
 | `retained-counts` | What window information survives a projection, and how much remains after weighting by the probability of retention? |

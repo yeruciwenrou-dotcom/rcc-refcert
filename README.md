@@ -51,10 +51,10 @@ With the model, cost rules and required accuracy fixed, optimal quantum circuit
 complexity is the infimum of the costs of all circuits that successfully prepare
 the target. Each such circuit must generate the structure the target requires
 beyond what the reference already supplies. Although this global optimum is
-often hard to compute directly, RCC can certify a rigorous lower bound from
-final-state data alone. The auditable certificate can use the exact target
-spectrum or counts showing that a prespecified measurement outcome is common in
-the target and rare under the reference.
+often hard to compute directly, RCC certifies an auditable lower bound from
+final-state data alone, using either the target state's exact spectrum or counts
+showing that a prespecified outcome is more likely in the target state than in
+the reference state.
 
 <a id="start-here"></a>
 <a id="what-this-repository-implements"></a>
@@ -68,7 +68,7 @@ the target and rare under the reference.
 | [Verify a model's reference bound](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/CUSTOM_MODELS.md#prepare-and-verify-a-candidate) | Check a certificate you already have or, for a stable model, generate and verify a numerical candidate. You can reuse the verified reference bound to calculate complexity lower bounds for different targets in the same model. |
 | [Certify a lower bound on optimal circuit complexity](#target-spectra-and-measured-counts) | An exact target spectrum gives a cost below which no circuit in the model can prepare the target within tolerance. For an experiment, [plan how many shots to take](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/TERMINAL_BOUNDS.md#plan-a-fixed-sample-size) and use target and reference counts to certify a bound at the chosen confidence level. The [graph-state example](#graph-state-and-cooling-studies) shows how the choice of measurement affects that bound. |
 | [Compare preparation strategies](#preparation-costs-and-complexity-profiles) | Find which programs reach the target within tolerance and compare their costs. In an exact diagonal-preserving model, a successful program is optimal when its cost matches the lower bound. A better program could save at most the gap between that cost and the lower bound. The [cooling study](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/FINITE_DATA_STUDIES.md#three-qubit-algorithmic-cooling) proves that six slots are optimal for the full three-qubit target at trace-distance tolerance 1/50. |
-| [Measure pure-state complexity with window RCC](#compare-subsystem-complexity) | Subsystem profiles show how complexity is distributed within a pure state and where two states differ, even when their global RCC readings agree. For pure or mixed states, use [your own density matrix](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels) to [separate the contributions of local structure and correlations between subsystems](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/COST_AND_WINDOWS.md#read-local-and-correlation-contributions) and track both during preparation. With outcome counts, [bound the RCC difference between two states in the same classical measurement window](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/COST_AND_WINDOWS.md#finite-sample-windows). |
+| [Measure pure-state complexity with window RCC](#compare-subsystem-complexity) | Subsystem profiles show how complexity is distributed within a pure state and where two states differ, even when their global RCC readings agree. For pure or mixed states, use [your own density matrix](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels) to [separate the contributions of local structure and correlations between subsystems](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/COST_AND_WINDOWS.md#read-local-and-correlation-contributions) and track both during preparation. Complete histograms from the same projective measurement [give a confidence interval for the difference between two states' RCC readings in that classical window](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/COST_AND_WINDOWS.md#finite-sample-windows). |
 | [Share a calculation for independent verification](#reverify-a-shared-analysis) | Share the original inputs and results in a single bundle. A colleague can use it to recompute the result independently. |
 | [Reproduce the paper's reference calculations](#reference-cases) | Rerun the bundled cases and compare the outputs with the frozen reference results. The [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/PAPER_MAP.md) links each calculation to the corresponding equations. |
 
@@ -270,7 +270,9 @@ Use `study template cooling` to ask whether another cooling cycle is needed.
 In the default model, a six-slot program reaches the full three-qubit target
 within trace distance 1/50, and the model rules out every cheaper program.
 The final refresh preserves the target qubit's polarization and erases its
-correlations with the bath. Joint counts let you examine both effects.
+correlations with the bath. Joint counts before and after the refresh give
+confidence intervals for that polarization and for the contribution of classical
+target–bath correlations to the measured window RCC.
 To supply your own measurements, follow the register
 layouts and acquisition steps in the [finite-data guide](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/1fbfc210f980354d4096241aa9aa3ca0a2cf79bc/docs/FINITE_DATA_STUDIES.md).
 
