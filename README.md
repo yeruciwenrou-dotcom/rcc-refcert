@@ -10,14 +10,14 @@ lower bound on optimal quantum circuit complexity** from final-state data.
 Use the target state's exact spectrum or counts collected under a
 prespecified measurement protocol.
 
-You can verify reference bounds for models with measurement, feed-forward and
-reset. In exact diagonal-preserving models, a successful program is optimal
-when its cost meets the lower bound. An open gap limits how many slots a
-better program could save. Window RCC maps complexity across subsystems from
-the density matrix of a pure or mixed state. Complete outcome histograms give
-confidence bounds on the RCC difference between two states in the same
-classical measurement window. A colleague can independently recompute the
-results from one bundle.
+You can model preparations with measurement, feed-forward and reset. In exact
+diagonal-preserving models, a program that reaches the target within tolerance
+is provably optimal if its cost matches the lower bound. A density matrix lets
+you map complexity across the subsystems of a pure or mixed state. Complete
+outcome counts from a projective measurement give confidence intervals for the
+complexity it resolves in one state or for the difference in that reading
+between two states measured the same way. A colleague can independently
+recompute the analysis from a single bundle.
 
 The toolkit is based on **Reference-Contingent Complexity (RCC)**, introduced by
 Liu, Tian and Wu in
