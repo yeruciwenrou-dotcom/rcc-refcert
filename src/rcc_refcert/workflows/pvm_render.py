@@ -2,7 +2,7 @@
 
 import csv
 import io
-from collections import Counter
+from collections import defaultdict
 from decimal import ROUND_CEILING
 from fractions import Fraction
 from math import log2
@@ -14,15 +14,48 @@ from ..bounds.scalar import bit_text, decimal_string
 from .pvm import _window_difference_lower
 
 
+class _WindowExportRow(NamedTuple):
+    state: str
+    window: str
+    lower_st_R: str | None
+    upper_st_R: str | None
+    status: str
+    dataset_id: str
+    event_id: str
+    kind: str
+    retained: int | None
+    discarded: int | None
+    window_scope: str
+    quantity: str
+
+
 def _rows(record):
     for batch in record["batches"]:
-        items = [(batch["window_id"], batch["window"])]
-        items.extend(batch["coarse_windows"].items())
+        items = [(batch["window_id"], "measurement_window", batch["window"])]
+        items.extend(
+            (name, "coarse_window", window)
+            for name, window in batch["coarse_windows"].items()
+        )
         if batch["product"]:
-            items.extend(batch["product"]["marginals"].items())
-        for name, window in items:
+            product = batch["product"]
+            items.extend(
+                (name, "product_marginal", window)
+                for name, window in product["marginals"].items()
+            )
+            items.append(
+                (
+                    "classical correlation",
+                    "classical_correlation",
+                    {
+                        "scope": "classical_blocks",
+                        "window_st_R": product["classical_correlation_st_R"],
+                    },
+                )
+            )
+        retention = batch["retention"]
+        for name, quantity, window in items:
             values = window["window_st_R"] if window else {"lower": None, "upper": None}
-            yield (
+            yield _WindowExportRow(
                 batch["state_id"],
                 name,
                 values["lower"],
@@ -30,20 +63,33 @@ def _rows(record):
                 batch["status"],
                 batch["dataset_id"],
                 batch["event_id"],
+                "conditional_window" if retention else "measured_window",
+                retention["retained"] if retention else None,
+                retention["discarded"] if retention else None,
                 window["scope"] if window else batch["window_scope"],
+                quantity,
             )
-        if batch["product"]:
-            c = batch["product"]["classical_correlation_st_R"]
-            yield (
-                batch["state_id"],
-                "classical correlation",
-                c["lower"],
-                c["upper"],
-                batch["status"],
-                batch["dataset_id"],
-                batch["event_id"],
-                "classical_blocks",
-            )
+
+
+def _label_groups(rows):
+    datasets, quantities = defaultdict(set), defaultdict(set)
+    for row in rows:
+        key = (row.state, row.window)
+        datasets[key].add(row.dataset_id)
+        quantities[key].add(row.quantity)
+    return datasets, quantities
+
+
+def _scope_label(row, shared_name):
+    if row.window_scope == "containing_quantum":
+        return "containing quantum window"
+    if row.quantity == "coarse_window":
+        return "coarse-grained classical window"
+    if row.quantity == "product_marginal":
+        return "measured classical marginal"
+    if shared_name and row.quantity == "classical_correlation":
+        return "correlation between the measured outcomes"
+    return "measured classical window"
 
 
 def _comparison_line(left, right, forward):
@@ -126,28 +172,26 @@ def render_pvm(record, *, markdown=False, details=False):
         )
     missing_by_reason = {}
     rows = list(_rows(record))
-    repeated = Counter((state, name) for state, name, *_ in rows)
+    datasets, quantities = _label_groups(rows)
     by_event = {b["event_id"]: b for b in record["batches"]}
-    mixed_scopes = len({row[-1] for row in rows}) > 1
-    for state, name, lo, hi, status, dataset, event, scope in rows:
-        if lo is None:
-            value = status.replace("_", " ")
+    mixed_scopes = len({row.window_scope for row in rows}) > 1
+    for row in rows:
+        if row.lower_st_R is None:
+            value = row.status.replace("_", " ")
         else:
-            value = f">= {decimal_string(Fraction(lo), 9)}"
-            if hi is not None:
-                value += f", <= {decimal_string(Fraction(hi), 9, ROUND_CEILING)}"
+            value = f">= {decimal_string(Fraction(row.lower_st_R), 9)}"
+            if row.upper_st_R is not None:
+                value += (
+                    f", <= {decimal_string(Fraction(row.upper_st_R), 9, ROUND_CEILING)}"
+                )
             value += " st_R"
-        label = f"{state} | {name}"
-        if repeated[state, name] > 1:
-            label += f" ({dataset})"
-        if mixed_scopes:
-            product = by_event[event]["product"]
-            if scope == "containing_quantum":
-                label += " (containing quantum window)"
-            elif product and name in product["marginals"]:
-                label += " (measured classical marginal)"
-            else:
-                label += " (measured classical window)"
+        label = f"{row.state} | {row.window}"
+        key = (row.state, row.window)
+        if len(datasets[key]) > 1:
+            label += f" ({row.dataset_id})"
+        shared_name = len(quantities[key]) > 1
+        if mixed_scopes or shared_name:
+            label += f" ({_scope_label(row, shared_name)})"
         lines.append(f"{label}: {value}")
     for comparison in record["comparisons"]:
         left, right = (by_event[event] for event in comparison["events"])
@@ -231,50 +275,13 @@ def render_pvm(record, *, markdown=False, details=False):
     return ("\n\n" if markdown else "\n").join(lines) + "\n"
 
 
-class _WindowExportRow(NamedTuple):
-    state: str
-    window: str
-    lower_st_R: str | None
-    upper_st_R: str | None
-    status: str
-    dataset_id: str
-    event_id: str
-    kind: str
-    retained: int | None
-    discarded: int | None
-    window_scope: str
-
-
 def export_pvm(record, csv_path, plot_path, overwrite):
     from .cli import write_atomic
     from .render import PLOT_FAILURE_MESSAGES
     from .windows import save_window_figure
 
     by_event = {b["event_id"]: b for b in record["batches"]}
-    rows = []
-    for state, name, lo, hi, status, dataset, event, scope in _rows(record):
-        retention = by_event[event]["retention"]
-        kept, discarded = (
-            (retention["retained"], retention["discarded"])
-            if retention
-            else (None, None)
-        )
-        kind = "conditional_window" if retention else "measured_window"
-        rows.append(
-            _WindowExportRow(
-                state,
-                name,
-                lo,
-                hi,
-                status,
-                dataset,
-                event,
-                kind,
-                kept,
-                discarded,
-                scope,
-            )
-        )
+    rows = list(_rows(record))
     for event, batch in by_event.items():
         r = batch["retention"]
         if r:
@@ -294,6 +301,7 @@ def export_pvm(record, csv_path, plot_path, overwrite):
                     r["retained"],
                     r["discarded"],
                     batch["window_scope"],
+                    "measurement_window",
                 )
             )
     for comparison in record.get("comparisons", []):
@@ -317,6 +325,7 @@ def export_pvm(record, csv_path, plot_path, overwrite):
                 None,
                 None,
                 left["window_scope"],
+                "measurement_window",
             )
         )
     if csv_path is not None:
@@ -338,11 +347,7 @@ def export_pvm(record, csv_path, plot_path, overwrite):
         }
         return
     fig, ax = figure
-    datasets = {}
-    for row in rows:
-        datasets.setdefault((row.state, row.window, row.kind), set()).add(
-            row.dataset_id
-        )
+    datasets, quantities = _label_groups(rows)
     labels, positions = [], []
     height = 0.0
     color = "#266c85"
@@ -374,12 +379,14 @@ def export_pvm(record, csv_path, plot_path, overwrite):
             )
             if single_retention is None:
                 label += f"\n{row.retained:,} retained / {row.discarded:,} discarded"
-        if len(datasets[row.state, row.window, row.kind]) > 1:
+        key = (row.state, row.window)
+        if len(datasets[key]) > 1:
             label += "\n" + TextWrapper(
                 width=38, max_lines=3, placeholder=wrap.placeholder
             ).fill(row.dataset_id)
-        if len(scopes) > 1:
-            label += "\n" + scope_labels[row.window_scope]
+        shared_name = len(quantities[key]) > 1
+        if len(scopes) > 1 or shared_name:
+            label += "\n" + _scope_label(row, shared_name).capitalize()
         row_height = 0.13 + 0.21 * (1 + label.count("\n"))
         y = height + row_height / 2
         height += row_height

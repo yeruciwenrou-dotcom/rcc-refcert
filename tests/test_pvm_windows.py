@@ -263,6 +263,85 @@ def test_quantum_window_and_measured_marginals_are_identified_on_each_row(form):
     assert "classical correlation (measured classical window): >= 0, <=" in report
 
 
+@pytest.mark.parametrize("scope", ["classical_blocks", "containing_quantum"])
+def test_shared_window_names_keep_the_measured_quantity(tmp_path, scope):
+    import csv
+    from importlib.util import find_spec
+    from xml.etree import ElementTree
+
+    from rcc_refcert.workflows import export_window_files, render_workflow_result
+
+    request = fixture("product-counts")
+    entry = request["batches"][0]
+    entry["protocol"]["measurement"].update(window="B", window_scope=scope)
+    entry["data"]["counts"] = {"00": 10000, "01": 0, "10": 0, "11": 10000}
+    parity = {"00": "even", "01": "odd", "10": "odd", "11": "even"}
+    entry["coarse_windows"] = {"A": parity, "classical correlation": parity}
+    freeze(entry)
+    result = analyze_windows(request)
+    batch = result["batches"][0]
+    product = batch["product"]
+    expected = {
+        ("B", "measurement_window"): batch["window"]["window_st_R"],
+        ("A", "coarse_window"): batch["coarse_windows"]["A"]["window_st_R"],
+        ("A", "product_marginal"): product["marginals"]["A"]["window_st_R"],
+        ("B", "product_marginal"): product["marginals"]["B"]["window_st_R"],
+        ("classical correlation", "coarse_window"): batch["coarse_windows"][
+            "classical correlation"
+        ]["window_st_R"],
+        ("classical correlation", "classical_correlation"): product[
+            "classical_correlation_st_R"
+        ],
+    }
+    path = tmp_path / "measurements.csv"
+    export_window_files(result, csv_path=path)
+    with path.open(newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert len(rows) == len(expected)
+    assert {
+        (r["window"], r["quantity"]): {
+            "lower": r["lower_st_R"],
+            "upper": r["upper_st_R"] or None,
+        }
+        for r in rows
+    } == expected
+    main_label = (
+        "containing quantum window"
+        if scope == "containing_quantum"
+        else "measured classical window"
+    )
+    for form in ("text", "markdown"):
+        report = render_workflow_result(result, format=form, width=180)
+        assert f"B ({main_label}):" in report
+        assert (
+            "A (coarse-grained classical window): >= 0.448535740, <= 0.5 st_R" in report
+        )
+        assert "A (measured classical marginal): >= 0, <= 0.0514642595 st_R" in report
+        assert "classical correlation (coarse-grained classical window):" in report
+        assert (
+            "classical correlation (correlation between the measured outcomes):"
+            in report
+        )
+    if find_spec("matplotlib"):
+        from matplotlib import rc_context
+
+        drawing = tmp_path / "measurements.svg"
+        with rc_context({"svg.fonttype": "none"}):
+            export_window_files(result, plot_path=drawing)
+        labels = [
+            " ".join(el.text for el in group.findall(".//{*}text"))
+            for group in ElementTree.parse(drawing).iterfind(".//{*}g")
+            if group.get("id", "").startswith("ytick_")
+        ]
+        assert f"correlated pair / B {main_label.capitalize()}" in labels
+        assert "correlated pair / A Coarse-grained classical window" in labels
+        assert "correlated pair / A Measured classical marginal" in labels
+        assert (
+            "correlated pair / classical correlation Correlation between the measured outcomes"
+            in labels
+        )
+
+
 def test_retained_batches_keep_their_identity_and_calibration_in_the_figure(
     tmp_path, monkeypatch
 ):
@@ -577,6 +656,7 @@ def test_retention_export_separates_conditional_interval_and_discounted_lower(tm
     with path.open(newline="") as f:
         rows = list(csv.DictReader(f))
     conditional, discounted = rows[0], rows[-1]
+    assert conditional["quantity"] == discounted["quantity"] == "measurement_window"
     assert conditional["kind"] == "conditional_window" and conditional["upper_st_R"]
     assert (
         discounted["kind"] == "retention_weighted_lower"
@@ -620,6 +700,7 @@ def test_export_names_the_scope_and_an_undetermined_comparison(tmp_path):
     assert {row["window_scope"] for row in rows} == {"containing_quantum"}
     comparison = rows[-1]
     assert comparison["status"] == "ordering_undetermined"
+    assert comparison["quantity"] == "measurement_window"
     assert comparison["lower_st_R"] == comparison["upper_st_R"] == ""
     if find_spec("matplotlib"):
         from matplotlib import rc_context

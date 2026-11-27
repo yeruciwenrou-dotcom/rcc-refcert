@@ -544,8 +544,12 @@ and trajectory CSV files, `kind == "subsystem"` selects the subsystem rows
 from the 0.3.0 export. All row types give the calibrated value in `reading_st_R`.
 
 **Read a measured window.** Each figure row corresponds to one CSV row.
-The CSV identifies the dataset, sampling event and window scope. Repeated
-measurements of the same quantity carry the dataset name in the figure.
+The CSV identifies the dataset, sampling event and window scope. The `quantity`
+column distinguishes the original measurement window, a coarse-graining, a
+product marginal and the classical correlation. For example, a coarse window
+and a subsystem can share the label A. The report and figure identify both by
+what they measure. Repeated measurements of the same quantity carry the dataset
+name in the figure.
 A dot and an end cap mark the lower and upper endpoints. A right-pointing
 triangle marks a lower bound. An unresolved ordering leaves both difference
 endpoints empty.
