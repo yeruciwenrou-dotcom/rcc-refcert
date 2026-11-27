@@ -190,9 +190,15 @@ def _histogram(p, sha, data):
         raise InputError("declare the data origin")
     ranks = p["measurement"]["ranks"]
     counts = data["counts"]
-    if not isinstance(counts, dict) or not counts.keys() <= ranks.keys():
+    if not isinstance(counts, dict):
         raise InputError(
-            "histogram contains outcomes outside the declared complete alphabet"
+            "histogram counts must be an object keyed by measurement outcome"
+        )
+    unknown = counts.keys() - ranks.keys()
+    if unknown:
+        labels = ", ".join(sorted(map(repr, unknown)))
+        raise InputError(
+            f"histogram contains outcomes outside the declared complete alphabet: {labels}"
         )
     h = {
         label: require_int(counts.get(label, 0), "outcome count")

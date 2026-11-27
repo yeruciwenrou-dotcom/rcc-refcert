@@ -12,7 +12,7 @@ from ..bounds.contracts import (
     text,
 )
 from ..bounds.effects import probability
-from ..bounds.scalar import InputError, decimal_string, require_int
+from ..bounds.scalar import InputError, bit_text, decimal_string, require_int
 from .core import WorkflowLimits, digest, json_value
 from .readouts import _positions, import_readout
 
@@ -419,7 +419,7 @@ def _cluster_lines(r):
     slots = binary["integer_slots"]
     coverage = _percent(binary["coverage_at_least"])
     evidence = (
-        f"The strongest one-shot information lower bound is {bits} bits ({names(binary)}), "
+        f"The strongest one-shot information lower bound is {bit_text(bits)} ({names(binary)}), "
         f"with at least {coverage} joint coverage under fixed-size IID sampling."
     )
     if slots is None:
@@ -443,7 +443,7 @@ def _cluster_lines(r):
     for name, witness in r["witnesses"].items():
         value = decimal_string(F(witness["one_shot_bits_lower"]), 9)
         label = _STUDY_LABELS.get(name, "The graph intersection")
-        line = f"{label} gives a one-shot information lower bound of {value} bits"
+        line = f"{label} gives a one-shot information lower bound of {bit_text(value)}"
         if witness["integer_slots"] is not None:
             line += f" and a cost lower bound of {_slots(witness['integer_slots'])}"
         lines.append(line + ".")
@@ -457,7 +457,7 @@ def _cluster_lines(r):
     z = F(r["z_control"]["bits_lower"])
     lines.append(
         "The color settings test stabilizer parities. From the computational-basis populations, "
-        f"the Z-basis control gives a one-shot information lower bound of {decimal_string(z, 9)} bits at this tolerance."
+        f"the Z-basis control gives a one-shot information lower bound of {bit_text(decimal_string(z, 9))} at this tolerance."
     )
     all_bits = decimal_string(F(combined["one_shot_bits_lower"]), 9)
     all_cost = combined["integer_slots"]
@@ -467,7 +467,7 @@ def _cluster_lines(r):
         else ""
     )
     lines.append(
-        f"Including the full color and Z histograms, the strongest information lower bound is {all_bits} bits "
+        f"Including the full color and Z histograms, the strongest information lower bound is {bit_text(all_bits)} "
         f"({names(combined)}){cost_text}. Joint coverage across these measurements is at least {_percent(combined['coverage_at_least'])}."
     )
     return lines

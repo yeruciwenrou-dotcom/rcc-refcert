@@ -37,6 +37,76 @@ def test_genuine_020_bundle_is_preserved_and_reverified(name):
     assert path.read_bytes() == before
 
 
+def test_scalar_counts_report_failure_keeps_the_reproducible_bundle(tmp_path, capsys):
+    from rcc_refcert.bounds import load_template
+
+    source = tmp_path / "effect.json"
+    source.write_text(json.dumps(load_template("effect-counts")))
+    archive = tmp_path / "effect.rccbundle"
+    base = ["bound", "counts", str(source), "--format", "json"]
+    assert (
+        main([*base, "--bundle", str(archive), "--output", str(source / "report")]) == 1
+    )
+    streams = capsys.readouterr()
+    result = json.loads(streams.out)
+    assert str(archive) in streams.err and "omit --bundle" in streams.err
+    retained = archive.read_bytes()
+    assert verify_analysis_bundle(archive)["historical_results_supported"]
+    report = tmp_path / "report.json"
+    assert main([*base, "--output", str(report)]) == 0
+    assert json.loads(report.read_text()) == result
+    assert archive.read_bytes() == retained
+
+
+def test_trajectory_plot_failure_preserves_other_outputs(tmp_path, capsys, monkeypatch):
+    from rcc_refcert.workflows import windows
+
+    request = export_probe("w3-cooling-trajectory")
+    source = tmp_path / "task.json"
+    source.write_text(json.dumps(request))
+    archive = tmp_path / "cooling.rccbundle"
+    csv_file = tmp_path / "cooling.csv"
+    figure = tmp_path / "cooling.svg"
+    export = windows.export_window_files
+
+    def fail_plot(result, **options):
+        if options.get("plot_path"):
+            raise ValueError("figure renderer failed")
+        return export(result, **options)
+
+    monkeypatch.setattr(windows, "export_window_files", fail_plot)
+    assert (
+        main(
+            [
+                "cost",
+                "analyze",
+                str(source),
+                "--format",
+                "json",
+                "--plot",
+                str(figure),
+                "--csv",
+                str(csv_file),
+                "--bundle",
+                str(archive),
+            ]
+        )
+        == 1
+    )
+    result = json.loads(capsys.readouterr().out)
+    assert result["cost"]["interval_slots"] == [6, 6]
+    assert result["delivery"]["plot"]["state"] == "failed" and not figure.exists()
+    assert (
+        result["delivery"]["csv"]["state"]
+        == result["delivery"]["bundle"]["state"]
+        == "saved"
+    )
+    assert (
+        csv_file.is_file()
+        and verify_analysis_bundle(archive)["historical_results_supported"]
+    )
+
+
 def test_templates_results_and_states_obey_packaged_structural_schemas():
     data = files("rcc_refcert.workflows").joinpath("data")
     validators = {

@@ -7,8 +7,8 @@ the target qubit's polarization while changing the full state. Joint counts
 let you follow the target, bath and correlation contributions through that
 step.
 
-Run the examples with your active interpreter. The [source quickstart](../README.md#install-from-source)
-covers the checkout and [Windows shell instructions](../README.md#install-from-pypi).
+Run the examples with your [installed 0.4.0 interpreter](../README.md#install-from-pypi).
+The installation guide also covers Windows shell commands.
 Choose a fresh output name for a second analysis.
 
 ## Six-qubit cluster state

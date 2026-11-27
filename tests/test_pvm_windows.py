@@ -242,6 +242,60 @@ def test_scan_and_multiple_settings_only_combine_equal_process_tasks():
         analyze_windows(req)
 
 
+@pytest.mark.parametrize("form", ["text", "markdown"])
+def test_quantum_window_and_measured_marginals_are_identified_on_each_row(form):
+    from rcc_refcert.workflows import render_workflow_result
+
+    request = fixture("product-counts")
+    entry = request["batches"][0]
+    entry["protocol"]["measurement"].update(
+        window_scope="containing_quantum", window="AB"
+    )
+    entry["data"]["counts"] = dict.fromkeys(["00", "01", "10", "11"], 5000)
+    freeze(entry)
+    report = render_workflow_result(analyze_windows(request), format=form, width=180)
+    assert "AB (containing quantum window): >= 0 st_R" in report
+    for name in ("A", "B"):
+        assert (
+            f"{name} (measured classical marginal): >= 0, <= 0.0514642595 st_R"
+            in report
+        )
+    assert "classical correlation (measured classical window): >= 0, <=" in report
+
+
+def test_retained_batches_keep_their_identity_and_calibration_in_the_figure(
+    tmp_path, monkeypatch
+):
+    pytest.importorskip("matplotlib")
+    from rcc_refcert.workflows import windows
+    from rcc_refcert.workflows.pvm_render import export_pvm
+
+    request = fixture("retained-counts")
+    first = request["batches"][0]
+    second = deepcopy(first)
+    request["batches"].append(second)
+    for entry, label in zip(request["batches"], ["run-A", "run-B"]):
+        entry["protocol"].update(dataset_id=label, event_id=label + "-measurement")
+        entry["protocol"]["retention"]["event_id"] = label + "-retention"
+        entry["data"]["dataset_id"] = label
+        freeze(entry)
+    second["data"]["counts"] = dict.fromkeys(["00", "01", "10", "11"], 5000)
+
+    def inspect(fig, path, overwrite):
+        fig.canvas.draw()
+        ax = fig.axes[0]
+        labels = [label.get_text() for label in ax.get_yticklabels()]
+        assert len(set(labels)) == len(labels) == 10
+        assert all(
+            sum(batch in label for label in labels) == 5 for batch in ["run-A", "run-B"]
+        )
+        extent = ax.xaxis.label.get_window_extent(fig.canvas.get_renderer())
+        assert 0 <= extent.x0 < extent.x1 <= fig.bbox.width
+
+    monkeypatch.setattr(windows, "save_window_figure", inspect)
+    export_pvm(analyze_windows(request), None, tmp_path / "retained.png", False)
+
+
 def test_repeated_window_acquisitions_keep_distinct_csv_and_figure_labels(tmp_path):
     import csv
     from importlib.util import find_spec

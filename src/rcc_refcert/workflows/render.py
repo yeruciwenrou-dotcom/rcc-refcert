@@ -108,6 +108,29 @@ def _delivery_lines(result):
     return lines
 
 
+def density_check_lines(diagnostic, details):
+    reason = diagnostic.get("reason", "invalid density matrix")
+    if reason.startswith("roundoff is unresolved"):
+        reason = "roundoff remains under the current policy. To allow a small correction, select roundoff_only and supply a repair budget"
+    lines = [reason]
+    if details and "trace_error" in diagnostic:
+        policy = diagnostic["policy"]
+        lines.append(
+            f"Density tolerance {policy['tolerance']:.6g}: trace error {diagnostic['trace_error']:.6g}, "
+            f"Hermiticity error {diagnostic['hermiticity_error']:.6g}, "
+            f"minimum eigenvalue {diagnostic['minimum_eigenvalue']:.6g}."
+        )
+        lines.append(
+            "Check the normalization, Hermiticity and positivity of the input matrix."
+        )
+        if "perturbation_trace_norm_half" in diagnostic:
+            lines.append(
+                f"Required correction {diagnostic['perturbation_trace_norm_half']:.6g}, "
+                f"declared repair budget {policy['repair_budget']:.6g}."
+            )
+    return lines
+
+
 def _comparison_task(row):
     model = row.get("model_id")
     target = row.get("target_source") or row.get("target_digest")
@@ -202,6 +225,11 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
                 else f"Feasible upper bound: {upper} atomic {_slot_unit(upper)}"
             )
         lines.append(f"Target trace-distance tolerance: {cost['epsilon_exact']}")
+        target_check = (result.get("diagnostics") or {}).get("target")
+        if target_check and target_check["outcome"] != "pass":
+            reason, *checks = density_check_lines(target_check, details)
+            lines.append(f"Target density matrix: {reason}.")
+            lines.extend("  " + check for check in checks)
         gap = cost["additive_overhead_upper"]
         if gap is not None:
             lines.append(
@@ -302,13 +330,20 @@ def render_workflow_result(result, *, format="text", details=False, width=80):
 def _format_report(lines, format, width, *, break_long_words=True):
     safe = ["".join(max(c, " ") for c in line) for line in lines]
     if format == "markdown":
-        return (
-            "# "
-            + safe[0]
-            + "\n\n"
-            + "\n\n".join(line.replace("|", "\\|") for line in safe[1:])
-            + "\n"
-        )
+        blocks = ["# " + safe[0]]
+        in_list = False
+        for line in safe[1:]:
+            value = line.strip().replace("|", "\\|")
+            if line.startswith("  "):
+                if in_list:
+                    blocks[-1] += "\n- " + value
+                else:
+                    blocks.append("- " + value)
+                in_list = True
+            elif value:
+                blocks.append(value)
+                in_list = False
+        return "\n\n".join(blocks) + "\n"
     return (
         "\n".join(
             textwrap.fill(

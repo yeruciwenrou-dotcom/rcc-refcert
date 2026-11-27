@@ -1,5 +1,7 @@
 # Changelog
 
+<a id="040"></a>
+
 ## 0.4.0
 
 You can now plan a measurement around the preparation cost you want to rule
@@ -41,7 +43,9 @@ give target, bath, joint and correlation intervals at each stage. Window
 exports now include global readings, partition correlations and the lower
 bound after accounting for discarded shots. Use `cost analyze --plot` or
 `--csv` on a trajectory. On `bound spectrum` and `bound counts`, use `--output`
-to save the report.
+to save the report. In a known-state or trajectory CSV, filter on
+`kind == "subsystem"` for the subsystem rows exported by 0.3.0. Read the
+calibrated value for every row from `reading_st_R` and its meaning from `kind`.
 
 Cost comparisons now identify the model, complete target, tolerance and maximum
 remaining saving for the program attaining the upper endpoint. In the

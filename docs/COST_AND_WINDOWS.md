@@ -20,13 +20,10 @@ through a preparation, then share the calculation for independent verification.
 | How do I analyze my own state or model? | [Matrix inputs](#your-own-matrix-and-tensor-labels) and [numerical models](#numerical-models-and-candidate-diagnostics) |
 | How do I save, share and verify the calculation? | [Reports and revalidation](#reports-limits-and-revalidation) |
 
-Use **rcc-refcert 0.4.0 or later** with Python 3.10 or later to run all the
-examples. Version 0.3.0 supports preparation costs and windows of known
-states. Measured histograms and the `on_gain_failure` option require 0.4.0.
-Install from
-[PyPI](../README.md#install-from-pypi) or follow the
-[source quickstart](../README.md#install-from-source), then activate that environment
-or substitute its Python path in the commands below.
+[Install RCC RefCert 0.4.0 from PyPI](../README.md#install-from-pypi) with Python
+3.10 or later. Run the commands below with that interpreter. The
+[source archive](../README.md#install-from-source) also includes example scripts
+and the editable half-erasure request.
 
 ## A complete cost task
 
@@ -116,8 +113,10 @@ The model, initial state, complete target, metric and charging rules must
 match. The upper endpoint needs a program verified to reach that target.
 Supply `epsilon_upper <= epsilon <= epsilon_lower` when tolerances differ.
 A lower endpoint obtained from counts retains its original sampling coverage.
-The function composes supplied endpoints. External circuits need their own
-feasibility and cost check.
+If a lower-bound record has no common task digest, `lower_core=None` skips
+the automatic identity check for that endpoint. Record how the entries above
+match, including the external circuit’s verified cost and feasibility. If
+the records leave the task identity unresolved, report the endpoints separately.
 
 ### Build a half-erasure channel
 
@@ -129,7 +128,7 @@ excited population. Each application costs one atomic slot. Returning the
 spin with `halt` costs one more.
 
 ```bash
-.venv/bin/python -m rcc_refcert cost analyze examples/half_erasure.json --details
+python -m rcc_refcert cost analyze examples/half_erasure.json --details
 ```
 
 After one, two and three channel applications the excited populations are
@@ -172,7 +171,7 @@ For an exact-cost request, omit `gain_certificate` or set it to `"auto"` to
 verify the preset certificate (or a reference envelope for a custom model).
 To test your own certificate, supply an object with an `envelopes` entry.
 An empty object or a failed inequality returns a diagnostic for that input.
-With 0.4.0 or later, set `"on_gain_failure": "auto"` to also try the automatic certificate.
+Set `"on_gain_failure": "auto"` to also try the automatic certificate.
 The result retains the original diagnostic and names the verified certificate
 that supports the lower bound in `gain_selection`.
 
@@ -450,18 +449,23 @@ Qiskit qubit 0 is the least significant axis. For a qubit density matrix `dm`,
 keep its array and name axes from highest qubit index to zero:
 
 ```python
-state = StateInput.numeric(dm.data, (2,) * n,
-                           tuple(f"q{i}" for i in reversed(range(n))))
+state = StateInput.numeric(
+    dm.data, (2,) * n, tuple(f"q{i}" for i in reversed(range(n))),
+    policy={"mode": "roundoff_only", "tolerance": 1e-10, "repair_budget": 1e-10},
+)
 ```
 
 For a QuTiP density operator `rho`, preserve tensor order:
 
 ```python
-state = StateInput.numeric(rho.full(), tuple(rho.dims[0]), tuple(labels))
+state = StateInput.numeric(
+    rho.full(), tuple(rho.dims[0]), tuple(labels),
+    policy={"mode": "roundoff_only", "tolerance": 1e-10, "repair_budget": 1e-10},
+)
 ```
 
-Check imported axes with an asymmetric product state before interpreting a
-window. These are array conversion recipes; neither library is required.
+The examples allow roundoff corrections up to the declared budget. Check the
+axis order with an asymmetric product state before interpreting a window.
 See the official [Qiskit bit-order guide](https://quantum.cloud.ibm.com/docs/en/qiskit/bit-ordering)
 and [QuTiP quantum-object documentation](https://qutip.readthedocs.io/en/stable/apidoc/quantumobject.html).
 
@@ -530,27 +534,29 @@ columns by default; `--width 120` changes presentation only. Optional graphics
 and CSV come from saved window quantities:
 
 ```bash
-python -m pip install ".[plots]"
+python -m pip install "rcc-refcert[plots]==0.4.0"
 python -m rcc_refcert window analyze windows.json --csv profile.csv --plot profile.svg
 python -m rcc_refcert window analyze windows.json --format markdown --output report.md
 ```
 
-Install `.[plots]` from this checkout; ordinary analysis only needs NumPy.
-Plotting supports SVG, PNG and PDF and is limited to 128 displayed rows.
-For complete projective readouts, each CSV row identifies the dataset,
-sampling event and window scope. When two acquisitions share a state and
-window, their plot labels also show the dataset. Each horizontal row corresponds to one CSV
-data row. Exceptionally long labels include its row number. A dot and an
-end cap mark a two-sided interval. A right-pointing triangle marks a
-one-sided lower bound. If two lower bounds leave the ordering open, the
-difference row reads “Ordering undetermined” and its CSV endpoints are empty.
-For a branch with known zero retention probability, a diamond marks the exact
-zero weighted contribution. When retention probability is estimated from
-counts, zero retained shots gives a one-sided lower bound of zero.
-Missing optional plotting dependencies preserve the computed scientific result
-and mark the presentation step partial. Output files are exclusive by default;
-`--overwrite` explicitly selects atomic replacement. Inputs and output paths
-must remain distinct.
+The plots extra exports SVG, PNG and PDF for up to 128 rows. In known-state
+and trajectory CSV files, `kind == "subsystem"` selects the subsystem rows
+from the 0.3.0 export. All row types give the calibrated value in `reading_st_R`.
+
+**Read a measured window.** Each figure row corresponds to one CSV row.
+The CSV identifies the dataset, sampling event and window scope. Repeated
+measurements of the same quantity carry the dataset name in the figure.
+A dot and an end cap mark the lower and upper endpoints. A right-pointing
+triangle marks a lower bound. An unresolved ordering leaves both difference
+endpoints empty.
+
+**Read a retained branch.** A diamond at zero marks the exact contribution
+of a branch with known zero retention probability. If retention is estimated
+from counts, observing zero retained shots gives a one-sided lower bound of zero.
+
+Use distinct paths for inputs and outputs. To replace a previous output, add
+`--overwrite`. If an optional export fails, the report identifies the affected
+file and the other results remain available.
 
 ### Computation budgets
 

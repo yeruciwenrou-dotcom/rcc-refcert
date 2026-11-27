@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from decimal import Decimal
 from fractions import Fraction
 from importlib import resources
@@ -108,6 +109,8 @@ def _invalid_constant(value):
 
 
 def run(arguments) -> int:
+    saved = []
+    delivery_errors = []
     try:
         from ..workflows.cli import write_atomic
 
@@ -148,10 +151,21 @@ def run(arguments) -> int:
                 result = plan_counts(request)
                 destination = getattr(arguments, "counts_request", None)
                 if destination is not None and result["counts_request"] is not None:
-                    write_atomic(
-                        destination,
-                        json.dumps(result["counts_request"], indent=2) + "\n",
-                        overwrite=arguments.overwrite,
+                    try:
+                        write_atomic(
+                            destination,
+                            json.dumps(result["counts_request"], indent=2) + "\n",
+                            overwrite=arguments.overwrite,
+                        )
+                    except OSError as exc:
+                        delivery_errors.append(
+                            f"Could not save the counts request to {destination}: {exc}"
+                        )
+                    else:
+                        saved.append(f"Counts request saved to {destination}.")
+                elif destination is not None and destination.exists():
+                    delivery_errors.append(
+                        f"This plan generated no counts request. {destination} still contains the request from a previous run."
                     )
             elif arguments.bound_command == "replay":
                 result = replay_record(request)
@@ -175,14 +189,39 @@ def run(arguments) -> int:
                         raise InputError(
                             "--bundle supports fixed-effect counts. Use an effect-counts request."
                         )
-                    save_effect_bundle(
-                        arguments.bundle, request, result, overwrite=arguments.overwrite
-                    )
+                    try:
+                        save_effect_bundle(
+                            arguments.bundle,
+                            request,
+                            result,
+                            overwrite=arguments.overwrite,
+                        )
+                    except OSError as exc:
+                        delivery_errors.append(
+                            f"Could not save the evidence bundle to {arguments.bundle}: {exc}"
+                        )
+                    else:
+                        saved.append(f"Evidence bundle saved to {arguments.bundle}.")
         rendered = _render_result(arguments, result)
         if arguments.output is None:
             print(rendered, end="")
         else:
-            write_atomic(arguments.output, rendered, overwrite=arguments.overwrite)
+            try:
+                write_atomic(arguments.output, rendered, overwrite=arguments.overwrite)
+            except OSError as exc:
+                print(rendered, end="")
+                delivery_errors.append(
+                    f"Could not save the report to {arguments.output}: {exc}. The report is on standard output."
+                )
+                if saved and getattr(arguments, "bundle", None) is not None:
+                    delivery_errors.append(
+                        "To save another copy of the report, rerun with a writable --output path and omit --bundle."
+                    )
+            else:
+                saved.append(f"Report saved to {arguments.output}.")
+        if delivery_errors:
+            print(*saved, *delivery_errors, sep="\n", file=sys.stderr)
+            return 1
     except (
         OSError,
         ValueError,

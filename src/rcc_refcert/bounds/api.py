@@ -20,6 +20,7 @@ from .information import hoeffding_lower, projection_information, spectral_infor
 from .scalar import (
     InputError,
     Interval,
+    bit_text,
     ceil_fraction,
     decimal_string,
     invert_canonical,
@@ -233,7 +234,7 @@ def _enclosure_text(enclosure):
 def _scale_line(classes, bandwidth):
     return (
         f"Calibration: Gamma_R = {classes} atomic action classes, "
-        f"g_R = log2(Gamma_R) = {_enclosure_text(bandwidth)} bits per atomic slot. "
+        f"g_R = log2(Gamma_R) = {bit_text(_enclosure_text(bandwidth))} per atomic slot. "
         "One R-structon (st_R) represents g_R bits."
     )
 
@@ -252,7 +253,7 @@ def render_record(result: dict, *, details: bool = False) -> str:
     if c["integer_lower_bound_slots"] is not None:
         lines.append(f"Integer-slot lower bound: {c['integer_lower_bound_slots']}")
     lines.append(
-        f"One-shot information input: {display['information_lower_bits']} bits (rounded down)"
+        f"One-shot information input: {bit_text(display['information_lower_bits'])} (rounded down)"
     )
     info = result["information"]
     params = result["parameters"]
@@ -268,9 +269,9 @@ def render_record(result: dict, *, details: bool = False) -> str:
     )
     if result["path"]["name"] == "spectrum":
         lines.append(
-            f"Mean relative information D = {_enclosure_text(info['relative_entropy_bits'])} bits, "
-            f"plus spectral skew = {_enclosure_text(info['spectral_skew_bits'])} bits, "
-            f"minus smoothing loss = {_enclosure_text(info['smoothing_loss_bits'])} bits."
+            f"Mean relative information D = {bit_text(_enclosure_text(info['relative_entropy_bits']))}, "
+            f"plus spectral skew = {bit_text(_enclosure_text(info['spectral_skew_bits']))}, "
+            f"minus smoothing loss = {bit_text(_enclosure_text(info['smoothing_loss_bits']))}."
         )
         d = info["relative_entropy_bits"]
         g = params["bandwidth_bits_per_slot"]

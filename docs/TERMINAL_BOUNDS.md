@@ -19,13 +19,13 @@ terminal-state evidence.
 
 Use your installed interpreter or the one from the [source quickstart](../README.md#install-from-source).
 The [installation example](../README.md#install-from-pypi) covers Windows PowerShell 5.1.
-With 0.4.0, `--output` writes the report directly in UTF-8.
+`--output` writes the report directly in UTF-8.
 
 ```bash
-.venv/bin/python -m rcc_refcert bound template spectrum > spectrum.json
-.venv/bin/python -m rcc_refcert bound spectrum spectrum.json
-.venv/bin/python -m rcc_refcert bound spectrum spectrum.json --format json > bound.json
-.venv/bin/python -m rcc_refcert bound replay bound.json
+python -m rcc_refcert bound template spectrum > spectrum.json
+python -m rcc_refcert bound spectrum spectrum.json
+python -m rcc_refcert bound spectrum spectrum.json --format json > bound.json
+python -m rcc_refcert bound replay bound.json
 ```
 
 The template gives an integer-slot lower bound of **one**. The JSON file
@@ -134,8 +134,8 @@ input sizes and certificate budgets.
 Before collecting data, prepare and preserve an acquisition protocol:
 
 ```bash
-.venv/bin/python -m rcc_refcert bound template protocol > protocol-input.json
-.venv/bin/python -m rcc_refcert bound prepare-protocol protocol-input.json > frozen-protocol.json
+python -m rcc_refcert bound template protocol > protocol-input.json
+python -m rcc_refcert bound prepare-protocol protocol-input.json > frozen-protocol.json
 ```
 
 The protocol binds the task, witness ID, projector rank, fixed sample size and
@@ -162,9 +162,9 @@ refers to this event under the declared sampling model.
 To try the full path, generate the example dataset of 550 hits in 1,000 trials:
 
 ```bash
-.venv/bin/python -m rcc_refcert bound template counts > projector-counts.json
-.venv/bin/python -m rcc_refcert bound counts projector-counts.json --format json > projector-result.json
-.venv/bin/python -m rcc_refcert bound replay projector-result.json
+python -m rcc_refcert bound template counts > projector-counts.json
+python -m rcc_refcert bound counts projector-counts.json --format json > projector-result.json
+python -m rcc_refcert bound replay projector-result.json
 ```
 
 For your own acquisition, copy `task` from `protocol-input.json` and
@@ -176,12 +176,12 @@ request and its result under new names to keep the example available for compari
 
 ### Target and reference counts for the same effect
 
-Apply the same predeclared binary measurement to a target preparation and to the model's reference state. The two observed acceptance rates bound how much structure the preparation must generate. Run the complete synthetic example with version 0.4.0 or later:
+Apply the same predeclared binary measurement to a target preparation and to the model's reference state. The two observed acceptance rates bound how much structure the preparation must generate. Run the synthetic example with your installed interpreter:
 
 ```bash
-.venv/bin/python -m rcc_refcert bound template effect-counts > effect.json
-.venv/bin/python -m rcc_refcert bound counts effect.json --bundle effect.rccbundle
-.venv/bin/python -m rcc_refcert bundle verify effect.rccbundle
+python -m rcc_refcert bound template effect-counts > effect.json
+python -m rcc_refcert bound counts effect.json --bundle effect.rccbundle
+python -m rcc_refcert bundle verify effect.rccbundle
 ```
 
 The example accepts basis state 0 and pools the other three outcomes into `no`. Of 1,000 shots on each preparation, 550 target shots and 250 reference shots give `yes`. One-sided Hoeffding endpoints with failure budget 1/40 per arm give a target response above 0.50705 and a reference response below 0.29295, jointly with at least 95% coverage. At generation tolerance 0.1 the direct route certifies at least 0.47457747 bits. In the eight-output model below this gives at least 0.15819249 atomic slots, or **at least one slot** for integer costs. The hypothesis-testing route at η = 1/2 certifies 0.44936061 bits on those same two events. The stronger valid route determines the reported bound.
@@ -191,9 +191,9 @@ On the declared ideal support, $\sigma_R=I/d_R$ gives $p_\rho\leq d_R b_U$ for t
 To use your own data, freeze the settings before collecting either batch:
 
 ```bash
-.venv/bin/python -m rcc_refcert bound template effect-protocol > effect-protocol.json
+python -m rcc_refcert bound template effect-protocol > effect-protocol.json
 # Edit the two state IDs, measurement, exhaustive labels, batch IDs, budgets and shot counts.
-.venv/bin/python -m rcc_refcert bound prepare-protocol effect-protocol.json > frozen-effect.json
+python -m rcc_refcert bound prepare-protocol effect-protocol.json > frozen-effect.json
 ```
 
 Use the normalized `protocol` from `frozen-effect.json` in your request.
@@ -208,7 +208,7 @@ physical readout definition, sampling dates and model premises with the study.
 
 - To try different synthetic counts, copy the example request to `effect-low.json`
   and set its target histogram to `{"yes":300,"no":700}`. Run
-  `.venv/bin/python -m rcc_refcert bound counts effect-low.json --bundle effect-low.rccbundle`.
+  `python -m rcc_refcert bound counts effect-low.json --bundle effect-low.rccbundle`.
   At this tolerance the contrast gives a zero lower bound, and the target
   acceptance falls below the hypothesis test's threshold.
 - For a **known reference response**, set `protocol.reference` to `{"kind":"exact","state_id":"uniform-C4","response":"1/4","source":"rank-one projector evaluated on I/4"}` and remove `data.reference`. A deterministic upper bound uses `upper_bound` with its supporting source. The target batch keeps its acquisition identity. A sampled reference with zero hits still contributes its statistical upper endpoint. A deterministic zero response on a full-rank uniform reference forces a zero effect on that support. With ideal readout, a single target hit then gives a support conflict. With a calibrated false-positive rate, observed hits can occur even when the ideal effect is zero. The calculation checks whether the calibrated target interval admits zero.
@@ -218,11 +218,11 @@ In Python, pass the same request to `rcc_refcert.bounds.bound_from_counts`. `pre
 
 ### Plan a fixed sample size
 
-How many trials give a 90% chance of certifying that the ideal target acceptance exceeds 0.8, if its true value is 0.9? Version 0.4.0 includes this example with a one-sided sampling failure budget of 0.05:
+How many trials give a 90% chance of certifying that the ideal target acceptance exceeds 0.8, if its true value is 0.9? Use a one-sided sampling failure budget of 0.05 in the planning request:
 
 ```bash
-.venv/bin/python -m rcc_refcert bound template sample-plan > plan.json
-.venv/bin/python -m rcc_refcert bound plan plan.json --counts-request planned-counts.json
+python -m rcc_refcert bound template sample-plan > plan.json
+python -m rcc_refcert bound plan plan.json --counts-request planned-counts.json
 ```
 
 | Target endpoint method | Minimum fixed trials | Minimum accepted outcomes | Design power |
@@ -270,8 +270,8 @@ and bundle names. The design power refers to the assumed response. The
 following commands calculate and verify the certificate for the observed counts:
 
 ```bash
-.venv/bin/python -m rcc_refcert bound counts planned-counts.json --bundle planned-study.rccbundle
-.venv/bin/python -m rcc_refcert bundle verify planned-study.rccbundle
+python -m rcc_refcert bound counts planned-counts.json --bundle planned-study.rccbundle
+python -m rcc_refcert bundle verify planned-study.rccbundle
 ```
 
 For an immediate **25-shot example**, generate a completed synthetic request with `bound template binomial-counts` and analyze it with `bound counts`. With 14 acceptances, known reference 1/4 and radius 0.1, the one-sided 95% Clopper–Pearson lower endpoint exceeds 0.3786. This certifies one integer slot in the eight-output model. The same observations under a prespecified Hoeffding analysis give zero slots. Choose the endpoint method during design. Both methods bind to their own frozen acquisition identities.
@@ -291,12 +291,28 @@ For ideal acceptance probability $p$, a known false-positive rate $f$ and false-
 
 Raw counts describe the observed readout. Each arm's response refers to the ideal binary effect. A sampled arm uses the one-sided observed interval appropriate to its role and the sign of the slope. The calculator intersects its inverse image with $[0,1]$. A constant readout can leave the full interval feasible. An empty intersection gives a readout conflict and no process cost. A deterministic reference response already refers to the ideal effect. With a negative slope the planning report counts the observed **reject** label as favourable evidence. The record retains the observed endpoint, its direction, and the inferred ideal interval. A matrix inferred with finite calibration uncertainty requires a different feasible-set calculation.
 
-**Arithmetic and scale.** Clopper–Pearson uses integer binomial-tail comparisons to enclose the endpoint on a grid of spacing $2^{-48}$, up to 4,096 observations per sampled arm. Power planning supports up to 1,024 target trials with observed design probabilities of at most 128 denominator bits. Exact comparisons determine design power against the requested level. Text and JSON display conservative rounded power values. Python callers can use `plan_counts`, `clopper_pearson_lower`, `clopper_pearson_upper` and `binary_readout_preimage` from `rcc_refcert.bounds`. The top-level package also exports `plan_counts`, `prepare_effect_protocol` and
-`with_reference_certificate`. Use exact fractions or decimal strings for portable
-JSON inputs. The `bound` command exits with status 2 for invalid, unsupported
-or budget-limited requests. `bound counts --bundle` accepts fixed-effect
-requests. `--output` writes a text or JSON report, and `--overwrite` allows
-an existing output to be replaced. [Paper-to-code map](PAPER_MAP.md#terminal-state-calculation-interfaces)
+**Arithmetic and scale.** Clopper–Pearson encloses each endpoint on a grid
+of spacing $2^{-48}$ using integer binomial-tail comparisons. Each sampled
+arm can contain up to 4,096 observations. The report rounds lower endpoints
+down and upper endpoints up. The JSON record preserves the exact endpoints.
+
+Power planning supports up to 1,024 target trials with observed design
+probabilities of at most 128 denominator bits. Exact comparisons determine
+whether a design reaches the requested power. Text and JSON give conservative
+rounded power values.
+
+**Python and file outputs.** The `rcc_refcert.bounds` module exports
+`plan_counts`, `clopper_pearson_lower`, `clopper_pearson_upper` and
+`binary_readout_preimage`. The top-level package also exports `plan_counts`,
+`prepare_effect_protocol` and `with_reference_certificate`. Use exact
+fractions or decimal strings for portable JSON inputs.
+
+Use `bound counts --bundle` to archive a fixed-effect calculation and
+`--output` to save a text or JSON report. Existing paths require
+`--overwrite`. Exit status 1 indicates a file-delivery problem. If a plan
+produces no counts request and the named file already exists, the message
+identifies it as an earlier run's file. Status 2 indicates invalid,
+unsupported or budget-limited input. [Paper-to-code map](PAPER_MAP.md#terminal-state-calculation-interfaces)
 
 ## Fixed eight-output model
 

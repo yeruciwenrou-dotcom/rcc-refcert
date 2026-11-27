@@ -289,6 +289,43 @@ def test_cli_exports_once_and_keeps_the_frozen_acquisition(tmp_path, capsys):
     assert main(command) == 2 and dest.read_bytes() == original
 
 
+def test_unsuccessful_plan_preserves_and_identifies_previous_counts_request(
+    tmp_path, capsys
+):
+    from rcc_refcert.cli import main
+
+    plan = tmp_path / "plan.json"
+    counts = tmp_path / "counts.json"
+    report = tmp_path / "report.json"
+    request = load_template("sample-plan")
+    plan.write_text(json.dumps(request))
+    command = [
+        "bound",
+        "plan",
+        str(plan),
+        "--format",
+        "json",
+        "--counts-request",
+        str(counts),
+    ]
+    assert main(command) == 0
+    capsys.readouterr()
+    original = counts.read_bytes()
+    request["max_samples"] = 1
+    plan.write_text(json.dumps(request))
+    assert main([*command, "--overwrite", "--output", str(report)]) == 1
+    streams = capsys.readouterr()
+    assert (
+        not streams.out and str(counts) in streams.err and "previous run" in streams.err
+    )
+    assert json.loads(report.read_text())["status"] == "search_limit_reached"
+    assert counts.read_bytes() == original
+    fresh = tmp_path / "fresh.json"
+    assert main([*command[:-1], str(fresh)]) == 0
+    assert json.loads(capsys.readouterr().out)["counts_request"] is None
+    assert not fresh.exists()
+
+
 def test_response_planning_keeps_the_declared_uniform_support():
     request = load_template("sample-plan")
     request["task"] = load_template("effect-counts")["task"]

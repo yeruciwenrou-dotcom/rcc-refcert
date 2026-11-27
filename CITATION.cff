@@ -16,7 +16,9 @@ abstract: >-
   Structural fairness takes the structure each background reliably supplies
   as its reference zero point. Controls and costs are fixed before target
   selection. Measuring the resources used to generate additional structure
-  on a common scale makes circuit complexity comparable across settings.
+  on a common scale gives each model a calibrated cost. A quantitative comparison
+  of optimal costs across models requires a common output domain and bounds on
+  the cost and error of translating programs between the models.
   A terminal-state certificate
   bounds the cost of every circuit that prepares the target to the stated
   accuracy. Researchers can build finite-control quantum models, verify
@@ -31,8 +33,8 @@ abstract: >-
   measurement, researchers can plan a sample size for a preparation-cost
   threshold and certify a lower bound from target and reference counts.
   Complete outcome histograms give confidence bounds on the RCC difference
-  between two states in the same classical measurement window. A shared analysis bundle carries the inputs and results for
-  independent recomputation.
+  between two states in the same classical measurement window. A shared analysis
+  bundle carries the inputs and results for independent recomputation.
 keywords:
   - quantum circuit complexity
   - structure-fairness

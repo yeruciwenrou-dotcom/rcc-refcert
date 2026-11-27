@@ -19,7 +19,7 @@ taken over all admissible successful preparation histories in a chosen model.
 |---|---|---|
 | Section II | formulates structural fairness and defines reference-contingent physical generation models and their qualification conditions | represents a finite-control instance with explicit references, controls, channels, codewords, and halting semantics |
 | Appendix F | constructs admissible native models, including an approximately universal qubit state-generation family, and proves the class is nonempty and nontrivial | reproduces rank coding, reference balance, selected nontrivial-generation constructions, and global-reset witnesses |
-| Appendix H | identifies finite-control semidensities, characterizes fixed-size domination by H.3, and supplies H.4/H.6 sufficient constructions | implements H.1–H.6 realization, fixed-point, domination, certificate, and gain–cost checks |
+| Appendix H | identifies finite-control semidensities, characterizes fixed-size domination by H.3, and supplies H.4/H.6 sufficient constructions | implements the realization, fixed-point, domination and certificate checks in H.1–H.4 and the gain–cost check in H.6. H.5 gives additional perturbation margins |
 | Section III and Appendix A | derive the RCC lower bound from the complete model hypotheses | evaluates uniform-reference exact-spectrum smoothing and canonical cost inversion under declared model inputs; the paired-reset example also verifies a matching one-slot preparation |
 | Section IV and Appendices B–D | convert terminal-state evidence, support treatment, calibration, and multiple audit paths into one-sided RCC lower-bound certificates | uses fixed-size counts, Hoeffding and Clopper–Pearson endpoints, fixed effects on the target and reference, known binary readout, and complete projective histograms. Compatible witnesses share a joint coverage ledger. A projected branch can carry a retention-weighted state reading |
 | Section II.D, Section V and Appendix E | define the state-side RCC value and reference-compatible observation windows | evaluates state-side RCC complexity in explicit subsystems using a uniform product reference and declared control bandwidth, including local/correlation contributions and candidate trajectories |
@@ -163,9 +163,12 @@ Full assumptions and the fixed eight-output example are in
 For the uniform reference on dimension $d$, a complete projective measurement
 with ranks $r_i$ induces weights $u_i=r_i/d$. Its classical algebra
 $\mathrm{span}\{P_i\}$ replaces each block by its maximally mixed state with
-the measured mass. The window reading in V.13 and E.7 is therefore
-$D(p\Vert u)/g_R$. A larger containing algebra gives the same one-sided
-inference by data processing. The counts workflow applies D.32 to the full
+the measured mass. Equation (V.13) gives the general lower bound. In the
+measured classical algebra, the reading equals $D(p\Vert u)/g_R$ by
+Appendix E, Section 7, Eqs. (E.32)–(E.33). The equality condition following
+(E.33) requires vanishing coherences between blocks and maximal mixing within
+each occupied block. For a containing quantum algebra, the counts give a
+one-sided lower bound by data processing. The counts workflow applies D.32 to the full
 predeclared alphabet of size $m$. For $m>1$ it uses the upper enclosure of
 $t=\min(1,\sqrt{\ln[(2^m-2)/\delta]/(2N)})$ in total variation about the
 empirical histogram $h$. For $m=1$ the only possible distribution is known.

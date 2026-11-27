@@ -200,9 +200,14 @@ def build_parser() -> argparse.ArgumentParser:
         ("replay", "recompute and compare a saved scalar bound record"),
     ):
         command = bound_commands.add_parser(name, help=help_text, description=help_text)
-        command.add_argument(
-            "input", type=Path, help="JSON request or saved replay record"
-        )
+        input_help = {
+            "spectrum": "JSON request with the target spectrum and preparation model",
+            "counts": "JSON request with the measurement protocol and observed counts",
+            "plan": "JSON design request with the measurement protocol, threshold and target power",
+            "prepare-protocol": "JSON measurement protocol or projector protocol request",
+            "replay": "saved JSON bound record to recompute",
+        }
+        command.add_argument("input", type=Path, help=input_help[name])
         command.add_argument(
             "--details", action="store_true", help="include calculation diagnostics"
         )

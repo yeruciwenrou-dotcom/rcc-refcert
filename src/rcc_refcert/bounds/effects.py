@@ -19,6 +19,7 @@ from .information import fixed_effect_information
 from .scalar import (
     BudgetError,
     InputError,
+    bit_text,
     ceil_fraction,
     decimal_string,
     probability_text,
@@ -500,7 +501,7 @@ def render_effect_record(record, *, details=False):
     floor = record["information_lower_bits"]
     if cost is None and floor is not None:
         lines.append(
-            f"One-shot information lower bound: {decimal_string(Fraction(floor), 8)} bits"
+            f"One-shot information lower bound: {bit_text(decimal_string(Fraction(floor), 8))}"
         )
     if cost is not None:
         lines.append(
@@ -586,14 +587,14 @@ def render_effect_record(record, *, details=False):
             direction = event["endpoint"]
             exact = event["observed_endpoint_exact"]
             rounding = ROUND_FLOOR if direction == "lower" else ROUND_CEILING
-            reading = exact if details else decimal_string(Fraction(exact), 8, rounding)
+            digits = 12 if details else 8
+            reading = decimal_string(Fraction(exact), digits, rounding)
             lines.append(f"    Observed {direction} endpoint: {reading}")
             ideal = event["ideal_feasible_interval"]
             if ideal is not None:
                 lo, hi = ideal
-                if not details:
-                    lo = decimal_string(Fraction(lo), 8)
-                    hi = decimal_string(Fraction(hi), 8, ROUND_CEILING)
+                lo = decimal_string(Fraction(lo), digits)
+                hi = decimal_string(Fraction(hi), digits, ROUND_CEILING)
                 lines.append(f"    Compatible ideal response interval: [{lo}, {hi}]")
         if "method" in event:
             method = {CP: "Clopper–Pearson", HOEFFDING: "Hoeffding"}[event["method"]]
@@ -608,7 +609,7 @@ def render_effect_record(record, *, details=False):
         label = route_labels[route["route"]]
         reason = route["reason"]
         if info:
-            result = f">= {decimal_string(Fraction(info['lower']), 8)} bits"
+            result = f">= {bit_text(decimal_string(Fraction(info['lower']), 8))}"
         elif reason and reason == record["support_diagnostic"]:
             affected.append(label)
             continue

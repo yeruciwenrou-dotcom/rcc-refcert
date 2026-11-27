@@ -497,7 +497,7 @@ def _window_bits(value):
 
 
 def window_report_lines(result, *, details=False):
-    from .render import _decision_label
+    from .render import _decision_label, density_check_lines
 
     ref = result["reference"]
     lines = ["RCC subsystem complexity profiles"]
@@ -525,27 +525,9 @@ def window_report_lines(result, *, details=False):
         if metadata:
             lines.append(f"  {metadata}")
         if profile["global_quantity"] is None:
-            lines.append(
-                "  Numerical input checks unresolved: "
-                + profile["input_diagnostics"].get("reason", "invalid state")
-            )
-            if details:
-                diagnostic = profile["input_diagnostics"]
-                if "trace_error" in diagnostic:
-                    tolerance = diagnostic["policy"]["tolerance"]
-                    lines.append(
-                        f"  Density tolerance {tolerance:.6g}: trace error {diagnostic['trace_error']:.6g}, "
-                        f"Hermiticity error {diagnostic['hermiticity_error']:.6g}, "
-                        f"minimum eigenvalue {diagnostic['minimum_eigenvalue']:.6g}."
-                    )
-                    lines.append(
-                        "  Check the normalization, Hermiticity and positivity of the input matrix."
-                    )
-                    if "perturbation_trace_norm_half" in diagnostic:
-                        lines.append(
-                            f"  Required correction {diagnostic['perturbation_trace_norm_half']:.6g}; "
-                            f"declared repair budget {diagnostic['policy']['repair_budget']:.6g}."
-                        )
+            reason, *checks = density_check_lines(profile["input_diagnostics"], details)
+            lines.append("  Numerical input checks unresolved: " + reason)
+            lines.extend("  " + check for check in checks)
             continue
         for q in [{"id": "global", **profile["global_quantity"]}, *profile["windows"]]:
             lines.append(
@@ -656,6 +638,7 @@ def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=Fals
         fig.clear()
         fig.set_size_inches(9, 3 * len(groups) + 1.2)
         panels = fig.subplots(len(groups), 1, sharex=True, sharey=True, squeeze=False)
+        legend_series = {}
         for (program, states), panel in zip(groups.items(), panels[:, 0]):
             series = {}
             for row in rows:
@@ -664,7 +647,7 @@ def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=Fals
                         row["state"]
                     ] = row["reading_st_R"]
             for (kind, label), values in series.items():
-                panel.plot(
+                (artist,) = panel.plot(
                     list(states.values()),
                     [values.get(state, float("nan")) for state in states],
                     marker="o",
@@ -674,17 +657,25 @@ def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=Fals
                     if kind == "subsystem" and label == "global"
                     else label,
                 )
+                legend_series.setdefault((kind, label), artist)
             panel.set_title(program, loc="left", fontsize=10, parse_math=False)
             panel.set_axisbelow(True)
             panel.grid(axis="y", color="0.9", linewidth=0.7)
-        handles, labels = panels[0, 0].get_legend_handles_labels()
-        if handles:
-            fig.legend(
-                handles, labels, loc="outside lower center", ncols=3, frameon=False
+        if legend_series:
+            handles = list(legend_series.values())
+            legend = fig.legend(
+                handles,
+                ["series"] * len(handles),
+                loc="outside lower center",
+                ncols=3,
+                frameon=False,
             )
+            for label, artist in zip(legend.get_texts(), handles):
+                label.set_text(artist.get_label())
+                label.set_parse_math(False)
         panels[-1, 0].set_xlabel("Preparation step")
         fig.supylabel(f"State-side RCC contribution ({calibration})")
-        fig.suptitle("Complexity through the preparation", fontweight="semibold")
+        fig.suptitle("Complexity through the preparation", fontweight="bold")
     else:
         colors = {
             "global": "#233858",
@@ -702,7 +693,7 @@ def export_window_files(result, *, csv_path=None, plot_path=None, overwrite=Fals
         ax.invert_yaxis()
         ax.set_xlabel(f"State-side RCC contribution ({calibration})")
         ax.set_title(
-            "Complexity profiles across subsystems", loc="left", fontweight="semibold"
+            "Complexity profiles across subsystems", loc="left", fontweight="bold"
         )
         ax.set_axisbelow(True)
         ax.grid(axis="x", color="0.9", linewidth=0.7)

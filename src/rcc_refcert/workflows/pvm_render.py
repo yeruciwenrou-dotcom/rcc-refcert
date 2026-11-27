@@ -10,7 +10,7 @@ from textwrap import TextWrapper
 from typing import NamedTuple
 
 from ..bounds.contracts import COUNT_ORIGIN_LABELS
-from ..bounds.scalar import decimal_string
+from ..bounds.scalar import bit_text, decimal_string
 from .pvm import _window_difference_lower
 
 
@@ -81,7 +81,7 @@ def window_scale_line(classes):
     relation = "=" if classes & (classes - 1) == 0 else "is approximately"
     return (
         f"Window scale: Gamma={classes} action classes, g_R=log2({classes}) bits per slot. "
-        f"1 st_R {relation} {bandwidth:.10g} bits."
+        f"1 st_R {relation} {bit_text(format(bandwidth, '.10g'))}."
     )
 
 
@@ -127,7 +127,9 @@ def render_pvm(record, *, markdown=False, details=False):
     missing_by_reason = {}
     rows = list(_rows(record))
     repeated = Counter((state, name) for state, name, *_ in rows)
-    for state, name, lo, hi, status, dataset, _, _ in rows:
+    by_event = {b["event_id"]: b for b in record["batches"]}
+    mixed_scopes = len({row[-1] for row in rows}) > 1
+    for state, name, lo, hi, status, dataset, event, scope in rows:
         if lo is None:
             value = status.replace("_", " ")
         else:
@@ -138,8 +140,15 @@ def render_pvm(record, *, markdown=False, details=False):
         label = f"{state} | {name}"
         if repeated[state, name] > 1:
             label += f" ({dataset})"
+        if mixed_scopes:
+            product = by_event[event]["product"]
+            if scope == "containing_quantum":
+                label += " (containing quantum window)"
+            elif product and name in product["marginals"]:
+                label += " (measured classical marginal)"
+            else:
+                label += " (measured classical window)"
         lines.append(f"{label}: {value}")
-    by_event = {b["event_id"]: b for b in record["batches"]}
     for comparison in record["comparisons"]:
         left, right = (by_event[event] for event in comparison["events"])
         lines.append(_comparison_line(left, right, comparison["difference_lower_st_R"]))
@@ -184,7 +193,7 @@ def render_pvm(record, *, markdown=False, details=False):
         for point in batch["process"]:
             cost = point["cost"]
             lines.append(
-                f"At trace-distance tolerance {point['epsilon']}, the one-shot information lower bound is {decimal_string(Fraction(point['one_shot_lower_bits']), 9)} bits."
+                f"At trace-distance tolerance {point['epsilon']}, the one-shot information lower bound is {bit_text(decimal_string(Fraction(point['one_shot_lower_bits']), 9))}."
             )
             if cost:
                 line = f"Preparation cost >= {decimal_string(Fraction(cost['lower_bound_slots']), 9)} slots"
@@ -329,7 +338,11 @@ def export_pvm(record, csv_path, plot_path, overwrite):
         }
         return
     fig, ax = figure
-    repeated = Counter((row.state, row.window) for row in rows)
+    datasets = {}
+    for row in rows:
+        datasets.setdefault((row.state, row.window, row.kind), set()).add(
+            row.dataset_id
+        )
     labels, positions = [], []
     height = 0.0
     color = "#266c85"
@@ -355,9 +368,9 @@ def export_pvm(record, csv_path, plot_path, overwrite):
                 }[row.kind]
             )
             if single_retention is None:
-                label += f" · {row.retained:,} retained / {row.discarded:,} discarded"
-        if repeated[row.state, row.window] > 1 and row.retained is None:
-            label += "\n" + wrap.fill(row.dataset_id)
+                label += f"\n{row.retained:,} retained / {row.discarded:,} discarded"
+        if len(datasets[row.state, row.window, row.kind]) > 1:
+            label += "\n" + TextWrapper(width=38).fill(row.dataset_id)
         if len(scopes) > 1:
             label += "\n" + scope_labels[row.window_scope]
         row_height = 0.13 + 0.21 * (1 + label.count("\n"))
@@ -427,7 +440,11 @@ def export_pvm(record, csv_path, plot_path, overwrite):
     handles, keys = ax.get_legend_handles_labels()
     if handles:
         fig.legend(
-            handles, keys, loc="outside lower center", ncols=len(keys), frameon=False
+            handles,
+            keys,
+            loc="outside lower center",
+            ncols=min(3, len(keys)),
+            frameon=False,
         )
     product = any(b["product"] for b in record["batches"])
     title = (
@@ -435,7 +452,7 @@ def export_pvm(record, csv_path, plot_path, overwrite):
         if product
         else "Finite-sample bounds on window RCC"
     )
-    fig.suptitle(title, fontweight="semibold")
+    fig.suptitle(title, fontweight="bold")
     coverage = decimal_string(100 * Fraction(record["coverage"]["at_least"]), 9)
     subtitle = f"Joint sampling coverage at least {coverage}%"
     if single_retention:
@@ -447,5 +464,5 @@ def export_pvm(record, csv_path, plot_path, overwrite):
     units = r"$\mathrm{st}_R$"
     if "atomic_action_classes" in record:
         units += rf", $\Gamma_R={record['atomic_action_classes']}$"
-    ax.set_xlabel(f"{quantity} ({units})")
+    ax.set_xlabel(f"{quantity}\n({units})")
     save_window_figure(fig, plot_path, overwrite)

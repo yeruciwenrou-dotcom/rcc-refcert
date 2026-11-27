@@ -240,7 +240,8 @@ def test_local_document_links_resolve() -> None:
     for path in [*paths, *(ROOT / "docs").glob("*.md")]:
         source = path.read_text(encoding="utf-8")
         if path.suffix == ".json":
-            source = json.loads(source)["description"]
+            fields = json.loads(source)
+            source = fields["description"] + "\n" + fields["notes"]
         links = re.findall(r"\[([^]\n]*)\]\(([^)\s]+)\)", source)
         links += [("", url) for url in re.findall(r'href="([^"]+)"', source)]
         for label, target in links:
@@ -275,9 +276,11 @@ def test_local_document_links_resolve() -> None:
                 )
                 assert unquote(url.fragment) in _anchors(document), (path, target)
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    pin = re.search(r"git switch --detach ([0-9a-f]{40})", readme)[1]
-    assert f"/archive/{pin}.zip" in readme
-    assert f"/commit/{pin}" in readme
+    pin = "v" + rcc_refcert.__version__
+    assert f"git switch --detach {pin}\n" in readme
+    assert f"/archive/refs/tags/{pin}.zip" in readme
+    assert f"/releases/tag/{pin}" in readme
+    assert 'id="040"' in (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     if _git_document(pin, "examples/half_erasure.json") is None:
         assert (ROOT / "examples/half_erasure.json").is_file()
 

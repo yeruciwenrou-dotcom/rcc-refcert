@@ -141,6 +141,15 @@ def decimal_string(q: Fraction, digits: int = 48, rounding: str = ROUND_FLOOR) -
     return str(ctx.divide(Decimal(q.numerator), Decimal(q.denominator)))
 
 
+def bit_text(number: str) -> str:
+    unit = (
+        "bit"
+        if number == "1" or (number.startswith("1.") and not number[2:].strip("0"))
+        else "bits"
+    )
+    return f"{number} {unit}"
+
+
 def probability_text(value) -> str:
     """Display an exact probability as a short percentage when possible."""
     q = Fraction(value)

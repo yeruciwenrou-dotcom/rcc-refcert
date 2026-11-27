@@ -214,8 +214,10 @@ calculation uses `rcc-refcert.fixed-effect-record`, version 1. A record preserve
 reference treatment, scalar enclosures, source hashes, and producer version.
 `replay` recomputes the same-version scalar result and compares it with the saved record.
 
-A completed zero bound exits 0; rejected inputs, unsupported contracts,
-resource limits, replay mismatches, and partial calculations exit 2.
+A completed zero bound exits 0. A report or supporting file that could not be
+delivered exits 1. The scientific report remains available, and standard error
+identifies the affected path. Rejected inputs, unsupported contracts, resource
+limits, replay mismatches and incomplete calculations exit 2.
 Deterministic spectrum records have no sampling confidence. Counts records
 state the one-sided coverage under the declared sampling model. All process
 bounds use the declared model premises. See

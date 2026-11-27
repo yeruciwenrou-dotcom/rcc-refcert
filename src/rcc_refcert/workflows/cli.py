@@ -474,7 +474,7 @@ def run(arguments):
                             **{f"{name}_path": path},
                             overwrite=arguments.overwrite,
                         )
-                    except OSError as exc:
+                    except (OSError, ValueError, RuntimeError) as exc:
                         _delivery_failed(result, name, path, exc)
                     else:
                         stop = view.get("execution", {}).get("reason") or ""
@@ -498,6 +498,11 @@ def run(arguments):
             "details": arguments.details,
             "width": arguments.width,
         }
+        if any(
+            item["state"] == "failed" for item in result.get("delivery", {}).values()
+        ):
+            for name, path in saved_outputs.items():
+                result["delivery"][name] = {"state": "saved", "path": str(path)}
         rendered = render_workflow_result(result, **view)
         if arguments.output is not None:
             try:

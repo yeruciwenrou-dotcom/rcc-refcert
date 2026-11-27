@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rcc-refcert"
 dynamic = ["version"]
-description = "Certify lower bounds on optimal quantum circuit complexity from final-state data, compare preparation costs and map complexity across subsystems"
+description = "Compute rigorous lower bounds on optimal quantum circuit complexity from final-state data, compare preparation costs and map complexity across subsystems"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT AND CC-BY-4.0"
@@ -22,6 +22,8 @@ keywords = [
   "quantum simulation",
   "open quantum systems",
   "quantum control",
+  "quantum state preparation",
+  "qiskit",
   "quantum circuit complexity",
   "circuit complexity",
   "certificate verification",
@@ -43,8 +45,8 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/yeruciwenrou-dotcom/rcc-refcert#readme"
-Changelog = "https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/yeruciwenrou-dotcom/rcc-refcert/tree/v0.4.0#readme"
+Changelog = "https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/CHANGELOG.md#040"
 Paper = "https://arxiv.org/abs/2509.18205"
 Repository = "https://github.com/yeruciwenrou-dotcom/rcc-refcert"
 

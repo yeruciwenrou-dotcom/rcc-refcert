@@ -31,9 +31,8 @@ python -m rcc_refcert bundle verify received.rccbundle --output received-verific
 ```
 
 Use the interpreter from your active installation. Verification itself needs
-only the installed package and bundle. Later examples in this guide use the
-[source quickstart](../README.md#install-from-source) and `.venv/bin/python` from the
-checkout root. The [installation instructions](../README.md#install-from-pypi) include Windows shell and encoding details.
+only the installed package and bundle. To run a script under `examples/`,
+use the [source quickstart](../README.md#install-from-source) from the checkout root. The [installation instructions](../README.md#install-from-pypi) include Windows shell and encoding details.
 
 `inspect` checks stored data, object bindings and result consistency. `verify`
 recomputes the analysis and compares fresh evidence with the saved history.
@@ -127,7 +126,7 @@ the complete example from the checkout:
 
 ```bash
 .venv/bin/python examples/cyclic_reset_workflow.py --bundle cyclic-reset.rccbundle
-.venv/bin/python -m rcc_refcert bundle verify cyclic-reset.rccbundle --output cyclic-reset-verification.json
+python -m rcc_refcert bundle verify cyclic-reset.rccbundle --output cyclic-reset-verification.json
 ```
 
 Use a new filename for each exported bundle and verification report. The
@@ -297,14 +296,14 @@ The shared computation budget applies before certificate verification. A
 different budget can be chosen explicitly:
 
 ```bash
-.venv/bin/python -m rcc_refcert bundle verify cyclic-reset.rccbundle --max-matrix-elements 2097152
+python -m rcc_refcert bundle verify cyclic-reset.rccbundle --max-matrix-elements 2097152
 ```
 
 Raising the budget permits more work; it does not alter scientific validity or
 improve numerical conditioning. A tolerance change is a separate choice:
 
 ```bash
-.venv/bin/python -m rcc_refcert bundle verify cyclic-reset.rccbundle --tolerance 1e-8 --output cyclic-reset-tol-1e-8.json
+python -m rcc_refcert bundle verify cyclic-reset.rccbundle --tolerance 1e-8 --output cyclic-reset-tol-1e-8.json
 ```
 
 For this example, the larger tolerance yields a larger conservative constant.
@@ -318,13 +317,13 @@ models, candidate preparation, and unresolved numerical states.
 
 ## Complete cost and window workflows
 
-From the 0.3 quickstart environment, save a complete cost task and verify it:
+With the installed 0.4.0 package, save a complete cost task and verify it:
 
 ```bash
-.venv/bin/python -m rcc_refcert cost template cyclic-reset > task.json
-.venv/bin/python -m rcc_refcert cost analyze task.json --bundle task.rccbundle
-.venv/bin/python -m rcc_refcert bundle inspect task.rccbundle
-.venv/bin/python -m rcc_refcert bundle verify task.rccbundle --output task-verification.json
+python -m rcc_refcert cost template cyclic-reset > task.json
+python -m rcc_refcert cost analyze task.json --bundle task.rccbundle
+python -m rcc_refcert bundle inspect task.rccbundle
+python -m rcc_refcert bundle verify task.rccbundle --output task-verification.json
 ```
 
 Use the same `--bundle` option with `window analyze` for state-window inputs.
@@ -332,6 +331,15 @@ These schema-2 archives save the full effective request, including the model,
 target basis and tensor labels, candidate words, reference scale, numerical
 policy and computation controls. Verification reconstructs the request,
 checks its evidence, executes candidates and recalculates windows.
+
+In a preset cost bundle, `request["effective"]` holds the expanded candidate
+programs and model. The original request preserves the preset invocation.
+To extend the study, copy the verified effective request, edit the copy and
+save the new calculation under a new filename.
+
+Use the original 0.3.0 reader for a known-state or numerical-model archive
+with a noninteger action-class count such as `Gamma = 5/2`. Version 0.4.0
+uses an integer number of action classes for these inputs.
 
 If a 0.3.0 archive contains a fraction with repeated signs, reverify it with
 0.3.0. For example, that version read `1/+-10` as `1/10`. The original request
