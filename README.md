@@ -23,20 +23,19 @@ target within tolerance is provably optimal if its cost matches the lower
 bound. If its cost is higher, the gap limits how much a better program for
 the same task could save.
 
-**How complexity varies across subsystems and states.** A density matrix
-lets you map complexity across the subsystems of a pure or mixed state.
-Counts for all outcomes of a projective measurement give a confidence
-interval for the state's RCC reading in the measured classical window.
-With the same measurement on two states, you can also compute a confidence
-interval for the difference between their readings.
+**How complexity varies across subsystems and states.** Two states with the
+same global RCC can have different subsystem profiles. Their density matrices
+show where the profiles differ, for pure and mixed states alike. Full outcome
+counts from the same projective measurement give confidence intervals for
+each state's RCC in that classical window and for the difference between
+their readings.
 
-**Hardware counts and measurement planning.** [Run the IBM Vigo example](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/FINITE_DATA_STUDIES.md#check-the-mapping-on-a-hardware-file)
-to import published counts from 1,024 shots of a single circuit on IBM's
-five-qubit processor. The same command reads counts from your own experiment
-when you specify which qubit each readout bit represents. For a planned binary
-measurement, the toolkit tells you how many shots to take and which hit counts
-would rule out preparation costs below a chosen threshold. It can account for
-known readout errors when certifying the bound from target and reference counts.
+**Hardware counts and measurement planning.** A prespecified binary measurement
+can rule out preparation costs below a chosen threshold without full state
+tomography. Plan how many shots to take and how many hits you need, then use
+target and reference counts to certify the bound with known readout errors.
+Use your own Qiskit counts or check bit order with 1,024 shots from the
+five-qubit [IBM Vigo processor](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/FINITE_DATA_STUDIES.md#check-the-mapping-on-a-hardware-file).
 
 **Independent verification.** Share the inputs and results in a single
 evidence bundle so a colleague can recompute the analysis.
@@ -83,40 +82,30 @@ state was produced.
 
 | Research task | What you can do |
 |---|---|
-| [Build a finite-control model for RCC certification](#work-with-your-own-model) | Separate the resources your apparatus supplies from the operations a preparation program pays for. In the resulting model you can check the combined output of all halting programs against the physical reference. |
-| [Verify a model's reference bound](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/CUSTOM_MODELS.md#prepare-and-verify-a-candidate) | Check a certificate you already have or, for a stable model, generate and verify a numerical candidate. You can reuse the verified reference bound to calculate complexity lower bounds for different targets in the same model. |
-| [Certify a lower bound on optimal circuit complexity](#target-spectra-and-measured-counts) | An exact target spectrum gives a cost below which no circuit in the model can prepare the target within tolerance. For an experiment, [plan how many shots to take](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/TERMINAL_BOUNDS.md#plan-a-fixed-sample-size) and use target and reference counts to certify a bound at the chosen confidence level. The [graph-state example](#graph-state-and-cooling-studies) shows how the choice of measurement affects that bound. |
-| [Compare preparation strategies](#preparation-costs-and-complexity-profiles) | Find which programs reach the target within tolerance and compare their costs. In an exact diagonal-preserving model, a successful program is optimal when its cost matches the lower bound. A better program could save at most the gap between that cost and the lower bound. The [cooling study](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/FINITE_DATA_STUDIES.md#three-qubit-algorithmic-cooling) proves that six slots are optimal for the full three-qubit target at trace-distance tolerance 1/50. |
-| [Measure pure-state complexity with window RCC](#compare-subsystem-complexity) | Subsystem profiles show how complexity is distributed within a pure state and where two states differ, even when their global RCC readings agree. For pure or mixed states, use [your own density matrix](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels) to [separate the contributions of local structure and correlations between subsystems](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/COST_AND_WINDOWS.md#read-local-and-correlation-contributions) and track both during preparation. Complete histograms from the same projective measurement [give a confidence interval for the difference between two states' RCC readings in that classical window](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/COST_AND_WINDOWS.md#finite-sample-windows). |
-| [Share a calculation for independent verification](#reverify-a-shared-analysis) | Share the original inputs and results in a single bundle. A colleague can use it to recompute the result independently. |
-| [Reproduce the paper's reference calculations](#reference-cases) | Rerun the bundled cases and compare the outputs with the frozen reference results. The [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/PAPER_MAP.md) links each calculation to the corresponding equations. |
+| [Build a finite-control model for RCC certification](#work-with-your-own-model) | Specify what the apparatus supplies and what each program pays for. Check the combined output of all halting programs against the physical reference. |
+| [Verify a model's reference bound](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/CUSTOM_MODELS.md#prepare-and-verify-a-candidate) | Reuse one verified bound across targets. For a stable model, you can also generate and verify a numerical candidate. |
+| [Certify a lower bound on optimal circuit complexity](#target-spectra-and-measured-counts) | Rule out cheaper preparations within tolerance using the target spectrum. With counts, [plan the measurement](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/TERMINAL_BOUNDS.md#plan-a-fixed-sample-size) and certify a bound at your chosen confidence level. |
+| [Compare preparation strategies](#preparation-costs-and-complexity-profiles) | In an exact diagonal-preserving model, the gap between a successful program's cost and the lower bound limits possible savings. A zero gap proves optimality, as in the [cooling study](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/FINITE_DATA_STUDIES.md#three-qubit-algorithmic-cooling). |
+| [Measure pure-state complexity with window RCC](#compare-subsystem-complexity) | Use [your density matrix](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/COST_AND_WINDOWS.md#your-own-matrix-and-tensor-labels) to separate [local and correlation contributions](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/COST_AND_WINDOWS.md#read-local-and-correlation-contributions). Complete histograms from the same projective measurement bound the [two-state RCC difference](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/COST_AND_WINDOWS.md#finite-sample-windows) in that window. |
+| [Share a calculation for independent verification](#reverify-a-shared-analysis) | A colleague can recompute your result from the inputs and records in a single evidence bundle. |
+| [Reproduce the paper's reference calculations](#reference-cases) | Check the outputs against the archived results and find the corresponding equations in the [paper-to-code map](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/PAPER_MAP.md). |
 
 ## New in 0.4.0
 
-**What you can do**
-
-- **Plan a measurement and certify a lower bound.** Choose a preparation-cost
-  threshold and an expected hit rate to find how many shots to take and how
-  many hits would certify the bound. Test it with target and reference counts,
-  accounting for known false-positive and false-negative rates.
-- **Compare window RCC between two states.** Full outcome counts from the same
-  projective measurement give a confidence interval for each state's RCC in
-  the measured classical window. If the interval for the difference excludes
-  zero, it tells you which state has the higher reading.
-- **Import hardware counts.** Read [Qiskit results](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/FINITE_DATA_STUDIES.md#your-counts-and-qiskit-registers)
-  from your own runs. Use the [archived IBM Vigo counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/FINITE_DATA_STUDIES.md#check-the-mapping-on-a-hardware-file)
-  to check which readout bit represents each qubit.
-
-**What the examples show**
-
-- **Six-qubit cluster state (simulated counts).** Each of the two alternating
-  X/Z settings certifies at least **one atomic slot**. Together they certify
-  at least **two slots**.
-- **Three-qubit cooling.** At trace-distance tolerance `1/50`, **six slots are
-  optimal** for the full three-qubit target.
-- **[Half-erasure channel](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/COST_AND_WINDOWS.md#build-a-half-erasure-channel).**
-  At tolerance `1/20`, the computed cost interval is **[3, 4] slots**.
-  The reachable populations independently establish the optimum at **four slots**.
+- **Plan a measurement.** Given a preparation-cost threshold and an expected
+  hit rate, [find the sample size](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/TERMINAL_BOUNDS.md#plan-a-fixed-sample-size)
+  and hit count needed. Certify the lower bound from target and reference
+  counts with calibrated false-positive and false-negative rates.
+- **Compare two measured states.** Complete histograms from the same projective
+  measurement give an [RCC difference interval](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/COST_AND_WINDOWS.md#finite-sample-windows).
+  If it excludes zero, it identifies the higher reading in that classical window.
+  Import [your Qiskit counts](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/FINITE_DATA_STUDIES.md#your-counts-and-qiskit-registers)
+  or check bit order with the [IBM Vigo data](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/FINITE_DATA_STUDIES.md#check-the-mapping-on-a-hardware-file).
+- **[Six-qubit cluster state](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/docs/FINITE_DATA_STUDIES.md#six-qubit-cluster-state) (simulated counts).**
+  The noisy state and the uniform reference have identical computational-basis
+  (Z) populations, so Z-only counts give a preparation-cost lower bound of zero.
+  With the same total number of shots, two alternating X/Z settings reveal
+  stabilizer correlations and certify a positive lower bound.
 
 [Full release notes](https://github.com/yeruciwenrou-dotcom/rcc-refcert/blob/v0.4.0/CHANGELOG.md#040)
 
@@ -138,7 +127,7 @@ In Windows PowerShell 5.1, use this command for the template step to save
 `spectrum.json` as ASCII:
 
 ```powershell
-python -m rcc_refcert bound template spectrum | Out-File -Encoding ascii -FilePath spectrum.json
+python -m rcc_refcert bound template spectrum | Out-File spectrum.json -Encoding ascii
 ```
 
 In the supplied model, every circuit that prepares the four-dimensional target
